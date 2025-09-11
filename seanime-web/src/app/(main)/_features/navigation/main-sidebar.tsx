@@ -1,5 +1,6 @@
 "use client"
 import { useLogout } from "@/api/hooks/auth.hooks"
+import { useAuth } from "@/contexts/auth-context"
 import { useGetExtensionUpdateData as useGetExtensionUpdateData } from "@/api/hooks/extensions.hooks"
 import { isLoginModalOpenAtom } from "@/app/(main)/_atoms/server-status.atoms"
 import { useSyncIsActive } from "@/app/(main)/_atoms/sync.atoms"
@@ -46,6 +47,37 @@ import { SiAnilist } from "react-icons/si"
 import { TbWorldDownload } from "react-icons/tb"
 import { nakamaModalOpenAtom, useNakamaStatus } from "../nakama/nakama-manager"
 import { PluginSidebarTray } from "../plugin/tray/plugin-sidebar-tray"
+
+// User profile info component
+function UserProfileInfo() {
+    const { user, isAdmin } = useAuth()
+    
+    if (!user) return null
+    
+    return (
+        <div className="text-xs text-[--muted]">
+            <span>@{user.username}</span>
+            {isAdmin && <span className="ml-2 text-brand-500 font-medium">Admin</span>}
+        </div>
+    )
+}
+
+// Site logout menu item component
+function SiteLogoutMenuItem() {
+    const { logout: siteLogout, user: authUser } = useAuth()
+    
+    if (!authUser) return null
+    
+    const handleSiteLogout = async () => {
+        await siteLogout()
+    }
+    
+    return (
+        <DropdownMenuItem onClick={handleSiteLogout}>
+            <BiLogOut /> Sign out from site
+        </DropdownMenuItem>
+    )
+}
 
 /**
  * @description
@@ -419,16 +451,20 @@ export function MainSidebar() {
                                 )}
                             >
                                 <Avatar size="sm" className="cursor-pointer" src={user?.viewer?.avatar?.medium || undefined} />
-                                {expandedSidebar && <p className="truncate">{user?.viewer?.name}</p>}
+                                {expandedSidebar && <div className="flex flex-col items-start">
+                                    <p className="truncate text-sm">{user?.viewer?.name}</p>
+                                    <UserProfileInfo />
+                                </div>}
                             </div>}
                             open={dropdownOpen}
                             onOpenChange={setDropdownOpen}
                         >
                             {!user.isSimulated ? <DropdownMenuItem onClick={confirmSignOut.open}>
-                                <BiLogOut /> Sign out
+                                <BiLogOut /> Sign out from AniList
                             </DropdownMenuItem> : <DropdownMenuItem onClick={() => setLoginModal(true)}>
                                 <BiLogIn /> Log in with AniList
                             </DropdownMenuItem>}
+                            <SiteLogoutMenuItem />
                         </DropdownMenu>
                     </div>}
                 </div>

@@ -20,6 +20,13 @@ import (
 //	@returns anilist.AnimeCollection
 //	@route /api/v1/anilist/collection [GET,POST]
 func (h *Handler) HandleGetAnimeCollection(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Set user context for AniList operations
+	h.App.SetUserFromContext(user)
 
 	bypassCache := c.Request().Method == "POST"
 
@@ -53,6 +60,13 @@ func (h *Handler) HandleGetAnimeCollection(c echo.Context) error {
 //	@returns anilist.AnimeCollection
 //	@route /api/v1/anilist/collection/raw [GET,POST]
 func (h *Handler) HandleGetRawAnimeCollection(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Set user context for AniList operations
+	h.App.SetUserFromContext(user)
 
 	bypassCache := c.Request().Method == "POST"
 
@@ -74,6 +88,13 @@ func (h *Handler) HandleGetRawAnimeCollection(c echo.Context) error {
 //	@returns true
 //	@route /api/v1/anilist/list-entry [POST]
 func (h *Handler) HandleEditAnilistListEntry(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Set user context for AniList operations
+	h.App.SetUserFromContext(user)
 
 	type body struct {
 		MediaId   *int                     `json:"mediaId"`
@@ -194,6 +215,13 @@ func (h *Handler) HandleGetAnilistStudioDetails(c echo.Context) error {
 //	@route /api/v1/anilist/list-entry [DELETE]
 //	@returns bool
 func (h *Handler) HandleDeleteAnilistListEntry(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Set user context for AniList operations
+	h.App.SetUserFromContext(user)
 
 	type body struct {
 		MediaId *int    `json:"mediaId"`
@@ -317,6 +345,13 @@ func (h *Handler) HandleAnilistListAnime(c echo.Context) error {
 		return h.RespondWithData(c, cached)
 	}
 
+	// Get user-specific token
+	user := h.getCurrentUser(c)
+	var token string
+	if user != nil {
+		token = h.App.GetUserAnilistTokenForUser(user)
+	}
+
 	ret, err := anilist.ListAnimeM(
 		p.Page,
 		p.Search,
@@ -330,7 +365,7 @@ func (h *Handler) HandleAnilistListAnime(c echo.Context) error {
 		p.Format,
 		&isAdult,
 		h.App.Logger,
-		h.App.GetUserAnilistToken(),
+		token,
 	)
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -378,6 +413,13 @@ func (h *Handler) HandleAnilistListRecentAiringAnime(c echo.Context) error {
 		return h.RespondWithData(c, cached)
 	}
 
+	// Get user-specific token
+	user := h.getCurrentUser(c)
+	var token string
+	if user != nil {
+		token = h.App.GetUserAnilistTokenForUser(user)
+	}
+
 	ret, err := anilist.ListRecentAiringAnimeM(
 		p.Page,
 		p.Search,
@@ -387,7 +429,7 @@ func (h *Handler) HandleAnilistListRecentAiringAnime(c echo.Context) error {
 		p.NotYetAired,
 		p.Sort,
 		h.App.Logger,
-		h.App.GetUserAnilistToken(),
+		token,
 	)
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -409,8 +451,17 @@ var anilistMissedSequelsCache = result.NewCache[int, []*anilist.BaseAnime]()
 //	@route /api/v1/anilist/list-missed-sequels [GET]
 //	@returns []anilist.BaseAnime
 func (h *Handler) HandleAnilistListMissedSequels(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
 
-	cached, ok := anilistMissedSequelsCache.Get(1)
+	// Set user context for AniList operations
+	h.App.SetUserFromContext(user)
+
+	// Use user-specific cache key
+	cacheKey := int(user.ID)
+	cached, ok := anilistMissedSequelsCache.Get(cacheKey)
 	if ok {
 		return h.RespondWithData(c, cached)
 	}
@@ -424,13 +475,13 @@ func (h *Handler) HandleAnilistListMissedSequels(c echo.Context) error {
 	ret, err := anilist.ListMissedSequels(
 		animeCollection,
 		h.App.Logger,
-		h.App.GetUserAnilistToken(),
+		h.App.GetUserAnilistTokenForUser(user),
 	)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	anilistMissedSequelsCache.SetT(1, ret, time.Hour*4)
+	anilistMissedSequelsCache.SetT(cacheKey, ret, time.Hour*4)
 
 	return h.RespondWithData(c, ret)
 }
@@ -446,7 +497,17 @@ var anilistStatsCache = result.NewCache[int, *anilist.Stats]()
 //	@route /api/v1/anilist/stats [GET]
 //	@returns anilist.Stats
 func (h *Handler) HandleGetAniListStats(c echo.Context) error {
-	cached, ok := anilistStatsCache.Get(0)
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Set user context for AniList operations
+	h.App.SetUserFromContext(user)
+
+	// Use user-specific cache key
+	cacheKey := int(user.ID)
+	cached, ok := anilistStatsCache.Get(cacheKey)
 	if ok {
 		return h.RespondWithData(c, cached)
 	}
@@ -464,7 +525,7 @@ func (h *Handler) HandleGetAniListStats(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	anilistStatsCache.SetT(0, ret, time.Hour*1)
+	anilistStatsCache.SetT(cacheKey, ret, time.Hour*1)
 
 	return h.RespondWithData(c, ret)
 }

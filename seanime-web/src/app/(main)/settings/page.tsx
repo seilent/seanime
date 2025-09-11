@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DEFAULT_TORRENT_CLIENT, DEFAULT_TORRENT_PROVIDER, settingsSchema, TORRENT_PROVIDER } from "@/lib/server/settings"
 import { __isElectronDesktop__, __isTauriDesktop__ } from "@/types/constants"
+import { useAuth } from "@/contexts/auth-context"
 import { useSetAtom } from "jotai"
 import { useAtom } from "jotai/react"
 import capitalize from "lodash/capitalize"
@@ -75,6 +76,7 @@ export default function Page() {
     const status = useServerStatus()
     const setServerStatus = useSetServerStatus()
     const router = useRouter()
+    const { isAdmin } = useAuth()
 
     const searchParams = useSearchParams()
 
@@ -162,18 +164,19 @@ export default function Page() {
                                 </div>
                             </div>
                             <div className="overflow-x-none lg:overflow-y-hidden overflow-y-scroll h-40 lg:h-auto rounded-[--radius-md] border lg:border-none space-y-1 lg:space-y-0">
-                                <TabsTrigger
-                                    value="seanime"
-                                    className="group"
-                                ><LuWandSparkles className="text-lg mr-3 transition-transform duration-200" /> App</TabsTrigger>
-                                {/* <TabsTrigger
-                                    value="local"
-                                    className="group"
-                                 ><LuUserCog className="text-lg mr-3 transition-transform duration-200" /> Local Account</TabsTrigger> */}
-                                <TabsTrigger
-                                    value="library"
-                                    className="group"
-                                ><IoLibrary className="text-lg mr-3 transition-transform duration-200" /> Anime Library</TabsTrigger>
+                                {/* Admin-only sections */}
+                                {isAdmin && (
+                                    <TabsTrigger
+                                        value="seanime"
+                                        className="group"
+                                    ><LuWandSparkles className="text-lg mr-3 transition-transform duration-200" /> App</TabsTrigger>
+                                )}
+                                {isAdmin && (
+                                    <TabsTrigger
+                                        value="library"
+                                        className="group"
+                                    ><IoLibrary className="text-lg mr-3 transition-transform duration-200" /> Anime Library</TabsTrigger>
+                                )}
 
                                 <div className="text-xs lg:text-[--muted] text-center py-1.5 uppercase px-3 border-gray-800 tracking-wide font-medium">
                                     Anime playback
@@ -191,56 +194,72 @@ export default function Page() {
                                     value="external-player-link"
                                     className="group"
                                 ><LuExternalLink className="text-lg mr-3 transition-transform duration-200" /> External Player Link</TabsTrigger>
-                                <TabsTrigger
-                                    value="mediastream"
-                                    className="relative group"
-                                ><MdOutlineBroadcastOnHome className="text-lg mr-3 transition-transform duration-200" /> Transcoding / Direct
-                                                                                                                         play</TabsTrigger>
+                                {/* Admin-only transcoding section */}
+                                {isAdmin && (
+                                    <TabsTrigger
+                                        value="mediastream"
+                                        className="relative group"
+                                    ><MdOutlineBroadcastOnHome className="text-lg mr-3 transition-transform duration-200" /> Transcoding / Direct play</TabsTrigger>
+                                )}
 
-                                <div className="text-xs lg:text-[--muted] text-center py-1.5 uppercase px-3 border-gray-800 tracking-wide font-medium">
-                                    Torrenting
-                                </div>
+                                {/* Admin-only torrenting section */}
+                                {isAdmin && (
+                                    <>
+                                        <div className="text-xs lg:text-[--muted] text-center py-1.5 uppercase px-3 border-gray-800 tracking-wide font-medium">
+                                            Torrenting
+                                        </div>
 
-                                <TabsTrigger
-                                    value="torrent"
-                                    className="group"
-                                ><CgPlayListSearch className="text-lg mr-3 transition-transform duration-200" /> Torrent Provider</TabsTrigger>
-                                <TabsTrigger
-                                    value="torrent-client"
-                                    className="group"
-                                ><MdOutlineDownloading className="text-lg mr-3 transition-transform duration-200" /> Torrent Client</TabsTrigger>
-                                <TabsTrigger
-                                    value="torrentstream"
-                                    className="relative group"
-                                ><SiBittorrent className="text-lg mr-3 transition-transform duration-200" /> Torrent Streaming</TabsTrigger>
-                                <TabsTrigger
-                                    value="debrid"
-                                    className="group"
-                                ><HiOutlineServerStack className="text-lg mr-3 transition-transform duration-200" /> Debrid Service</TabsTrigger>
+                                        <TabsTrigger
+                                            value="torrent"
+                                            className="group"
+                                        ><CgPlayListSearch className="text-lg mr-3 transition-transform duration-200" /> Torrent Provider</TabsTrigger>
+                                        <TabsTrigger
+                                            value="torrent-client"
+                                            className="group"
+                                        ><MdOutlineDownloading className="text-lg mr-3 transition-transform duration-200" /> Torrent Client</TabsTrigger>
+                                        <TabsTrigger
+                                            value="torrentstream"
+                                            className="relative group"
+                                        ><SiBittorrent className="text-lg mr-3 transition-transform duration-200" /> Torrent Streaming</TabsTrigger>
+                                        <TabsTrigger
+                                            value="debrid"
+                                            className="group"
+                                        ><HiOutlineServerStack className="text-lg mr-3 transition-transform duration-200" /> Debrid Service</TabsTrigger>
+                                    </>
+                                )}
 
                                 <div className="text-xs lg:text-[--muted] text-center py-1.5 uppercase px-3 border-gray-800 tracking-wide font-medium">
                                     Other features
                                 </div>
 
-                                <TabsTrigger
-                                    value="onlinestream"
-                                    className="group"
-                                ><CgMediaPodcast className="text-lg mr-3 transition-transform duration-200" /> Online Streaming</TabsTrigger>
+                                {/* Admin-only online streaming section */}
+                                {isAdmin && (
+                                    <TabsTrigger
+                                        value="onlinestream"
+                                        className="group"
+                                    ><CgMediaPodcast className="text-lg mr-3 transition-transform duration-200" /> Online Streaming</TabsTrigger>
+                                )}
 
                                 <TabsTrigger
                                     value="manga"
                                     className="group"
                                 ><FaBookReader className="text-lg mr-3 transition-transform duration-200" /> Manga</TabsTrigger>
-                                <TabsTrigger
-                                    value="nakama"
-                                    className="group relative"
-                                ><MdOutlineConnectWithoutContact className="text-lg mr-3 transition-transform duration-200" /> Nakama <GrTest
-                                    className="text-md text-orange-300/40 absolute right-2 lg:block hidden"
-                                /></TabsTrigger>
-                                <TabsTrigger
-                                    value="discord"
-                                    className="group"
-                                ><FaDiscord className="text-lg mr-3 transition-transform duration-200" /> Discord</TabsTrigger>
+                                {/* Admin-only nakama section */}
+                                {isAdmin && (
+                                    <TabsTrigger
+                                        value="nakama"
+                                        className="group relative"
+                                    ><MdOutlineConnectWithoutContact className="text-lg mr-3 transition-transform duration-200" /> Nakama <GrTest
+                                        className="text-md text-orange-300/40 absolute right-2 lg:block hidden"
+                                    /></TabsTrigger>
+                                )}
+                                {/* Admin-only discord section */}
+                                {isAdmin && (
+                                    <TabsTrigger
+                                        value="discord"
+                                        className="group"
+                                    ><FaDiscord className="text-lg mr-3 transition-transform duration-200" /> Discord</TabsTrigger>
+                                )}
 
                                 <div className="text-xs lg:text-[--muted] text-center py-1.5 uppercase px-3 border-gray-800 tracking-wide font-medium">
                                     Server & Interface
@@ -250,14 +269,13 @@ export default function Page() {
                                     value="ui"
                                     className="group"
                                 ><MdOutlinePalette className="text-lg mr-3 transition-transform duration-200" /> User Interface</TabsTrigger>
-                                {/* <TabsTrigger
-                                    value="cache"
-                                    className="group"
-                                 ><TbDatabaseExclamation className="text-lg mr-3 transition-transform duration-200" /> Cache</TabsTrigger> */}
-                                <TabsTrigger
-                                    value="logs"
-                                    className="group"
-                                ><LuBookKey className="text-lg mr-3 transition-transform duration-200" /> Logs & Cache</TabsTrigger>
+                                {/* Admin-only logs section */}
+                                {isAdmin && (
+                                    <TabsTrigger
+                                        value="logs"
+                                        className="group"
+                                    ><LuBookKey className="text-lg mr-3 transition-transform duration-200" /> Logs & Cache</TabsTrigger>
+                                )}
                             </div>
                         </SettingsNavCard>
 
@@ -493,32 +511,36 @@ export default function Page() {
                                             >
                                                 Record an issue
                                             </Button>
-                                            <Button
-                                                size="sm"
-                                                intent="primary-outline"
-                                                onClick={() => router.push('/admin/users')}
-                                                leftIcon={<HiOutlineServerStack className="transition-transform duration-200 group-hover:scale-110" />}
-                                                className="transition-all duration-200 hover:scale-105 hover:shadow-md group"
-                                            >
-                                                User Management
-                                            </Button>
+                                            {isAdmin && (
+                                                <Button
+                                                    size="sm"
+                                                    intent="primary-outline"
+                                                    onClick={() => router.push('/admin/users')}
+                                                    leftIcon={<HiOutlineServerStack className="transition-transform duration-200 group-hover:scale-110" />}
+                                                    className="transition-all duration-200 hover:scale-105 hover:shadow-md group"
+                                                >
+                                                    User Management
+                                                </Button>
+                                            )}
                                         </div>
 
                                         <ServerSettings isPending={isPending} />
 
                                     </TabsContent>
 
-                                    <TabsContent value="library" className={tabContentClass}>
+                                    {isAdmin && (
+                                        <TabsContent value="library" className={tabContentClass}>
 
-                                        <SettingsPageHeader
-                                            title="Anime Library"
-                                            description="Manage your local anime library"
-                                            icon={LuLibrary}
-                                        />
+                                            <SettingsPageHeader
+                                                title="Anime Library"
+                                                description="Manage your local anime library"
+                                                icon={LuLibrary}
+                                            />
 
-                                        <LibrarySettings isPending={isPending} />
+                                            <LibrarySettings isPending={isPending} />
 
-                                    </TabsContent>
+                                        </TabsContent>
+                                    )}
 
                                     <TabsContent value="local" className={tabContentClass}>
 
@@ -532,94 +554,100 @@ export default function Page() {
 
                                     </TabsContent>
 
-                                    <TabsContent value="onlinestream" className={tabContentClass}>
+                                    {isAdmin && (
+                                        <TabsContent value="onlinestream" className={tabContentClass}>
 
-                                        <SettingsPageHeader
-                                            title="Online Streaming"
-                                            description="Configure online streaming settings"
-                                            icon={CgMediaPodcast}
-                                        />
-
-                                        <SettingsCard>
-                                            <Field.Switch
-                                                side="right"
-                                                name="enableOnlinestream"
-                                                label="Enable"
-                                                help="Watch anime episodes from online sources."
+                                            <SettingsPageHeader
+                                                title="Online Streaming"
+                                                description="Configure online streaming settings"
+                                                icon={CgMediaPodcast}
                                             />
-                                        </SettingsCard>
 
-                                        <SettingsCard title="My library">
-                                            <Field.Switch
-                                                side="right"
-                                                name="includeOnlineStreamingInLibrary"
-                                                label="Include in library"
-                                                help="Add non-downloaded shows that are in your currently watching list to 'My library' for streaming"
+                                            <SettingsCard>
+                                                <Field.Switch
+                                                    side="right"
+                                                    name="enableOnlinestream"
+                                                    label="Enable"
+                                                    help="Watch anime episodes from online sources."
+                                                />
+                                            </SettingsCard>
+
+                                            <SettingsCard title="My library">
+                                                <Field.Switch
+                                                    side="right"
+                                                    name="includeOnlineStreamingInLibrary"
+                                                    label="Include in library"
+                                                    help="Add non-downloaded shows that are in your currently watching list to 'My library' for streaming"
+                                                />
+                                            </SettingsCard>
+
+                                            <SettingsSubmitButton isPending={isPending} />
+
+                                        </TabsContent>
+                                    )}
+
+                                    {isAdmin && (
+                                        <TabsContent value="discord" className={tabContentClass}>
+
+                                            <SettingsPageHeader
+                                                title="Discord"
+                                                description="Configure Discord rich presence settings"
+                                                icon={FaDiscord}
                                             />
-                                        </SettingsCard>
 
-                                        <SettingsSubmitButton isPending={isPending} />
+                                            <DiscordRichPresenceSettings />
 
-                                    </TabsContent>
+                                            <SettingsSubmitButton isPending={isPending} />
 
-                                    <TabsContent value="discord" className={tabContentClass}>
+                                        </TabsContent>
+                                    )}
 
-                                        <SettingsPageHeader
-                                            title="Discord"
-                                            description="Configure Discord rich presence settings"
-                                            icon={FaDiscord}
-                                        />
+                                    {isAdmin && (
+                                        <TabsContent value="torrent" className={tabContentClass}>
 
-                                        <DiscordRichPresenceSettings />
-
-                                        <SettingsSubmitButton isPending={isPending} />
-
-                                    </TabsContent>
-
-                                    <TabsContent value="torrent" className={tabContentClass}>
-
-                                        <SettingsPageHeader
-                                            title="Torrent Provider"
-                                            description="Configure the torrent provider"
-                                            icon={CgPlayListSearch}
-                                        />
-
-                                        <SettingsCard>
-                                            <Field.Select
-                                                name="torrentProvider"
-                                                // label="Torrent Provider"
-                                                help="Used by the search engine and auto downloader. AnimeTosho is recommended for better results. Select 'None' if you don't need torrent support."
-                                                leftIcon={<RiFolderDownloadFill className="text-orange-500" />}
-                                                options={[
-                                                    ...(torrentProviderExtensions?.filter(ext => ext?.settings?.type === "main")?.map(ext => ({
-                                                        label: ext.name,
-                                                        value: ext.id,
-                                                    })) ?? []).sort((a, b) => a?.label?.localeCompare(b?.label) ?? 0),
-                                                    { label: "None", value: TORRENT_PROVIDER.NONE },
-                                                ]}
+                                            <SettingsPageHeader
+                                                title="Torrent Provider"
+                                                description="Configure the torrent provider"
+                                                icon={CgPlayListSearch}
                                             />
-                                        </SettingsCard>
+
+                                            <SettingsCard>
+                                                <Field.Select
+                                                    name="torrentProvider"
+                                                    // label="Torrent Provider"
+                                                    help="Used by the search engine and auto downloader. AnimeTosho is recommended for better results. Select 'None' if you don't need torrent support."
+                                                    leftIcon={<RiFolderDownloadFill className="text-orange-500" />}
+                                                    options={[
+                                                        ...(torrentProviderExtensions?.filter(ext => ext?.settings?.type === "main")?.map(ext => ({
+                                                            label: ext.name,
+                                                            value: ext.id,
+                                                        })) ?? []).sort((a, b) => a?.label?.localeCompare(b?.label) ?? 0),
+                                                        { label: "None", value: TORRENT_PROVIDER.NONE },
+                                                    ]}
+                                                />
+                                            </SettingsCard>
 
 
-                                        {/*<Separator />*/}
+                                            {/*<Separator />*/}
 
-                                        {/*<h3>DNS over HTTPS</h3>*/}
+                                            {/*<h3>DNS over HTTPS</h3>*/}
 
-                                        {/*<Field.Select*/}
-                                        {/*    name="dohProvider"*/}
-                                        {/*    // label="Torrent Provider"*/}
-                                        {/*    help="Choose a DNS over HTTPS provider to resolve domain names for torrent search."*/}
-                                        {/*    leftIcon={<FcFilingCabinet className="-500" />}*/}
-                                        {/*    options={[*/}
-                                        {/*        { label: "None", value: "-" },*/}
-                                        {/*        { label: "Cloudflare", value: "cloudflare" },*/}
-                                        {/*        { label: "Quad9", value: "quad9" },*/}
-                                        {/*    ]}*/}
-                                        {/*/>*/}
+                                            {/*<Field.Select*/}
+                                            {/*    name="dohProvider"*/}
+                                            {/*    // label="Torrent Provider"*/}
+                                            {/*    help="Choose a DNS over HTTPS provider to resolve domain names for torrent search."*/}
+                                            {/*    leftIcon={<FcFilingCabinet className="-500" />}*/}
+                                            {/*    options={[*/}
+                                            {/*        { label: "None", value: "-" },*/}
+                                            {/*        { label: "Cloudflare", value: "cloudflare" },*/}
+                                            {/*        { label: "Quad9", value: "quad9" },*/}
+                                            {/*    ]}*/}
+                                            {/*/>*/}
 
-                                        <SettingsSubmitButton isPending={isPending} />
+                                            <SettingsSubmitButton isPending={isPending} />
 
-                                    </TabsContent>
+                                        </TabsContent>
+                                    )}
 
                                     <TabsContent value="media-player" className={tabContentClass}>
                                         <MediaplayerSettings isPending={isPending} />
@@ -634,133 +662,137 @@ export default function Page() {
                                         <PlaybackSettings />
                                     </TabsContent>
 
-                                    <TabsContent value="torrent-client" className={tabContentClass}>
+                                    {isAdmin && (
+                                        <TabsContent value="torrent-client" className={tabContentClass}>
 
-                                        <SettingsPageHeader
-                                            title="Torrent Client"
-                                            description="Configure the torrent client"
-                                            icon={MdOutlineDownloading}
-                                        />
-
-                                        <SettingsCard>
-                                            <Field.Select
-                                                name="defaultTorrentClient"
-                                                label="Default torrent client"
-                                                options={[
-                                                    { label: "qBittorrent", value: "qbittorrent" },
-                                                    { label: "Transmission", value: "transmission" },
-                                                    { label: "None", value: "none" },
-                                                ]}
+                                            <SettingsPageHeader
+                                                title="Torrent Client"
+                                                description="Configure the torrent client"
+                                                icon={MdOutlineDownloading}
                                             />
-                                        </SettingsCard>
 
-                                        <SettingsCard>
-                                            <Accordion
-                                                type="single"
-                                                className=""
-                                                triggerClass="text-[--muted] dark:data-[state=open]:text-white px-0 dark:hover:bg-transparent hover:bg-transparent dark:hover:text-white hover:text-black transition-all duration-200 hover:translate-x-1"
-                                                itemClass="border-b border-[--border] rounded-[--radius] transition-all duration-200 hover:border-[--brand]/30"
-                                                contentClass="pb-8 animate-in slide-in-from-top-2 duration-300"
-                                                collapsible
-                                                defaultValue={status?.settings?.torrent?.defaultTorrentClient}
-                                            >
-                                                <AccordionItem value="qbittorrent">
-                                                    <AccordionTrigger>
-                                                        <h4 className="flex gap-2 items-center"><ImDownload className="text-blue-400" /> qBittorrent
-                                                        </h4>
-                                                    </AccordionTrigger>
-                                                    <AccordionContent className="p-0 py-4 space-y-4">
-                                                        <Field.Text
-                                                            name="qbittorrentHost"
-                                                            label="Host"
-                                                        />
-                                                        <div className="flex flex-col md:flex-row gap-4">
+                                            <SettingsCard>
+                                                <Field.Select
+                                                    name="defaultTorrentClient"
+                                                    label="Default torrent client"
+                                                    options={[
+                                                        { label: "qBittorrent", value: "qbittorrent" },
+                                                        { label: "Transmission", value: "transmission" },
+                                                        { label: "None", value: "none" },
+                                                    ]}
+                                                />
+                                            </SettingsCard>
+
+                                            <SettingsCard>
+                                                <Accordion
+                                                    type="single"
+                                                    className=""
+                                                    triggerClass="text-[--muted] dark:data-[state=open]:text-white px-0 dark:hover:bg-transparent hover:bg-transparent dark:hover:text-white hover:text-black transition-all duration-200 hover:translate-x-1"
+                                                    itemClass="border-b border-[--border] rounded-[--radius] transition-all duration-200 hover:border-[--brand]/30"
+                                                    contentClass="pb-8 animate-in slide-in-from-top-2 duration-300"
+                                                    collapsible
+                                                    defaultValue={status?.settings?.torrent?.defaultTorrentClient}
+                                                >
+                                                    <AccordionItem value="qbittorrent">
+                                                        <AccordionTrigger>
+                                                            <h4 className="flex gap-2 items-center"><ImDownload className="text-blue-400" /> qBittorrent
+                                                            </h4>
+                                                        </AccordionTrigger>
+                                                        <AccordionContent className="p-0 py-4 space-y-4">
                                                             <Field.Text
-                                                                name="qbittorrentUsername"
-                                                                label="Username"
+                                                                name="qbittorrentHost"
+                                                                label="Host"
                                                             />
+                                                            <div className="flex flex-col md:flex-row gap-4">
+                                                                <Field.Text
+                                                                    name="qbittorrentUsername"
+                                                                    label="Username"
+                                                                />
+                                                                <Field.Text
+                                                                    name="qbittorrentPassword"
+                                                                    label="Password"
+                                                                />
+                                                                <Field.Number
+                                                                    name="qbittorrentPort"
+                                                                    label="Port"
+                                                                    formatOptions={{
+                                                                        useGrouping: false,
+                                                                    }}
+                                                                />
+                                                            </div>
                                                             <Field.Text
-                                                                name="qbittorrentPassword"
-                                                                label="Password"
-                                                            />
-                                                            <Field.Number
-                                                                name="qbittorrentPort"
-                                                                label="Port"
-                                                                formatOptions={{
-                                                                    useGrouping: false,
-                                                                }}
-                                                            />
-                                                        </div>
-                                                        <Field.Text
-                                                            name="qbittorrentPath"
-                                                            label="Executable"
-                                                        />
-                                                        <Field.Text
-                                                            name="qbittorrentTags"
-                                                            label="Tags"
-                                                            help="Comma separated tags to apply to downloaded torrents. e.g. seanime,anime"
-                                                        />
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                                <AccordionItem value="transmission">
-                                                    <AccordionTrigger>
-                                                        <h4 className="flex gap-2 items-center">
-                                                            <ImDownload className="text-orange-200" /> Transmission</h4>
-                                                    </AccordionTrigger>
-                                                    <AccordionContent className="p-0 py-4 space-y-4">
-                                                        <Field.Text
-                                                            name="transmissionHost"
-                                                            label="Host"
-                                                        />
-                                                        <div className="flex flex-col md:flex-row gap-4">
-                                                            <Field.Text
-                                                                name="transmissionUsername"
-                                                                label="Username"
+                                                                name="qbittorrentPath"
+                                                                label="Executable"
                                                             />
                                                             <Field.Text
-                                                                name="transmissionPassword"
-                                                                label="Password"
+                                                                name="qbittorrentTags"
+                                                                label="Tags"
+                                                                help="Comma separated tags to apply to downloaded torrents. e.g. seanime,anime"
                                                             />
-                                                            <Field.Number
-                                                                name="transmissionPort"
-                                                                label="Port"
-                                                                formatOptions={{
-                                                                    useGrouping: false,
-                                                                }}
+                                                        </AccordionContent>
+                                                    </AccordionItem>
+                                                    <AccordionItem value="transmission">
+                                                        <AccordionTrigger>
+                                                            <h4 className="flex gap-2 items-center">
+                                                                <ImDownload className="text-orange-200" /> Transmission</h4>
+                                                        </AccordionTrigger>
+                                                        <AccordionContent className="p-0 py-4 space-y-4">
+                                                            <Field.Text
+                                                                name="transmissionHost"
+                                                                label="Host"
                                                             />
-                                                        </div>
-                                                        <Field.Text
-                                                            name="transmissionPath"
-                                                            label="Executable"
-                                                        />
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                            </Accordion>
-                                        </SettingsCard>
+                                                            <div className="flex flex-col md:flex-row gap-4">
+                                                                <Field.Text
+                                                                    name="transmissionUsername"
+                                                                    label="Username"
+                                                                />
+                                                                <Field.Text
+                                                                    name="transmissionPassword"
+                                                                    label="Password"
+                                                                />
+                                                                <Field.Number
+                                                                    name="transmissionPort"
+                                                                    label="Port"
+                                                                    formatOptions={{
+                                                                        useGrouping: false,
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <Field.Text
+                                                                name="transmissionPath"
+                                                                label="Executable"
+                                                            />
+                                                        </AccordionContent>
+                                                    </AccordionItem>
+                                                </Accordion>
+                                            </SettingsCard>
 
-                                        <SettingsCard title="User Interface">
-                                            <Field.Switch
-                                                side="right"
-                                                name="hideTorrentList"
-                                                label="Hide torrent list navigation icon"
-                                            />
-                                            <Field.Switch
-                                                side="right"
-                                                name="showActiveTorrentCount"
-                                                label="Show active torrent count"
-                                                help="Show the number of active torrents in the sidebar. (Memory intensive)"
-                                            />
-                                        </SettingsCard>
+                                            <SettingsCard title="User Interface">
+                                                <Field.Switch
+                                                    side="right"
+                                                    name="hideTorrentList"
+                                                    label="Hide torrent list navigation icon"
+                                                />
+                                                <Field.Switch
+                                                    side="right"
+                                                    name="showActiveTorrentCount"
+                                                    label="Show active torrent count"
+                                                    help="Show the number of active torrents in the sidebar. (Memory intensive)"
+                                                />
+                                            </SettingsCard>
 
-                                        <SettingsSubmitButton isPending={isPending} />
+                                            <SettingsSubmitButton isPending={isPending} />
 
-                                    </TabsContent>
+                                        </TabsContent>
+                                    )}
 
-                                    <TabsContent value="nakama" className={tabContentClass}>
+                                    {isAdmin && (
+                                        <TabsContent value="nakama" className={tabContentClass}>
 
-                                        <NakamaSettings isPending={isPending} />
+                                            <NakamaSettings isPending={isPending} />
 
-                                    </TabsContent>
+                                        </TabsContent>
+                                    )}
                                 </>
                             }}
                         </Form>
@@ -777,17 +809,19 @@ export default function Page() {
 
                          </TabsContent> */}
 
-                        <TabsContent value="mediastream" className={tabContentClass}>
+                        {isAdmin && (
+                            <TabsContent value="mediastream" className={tabContentClass}>
 
-                            <SettingsPageHeader
-                                title="Transcoding / Direct play"
-                                description="Manage transcoding and direct play settings"
-                                icon={MdOutlineBroadcastOnHome}
-                            />
+                                <SettingsPageHeader
+                                    title="Transcoding / Direct play"
+                                    description="Manage transcoding and direct play settings"
+                                    icon={MdOutlineBroadcastOnHome}
+                                />
 
-                            <MediastreamSettings />
+                                <MediastreamSettings />
 
-                        </TabsContent>
+                            </TabsContent>
+                        )}
 
                         <TabsContent value="ui" className={tabContentClass}>
 
@@ -801,40 +835,44 @@ export default function Page() {
 
                         </TabsContent>
 
-                        <TabsContent value="torrentstream" className={tabContentClass}>
+                        {isAdmin && (
+                            <TabsContent value="torrentstream" className={tabContentClass}>
 
-                            <SettingsPageHeader
-                                title="Torrent Streaming"
-                                description="Configure torrent streaming settings"
-                                icon={SiBittorrent}
-                            />
+                                <SettingsPageHeader
+                                    title="Torrent Streaming"
+                                    description="Configure torrent streaming settings"
+                                    icon={SiBittorrent}
+                                />
 
-                            <TorrentstreamSettings settings={torrentstreamSettings} />
+                                <TorrentstreamSettings settings={torrentstreamSettings} />
 
-                        </TabsContent>
+                            </TabsContent>
+                        )}
 
-                        <TabsContent value="logs" className={tabContentClass}>
+                        {isAdmin && (
+                            <TabsContent value="logs" className={tabContentClass}>
 
-                            <SettingsPageHeader
-                                title="Logs"
-                                description="View the logs"
-                                icon={LuBookKey}
-                            />
+                                <SettingsPageHeader
+                                    title="Logs"
+                                    description="View the logs"
+                                    icon={LuBookKey}
+                                />
 
 
-                            <LogsSettings />
+                                <LogsSettings />
 
-                            <Separator />
+                                <Separator />
 
-                            <SettingsPageHeader
-                                title="Cache"
-                                description="Manage the cache"
-                                icon={TbDatabaseExclamation}
-                            />
+                                <SettingsPageHeader
+                                    title="Cache"
+                                    description="Manage the cache"
+                                    icon={TbDatabaseExclamation}
+                                />
 
-                            <FilecacheSettings />
+                                <FilecacheSettings />
 
-                        </TabsContent>
+                            </TabsContent>
+                        )}
 
 
                         {/*<TabsContent value="data" className="space-y-4">*/}
@@ -843,17 +881,19 @@ export default function Page() {
 
                         {/*</TabsContent>*/}
 
-                        <TabsContent value="debrid" className={tabContentClass}>
+                        {isAdmin && (
+                            <TabsContent value="debrid" className={tabContentClass}>
 
-                            <SettingsPageHeader
-                                title="Debrid Service"
-                                description="Configure your debrid service integration"
-                                icon={HiOutlineServerStack}
-                            />
+                                <SettingsPageHeader
+                                    title="Debrid Service"
+                                    description="Configure your debrid service integration"
+                                    icon={HiOutlineServerStack}
+                                />
 
-                            <DebridSettings />
+                                <DebridSettings />
 
-                        </TabsContent>
+                            </TabsContent>
+                        )}
                     </div>
                 </Tabs>
                 {/*</Card>*/}

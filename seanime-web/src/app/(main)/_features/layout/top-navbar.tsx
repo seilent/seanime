@@ -12,7 +12,6 @@ import { AppSidebarTrigger } from "@/components/ui/app-layout"
 import { cn } from "@/components/ui/core/styling"
 import { Separator } from "@/components/ui/separator/separator"
 import { VerticalMenu } from "@/components/ui/vertical-menu"
-import { UserMenu } from "@/components/auth/user-menu"
 import { useThemeSettings } from "@/lib/theme/hooks"
 import { __isDesktop__ } from "@/types/constants"
 import { useSetAtom } from "jotai/react"
@@ -56,8 +55,7 @@ export function TopNavbar(props: TopNavbarProps) {
                         <PluginSidebarTray place="top" />
                         {!isOffline && <ChapterDownloadsButton />}
                         {!isOffline && <RefreshAnilistButton />}
-                        <UserMenu />
-                    </div>
+                            </div>
                 </div>
                 <LayoutHeaderBackground />
             </div>
