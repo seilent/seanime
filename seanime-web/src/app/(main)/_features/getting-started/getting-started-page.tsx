@@ -83,6 +83,13 @@ const stepVariants = {
 
 const STEPS = [
     {
+        id: "admin",
+        title: "Admin Account",
+        description: "Create your administrator account",
+        icon: BiCog,
+        gradient: "from-emerald-500 to-teal-500",
+    },
+    {
         id: "library",
         title: "Anime Library",
         description: "Choose your anime collection folder",
@@ -238,6 +245,74 @@ function StepCard({ children, className, ...props }: CardProps) {
     )
 }
 
+
+function AdminStep({ form }: { form: any }) {
+    return (
+        <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="space-y-8"
+        >
+            <motion.div variants={itemVariants} className="text-center space-y-4">
+                <h2 className="text-3xl font-bold">Admin Account Setup</h2>
+                <p className="text-[--muted] text-sm max-w-lg mx-auto">
+                    Create your administrator account to manage Seanime and other users. This will be your login credentials.
+                </p>
+            </motion.div>
+
+            <StepCard className="max-w-2xl mx-auto">
+                <motion.div variants={itemVariants} className="space-y-6">
+                    <div className="text-center space-y-2">
+                        <div className="flex items-center justify-center space-x-3 mb-4">
+                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                                <BiCog className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-xl font-semibold">Server Administrator</h3>
+                        </div>
+                        <p className="text-sm text-[--muted]">
+                            As an admin, you'll be able to create additional user accounts for your friends.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <Field.Text
+                            name="adminUsername"
+                            label="Admin Username"
+                            placeholder="Enter admin username"
+                            help="This will be your login username"
+                            required
+                        />
+                        <Field.Text
+                            name="adminPassword"
+                            label="Admin Password"
+                            type="password"
+                            placeholder="Enter a secure password"
+                            help="Choose a strong password for security"
+                            required
+                        />
+                        <Field.Text
+                            name="adminDisplayName"
+                            label="Display Name (Optional)"
+                            placeholder="Enter display name"
+                            help="How your name will appear in the interface"
+                        />
+                    </div>
+
+                    <Alert
+                        intent="info-basic"
+                        description={
+                            <p>
+                                You'll use these credentials to log in to Seanime. After setup, you can create additional user accounts from the settings page.
+                            </p>
+                        }
+                    />
+                </motion.div>
+            </StepCard>
+        </motion.div>
+    )
+}
 
 function LibraryStep({ form }: { form: any }) {
     return (
@@ -692,58 +767,6 @@ function FeaturesStep({ form }: { form: any }) {
                     </motion.div>
                 ))}
             </div>
-
-            {/* Admin Account Setup Section */}
-            <motion.div variants={itemVariants} className="mt-12">
-                <StepCard className="max-w-2xl mx-auto">
-                    <motion.div variants={itemVariants} className="space-y-6">
-                        <div className="text-center space-y-2">
-                            <div className="flex items-center justify-center space-x-3 mb-4">
-                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                                    <BiCog className="w-6 h-6 text-white" />
-                                </div>
-                                <h3 className="text-xl font-semibold">Admin Account Setup</h3>
-                            </div>
-                            <p className="text-sm text-[--muted]">
-                                Create your administrator account to manage Seanime and other users.
-                            </p>
-                        </div>
-
-                        <div className="space-y-4">
-                            <Field.Text
-                                name="adminUsername"
-                                label="Admin Username"
-                                placeholder="Enter admin username"
-                                help="This will be your login username"
-                                required
-                            />
-                            <Field.Text
-                                name="adminPassword"
-                                label="Admin Password"
-                                type="password"
-                                placeholder="Enter a secure password"
-                                help="Choose a strong password for security"
-                                required
-                            />
-                            <Field.Text
-                                name="adminDisplayName"
-                                label="Display Name (Optional)"
-                                placeholder="Enter display name"
-                                help="How your name will appear in the interface"
-                            />
-                        </div>
-
-                        <Alert
-                            intent="info-basic"
-                            description={
-                                <p>
-                                    You'll use these credentials to log in to Seanime. As an admin, you can create additional user accounts later from the settings page.
-                                </p>
-                            }
-                        />
-                    </motion.div>
-                </StepCard>
-            </motion.div>
         </motion.div>
     )
 }
@@ -862,11 +885,12 @@ export function GettingStartedPage({ status }: { status: Status }) {
                                     }}
                                     className=""
                                 >
-                                    {currentStep === 0 && <LibraryStep form={f} />}
-                                    {currentStep === 1 && <PlayerStep form={f} status={status} />}
-                                    {currentStep === 2 && <TorrentStep form={f} />}
-                                    {currentStep === 3 && <DebridStep form={f} />}
-                                    {currentStep === 4 && <FeaturesStep form={f} />}
+                                    {currentStep === 0 && <AdminStep form={f} />}
+                                    {currentStep === 1 && <LibraryStep form={f} />}
+                                    {currentStep === 2 && <PlayerStep form={f} status={status} />}
+                                    {currentStep === 3 && <TorrentStep form={f} />}
+                                    {currentStep === 4 && <DebridStep form={f} />}
+                                    {currentStep === 5 && <FeaturesStep form={f} />}
                                 </motion.div>
                             </AnimatePresence>
 

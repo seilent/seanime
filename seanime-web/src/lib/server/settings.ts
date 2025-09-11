@@ -1,6 +1,13 @@
 import { GettingStarted_Variables } from "@/api/generated/endpoint.types"
 import { z } from "zod"
 
+// Extended type to include admin fields for first-time setup
+type GettingStartedWithAdmin = GettingStarted_Variables & {
+    adminUsername?: string
+    adminPassword?: string
+    adminDisplayName?: string
+}
+
 export const DEFAULT_TORRENT_PROVIDER = "animetosho"
 
 export const DEFAULT_TORRENT_CLIENT = "qbittorrent"
@@ -122,7 +129,11 @@ export const settingsSchema = z.object({
 
 export const gettingStartedSchema = _gettingStartedSchema.extend(settingsSchema.shape)
 
-export const getDefaultSettings = (data: z.infer<typeof gettingStartedSchema>): GettingStarted_Variables => ({
+export const getDefaultSettings = (data: z.infer<typeof gettingStartedSchema>): GettingStartedWithAdmin => ({
+    // Admin user creation fields
+    adminUsername: data.adminUsername,
+    adminPassword: data.adminPassword,
+    adminDisplayName: data.adminDisplayName,
     library: {
         libraryPath: data.libraryPath,
         autoUpdateProgress: true,

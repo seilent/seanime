@@ -7,13 +7,16 @@ import { TextInput } from '@/components/ui/text-input'
 import { Card } from '@/components/ui/card'
 import { Alert } from '@/components/ui/alert'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { PublicRoute } from '@/components/auth/route-guards'
+import { useAuth } from '@/contexts/auth-context'
 
-export default function LoginPage() {
+function LoginPageContent() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
     const router = useRouter()
+    const { login } = useAuth()
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -21,22 +24,13 @@ export default function LoginPage() {
         setError('')
 
         try {
-            const response = await fetch('/api/v1/users/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-                credentials: 'include', // Important for cookies
-            })
-
-            if (response.ok) {
+            const result = await login(username, password)
+            
+            if (result.success) {
                 // Login successful, redirect to main page
                 router.push('/')
-                router.refresh()
             } else {
-                const errorData = await response.json() as { error?: string }
-                setError(errorData.error || 'Login failed')
+                setError(result.error || 'Login failed')
             }
         } catch (err) {
             setError('Network error. Please try again.')
@@ -96,5 +90,13 @@ export default function LoginPage() {
                 </div>
             </Card>
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <PublicRoute>
+            <LoginPageContent />
+        </PublicRoute>
     )
 }

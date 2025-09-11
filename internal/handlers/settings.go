@@ -80,8 +80,8 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Check if admin user creation is needed
-	if !h.App.Database.IsMultiUserEnabled() && b.AdminUsername != "" && b.AdminPassword != "" {
+	// Check if admin user creation is needed during first-time setup
+	if b.AdminUsername != "" && b.AdminPassword != "" {
 		// Create the first admin user
 		displayName := b.AdminDisplayName
 		if displayName == "" {
@@ -90,10 +90,11 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		
 		_, err := h.App.Database.CreateFirstTimeSetup(b.AdminUsername, b.AdminPassword, displayName)
 		if err != nil {
-			return h.RespondWithError(c, err)
+			// Log the error but don't fail the setup if users already exist
+			h.App.Logger.Warn().Err(err).Str("username", b.AdminUsername).Msg("Could not create admin user during setup")
+		} else {
+			h.App.Logger.Info().Str("username", b.AdminUsername).Msg("Created first-time admin user during setup")
 		}
-		
-		h.App.Logger.Info().Str("username", b.AdminUsername).Msg("Created first-time admin user during setup")
 	}
 
 	// Check settings

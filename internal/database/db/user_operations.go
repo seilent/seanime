@@ -378,3 +378,24 @@ func (db *Database) UpsertAccountForUser(userID uint, account *models.Account) (
 
 	return account, nil
 }
+
+// CreateFirstTimeSetup creates the first admin user during initial setup
+func (db *Database) CreateFirstTimeSetup(username, password, displayName string) (*models.User, error) {
+	// Check if any users already exist
+	var count int64
+	if err := db.gormdb.Model(&models.User{}).Count(&count).Error; err != nil {
+		return nil, err
+	}
+
+	if count > 0 {
+		return nil, errors.New("users already exist, first-time setup not allowed")
+	}
+
+	// Create the first admin user
+	user, err := db.CreateUser(username, password, displayName, "admin")
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}

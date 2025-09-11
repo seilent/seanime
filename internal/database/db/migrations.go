@@ -43,25 +43,3 @@ func (db *Database) IsMultiUserEnabled() bool {
 	}
 	return userCount > 0
 }
-
-// CreateFirstTimeSetup creates the first admin user during setup
-func (db *Database) CreateFirstTimeSetup(username, password, displayName string) (*models.User, error) {
-	// Check if any users exist
-	var userCount int64
-	if err := db.gormdb.Model(&models.User{}).Count(&userCount).Error; err != nil {
-		return nil, err
-	}
-
-	if userCount > 0 {
-		return nil, errors.New("users already exist, cannot create first-time setup")
-	}
-
-	// Create the first admin user
-	user, err := db.CreateUser(username, password, displayName, "admin")
-	if err != nil {
-		return nil, err
-	}
-
-	db.Logger.Info().Str("username", username).Msg("database: Created first-time admin user")
-	return user, nil
-}

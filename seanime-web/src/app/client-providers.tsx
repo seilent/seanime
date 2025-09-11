@@ -3,6 +3,7 @@ import { WebsocketProvider } from "@/app/websocket-provider"
 import { CustomCSSProvider } from "@/components/shared/custom-css-provider"
 import { CustomThemeProvider } from "@/components/shared/custom-theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/contexts/auth-context"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { createStore } from "jotai"
 import { Provider as JotaiProvider } from "jotai/react"
@@ -33,13 +34,15 @@ export const ClientProviders: React.FC<ClientProvidersProps> = ({ children }) =>
             <CookiesProvider>
                 <JotaiProvider store={store}>
                     <QueryClientProvider client={queryClient}>
-                        <CustomCSSProvider>
-                            <WebsocketProvider>
-                                {children}
-                                <CustomThemeProvider />
-                                <Toaster />
-                            </WebsocketProvider>
-                        </CustomCSSProvider>
+                        <AuthProvider>
+                            <CustomCSSProvider>
+                                <WebsocketProvider>
+                                    {children}
+                                    <CustomThemeProvider />
+                                    <Toaster />
+                                </WebsocketProvider>
+                            </CustomCSSProvider>
+                        </AuthProvider>
                         {/*{process.env.NODE_ENV === "development" && <React.Suspense fallback={null}>*/}
                         {/*    <ReactQueryDevtools />*/}
                         {/*</React.Suspense>}*/}
