@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardProps } from "@/components/ui/card"
 import { cn } from "@/components/ui/core/styling"
 import { Field, Form } from "@/components/ui/form"
+import { useAuth } from "@/contexts/auth-context"
 import {
     DEFAULT_TORRENT_PROVIDER,
     getDefaultIinaSocket,
@@ -775,21 +776,43 @@ export function GettingStartedPage({ status }: { status: Status }) {
     const router = useRouter()
     const { getDefaultVlcPath, getDefaultQBittorrentPath, getDefaultTransmissionPath } = useDefaultSettingsPaths()
     const setServerStatus = useSetServerStatus()
+    const { login } = useAuth()
 
     const { mutate, data, isPending, isSuccess } = useGettingStarted()
 
     const [currentStep, setCurrentStep] = React.useState(0)
     const [direction, setDirection] = React.useState(0)
+    const [adminCredentials, setAdminCredentials] = React.useState<{ username: string; password: string } | null>(null)
 
     /**
-     * If the settings are returned, redirect to the home page
+     * If the settings are returned, auto-login with admin credentials and redirect to the home page
      */
     React.useEffect(() => {
-        if (!isPending && !!data?.settings) {
+        if (!isPending && !!data?.settings && adminCredentials) {
+            const performAutoLogin = async () => {
+                try {
+                    const loginResult = await login(adminCredentials.username, adminCredentials.password)
+                    if (loginResult.success) {
+                        setServerStatus(data)
+                        router.push("/")
+                    } else {
+                        console.error('Auto-login failed:', loginResult.error)
+                        // Fallback: redirect to login page
+                        router.push("/login")
+                    }
+                } catch (error) {
+                    console.error('Auto-login error:', error)
+                    router.push("/login")
+                }
+            }
+            
+            performAutoLogin()
+        } else if (!isPending && !!data?.settings && !adminCredentials) {
+            // Fallback if no admin credentials stored
             setServerStatus(data)
             router.push("/")
         }
-    }, [data, isPending])
+    }, [data, isPending, adminCredentials, login, setServerStatus, router])
 
     const vlcDefaultPath = React.useMemo(() => getDefaultVlcPath(status.os), [status.os])
     const qbittorrentDefaultPath = React.useMemo(() => getDefaultQBittorrentPath(status.os), [status.os])
@@ -833,6 +856,13 @@ export function GettingStartedPage({ status }: { status: Status }) {
                     schema={gettingStartedSchema}
                     onSubmit={data => {
                         if (currentStep === STEPS.length - 1) {
+                            // Store admin credentials for auto-login
+                            if (data.adminUsername && data.adminPassword) {
+                                setAdminCredentials({
+                                    username: data.adminUsername,
+                                    password: data.adminPassword
+                                })
+                            }
                             mutate(getDefaultSettings(data))
                         } else {
                             nextStep()

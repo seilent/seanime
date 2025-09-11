@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"seanime/internal/database/models"
 	"time"
 )
