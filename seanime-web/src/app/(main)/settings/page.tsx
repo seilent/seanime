@@ -493,6 +493,15 @@ export default function Page() {
                                             >
                                                 Record an issue
                                             </Button>
+                                            <Button
+                                                size="sm"
+                                                intent="primary-outline"
+                                                onClick={() => router.push('/admin/users')}
+                                                leftIcon={<HiOutlineServerStack className="transition-transform duration-200 group-hover:scale-110" />}
+                                                className="transition-all duration-200 hover:scale-105 hover:shadow-md group"
+                                            >
+                                                User Management
+                                            </Button>
                                         </div>
 
                                         <ServerSettings isPending={isPending} />

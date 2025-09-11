@@ -33,7 +33,7 @@ export default function UsersManagementPage() {
     // Fetch users
     const fetchUsers = async () => {
         try {
-            const response = await fetch('/api/v1/users', {
+            const response = await fetch('/api/v1/admin/users', {
                 credentials: 'include'
             })
             
@@ -57,7 +57,7 @@ export default function UsersManagementPage() {
         setError('')
 
         try {
-            const response = await fetch('/api/v1/users', {
+            const response = await fetch('/api/v1/admin/users', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ export default function UsersManagementPage() {
         }
 
         try {
-            const response = await fetch(`/api/v1/users/${userId}`, {
+            const response = await fetch(`/api/v1/admin/users/${userId}`, {
                 method: 'DELETE',
                 credentials: 'include'
             })
