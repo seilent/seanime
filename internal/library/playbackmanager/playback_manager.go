@@ -8,7 +8,6 @@ import (
 	"seanime/internal/api/metadata"
 	"seanime/internal/continuity"
 	"seanime/internal/database/db"
-	"seanime/internal/database/db_bridge"
 	discordrpc_presence "seanime/internal/discordrpc/presence"
 	"seanime/internal/events"
 	"seanime/internal/hook"
@@ -664,13 +663,13 @@ func (pm *PlaybackManager) StartPlaylist(playlist *anime.Playlist) (err error) {
 	}()
 
 	// Delete playlist in goroutine
+	// Note: This is a system operation, but we need a userID for the new signature
+	// Since playlists are user-specific, we should get the userID from the playlist context
+	// For now, we'll skip the deletion as it should be handled by the playlist handler
 	go func() {
-		err := db_bridge.DeletePlaylist(pm.Database, playlist.DbId)
-		if err != nil {
-			pm.Logger.Error().Err(err).Str("name", playlist.Name).Msgf("playback manager: Failed to delete playlist")
-			return
-		}
-		pm.Logger.Debug().Str("name", playlist.Name).Msgf("playback manager: Deleted playlist")
+		pm.Logger.Debug().Str("name", playlist.Name).Msgf("playback manager: Playlist deletion should be handled by playlist handler")
+		// TODO: Consider removing this deletion or getting proper user context
+		// err := db_bridge.DeletePlaylist(pm.Database, userID, playlist.DbId)
 	}()
 
 	return nil

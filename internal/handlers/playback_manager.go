@@ -139,8 +139,14 @@ func (h *Handler) HandlePlaybackStartPlaylist(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	// Get current user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, echo.NewHTTPError(401, "User not authenticated"))
+	}
+
 	// Get playlist
-	playlist, err := db_bridge.GetPlaylist(h.App.Database, b.DbId)
+	playlist, err := db_bridge.GetPlaylist(h.App.Database, user.ID, b.DbId)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

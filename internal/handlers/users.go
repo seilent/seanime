@@ -483,15 +483,6 @@ func (h *Handler) getSessionToken(c echo.Context) string {
 	return ""
 }
 
-// getCurrentUser gets the current authenticated user from context
-func (h *Handler) getCurrentUser(c echo.Context) *models.User {
-	if user := c.Get("user"); user != nil {
-		if u, ok := user.(*models.User); ok {
-			return u
-		}
-	}
-	return nil
-}
 
 // validateUserSession validates a session token and returns the user
 func (h *Handler) validateUserSession(token string) (*models.User, error) {
