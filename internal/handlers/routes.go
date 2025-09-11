@@ -110,10 +110,13 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1 := e.Group("/api").Group("/v1") // Commented out for now, will be used later
 
+	// Setup endpoints (before auth middleware)
+	v1.GET("/setup/required", h.HandleSetupRequired)
+
 	//
 	// Auth middleware
 	//
-	v1.Use(h.OptionalAuthMiddleware)
+	v1.Use(h.UserAuthMiddleware)
 
 	imageProxy := &util.ImageProxy{}
 	v1.GET("/image-proxy", imageProxy.ProxyImage)
@@ -135,7 +138,22 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1.POST("/announcements", h.HandleGetAnnouncements)
 
-	// Auth
+	// User Management
+	v1.POST("/users/login", h.HandleUserLogin)
+	v1.POST("/users/logout", h.HandleUserLogout)
+	v1.GET("/users/profile", h.HandleGetUserProfile)
+	v1.PATCH("/users/profile", h.HandleUpdateUserProfile)
+	v1.POST("/users/change-password", h.HandleChangePassword)
+
+	// Admin User Management
+	v1Admin := v1.Group("/admin")
+	v1Admin.GET("/users", h.HandleGetAllUsers)
+	v1Admin.POST("/users", h.HandleCreateUser)
+	v1Admin.PATCH("/users/:id", h.HandleUpdateUser)
+	v1Admin.DELETE("/users/:id", h.HandleDeleteUser)
+	v1Admin.POST("/users/:id/reset-password", h.HandleResetUserPassword)
+
+	// Legacy Auth (AniList) - now requires user authentication
 	v1.POST("/auth/login", h.HandleLogin)
 	v1.POST("/auth/logout", h.HandleLogout)
 

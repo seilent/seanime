@@ -59,13 +59,22 @@ func NewDatabase(appDataDir, dbName string, logger *zerolog.Logger) (*Database, 
 		return nil, err
 	}
 
-	logger.Info().Str("name", fmt.Sprintf("%s.db", dbName)).Msg("db: Database instantiated")
-
-	return &Database{
+	database := &Database{
 		gormdb:           db,
 		Logger:           logger,
 		CurrMediaFillers: mo.None[map[int]*MediaFillerItem](),
-	}, nil
+	}
+
+	// Initialize multi-user tables
+	err = database.InitializeMultiUserTables()
+	if err != nil {
+		logger.Fatal().Err(err).Msg("db: Failed to initialize multi-user tables")
+		return nil, err
+	}
+
+	logger.Info().Str("name", fmt.Sprintf("%s.db", dbName)).Msg("db: Database instantiated")
+
+	return database, nil
 }
 
 // MigrateTables performs auto migration on the database

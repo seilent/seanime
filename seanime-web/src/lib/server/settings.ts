@@ -27,6 +27,19 @@ export const _gettingStartedSchema = z.object({
     enableTorrentStreaming: z.boolean().optional().default(false),
     debridProvider: z.string().optional().default("none"),
     debridApiKey: z.string().optional().default(""),
+    // Admin account creation fields
+    adminUsername: z.string()
+        .min(3, "Username must be at least 3 characters")
+        .max(50, "Username must be less than 50 characters")
+        .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens")
+        .optional().default(""),
+    adminPassword: z.string()
+        .min(6, "Password must be at least 6 characters")
+        .max(100, "Password must be less than 100 characters")
+        .optional().default(""),
+    adminDisplayName: z.string()
+        .max(100, "Display name must be less than 100 characters")
+        .optional().default(""),
 })
 
 export const settingsSchema = z.object({

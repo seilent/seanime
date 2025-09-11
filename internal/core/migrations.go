@@ -10,6 +10,7 @@ import (
 
 func (a *App) runMigrations() {
 
+	// Run version-specific migrations (asynchronously)
 	go func() {
 		done := false
 		defer func() {

@@ -20,7 +20,22 @@ import (
 //	@route /api/v1/settings [GET]
 //	@returns models.Settings
 func (h *Handler) HandleGetSettings(c echo.Context) error {
+	// Check if multi-user is enabled
+	if h.App.Database.IsMultiUserEnabled() {
+		user := h.getCurrentUser(c)
+		if user == nil {
+			return c.JSON(401, map[string]string{"error": "Authentication required"})
+		}
 
+		settings, err := h.App.Database.GetSettingsForUser(user.ID)
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+
+		return h.RespondWithData(c, settings)
+	}
+
+	// Legacy single-user mode
 	settings, err := h.App.Database.GetSettings()
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -54,11 +69,31 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		EnableTorrentStreaming bool                        `json:"enableTorrentStreaming"`
 		DebridProvider         string                      `json:"debridProvider"`
 		DebridApiKey           string                      `json:"debridApiKey"`
+		// Admin user creation fields
+		AdminUsername    string `json:"adminUsername,omitempty"`
+		AdminPassword    string `json:"adminPassword,omitempty"`
+		AdminDisplayName string `json:"adminDisplayName,omitempty"`
 	}
 	var b body
 
 	if err := c.Bind(&b); err != nil {
 		return h.RespondWithError(c, err)
+	}
+
+	// Check if admin user creation is needed
+	if !h.App.Database.IsMultiUserEnabled() && b.AdminUsername != "" && b.AdminPassword != "" {
+		// Create the first admin user
+		displayName := b.AdminDisplayName
+		if displayName == "" {
+			displayName = b.AdminUsername
+		}
+		
+		_, err := h.App.Database.CreateFirstTimeSetup(b.AdminUsername, b.AdminPassword, displayName)
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+		
+		h.App.Logger.Info().Str("username", b.AdminUsername).Msg("Created first-time admin user during setup")
 	}
 
 	// Check settings
@@ -200,6 +235,62 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		}
 	}
 
+	// Check if multi-user is enabled
+	if h.App.Database.IsMultiUserEnabled() {
+		user := h.getCurrentUser(c)
+		if user == nil {
+			return c.JSON(401, map[string]string{"error": "Authentication required"})
+		}
+
+		// Get existing settings for the user
+		prevSettings, err := h.App.Database.GetSettingsForUser(user.ID)
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+
+		autoDownloaderSettings := models.AutoDownloaderSettings{}
+		if prevSettings.AutoDownloader != nil {
+			autoDownloaderSettings = *prevSettings.AutoDownloader
+		}
+		// Disable auto-downloader if the torrent provider is set to none
+		if b.Library.TorrentProvider == torrent.ProviderNone && autoDownloaderSettings.Enabled {
+			h.App.Logger.Debug().Msg("app: Disabling auto-downloader because the torrent provider is set to none")
+			autoDownloaderSettings.Enabled = false
+		}
+
+		settings := &models.Settings{
+			BaseModel: models.BaseModel{
+				ID:        prevSettings.ID,
+				UpdatedAt: time.Now(),
+			},
+			UserID:         user.ID,
+			Library:        &b.Library,
+			MediaPlayer:    &b.MediaPlayer,
+			Torrent:        &b.Torrent,
+			Anilist:        &b.Anilist,
+			Manga:          &b.Manga,
+			Discord:        &b.Discord,
+			Notifications:  &b.Notifications,
+			Nakama:         &b.Nakama,
+			AutoDownloader: &autoDownloaderSettings,
+		}
+
+		err = h.App.Database.SaveSettingsForUser(user.ID, settings)
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+
+		h.App.WSEventManager.SendEvent("settings", settings)
+
+		status := h.NewStatus(c)
+
+		// Refresh modules that depend on the settings
+		h.App.InitOrRefreshModules()
+
+		return h.RespondWithData(c, status)
+	}
+
+	// Legacy single-user mode
 	autoDownloaderSettings := models.AutoDownloaderSettings{}
 	prevSettings, err := h.App.Database.GetSettings()
 	if err == nil && prevSettings.AutoDownloader != nil {

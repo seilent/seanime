@@ -21,6 +21,7 @@ type Token struct {
 
 type Account struct {
 	BaseModel
+	UserID   uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
 	Username string `gorm:"column:username" json:"username"`
 	Token    string `gorm:"column:token" json:"token"`
 	Viewer   []byte `gorm:"column:viewer" json:"viewer"`
@@ -32,7 +33,8 @@ type Account struct {
 
 type LocalFiles struct {
 	BaseModel
-	Value []byte `gorm:"column:value" json:"value"`
+	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
+	Value  []byte `gorm:"column:value" json:"value"`
 }
 
 // +---------------------+
@@ -41,6 +43,7 @@ type LocalFiles struct {
 
 type Settings struct {
 	BaseModel
+	UserID         uint                    `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
 	Library        *LibrarySettings        `gorm:"embedded" json:"library"`
 	MediaPlayer    *MediaPlayerSettings    `gorm:"embedded" json:"mediaPlayer"`
 	Torrent        *TorrentSettings        `gorm:"embedded" json:"torrent"`
@@ -239,7 +242,8 @@ type Mal struct {
 
 type ScanSummary struct {
 	BaseModel
-	Value []byte `gorm:"column:value" json:"value"`
+	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
+	Value  []byte `gorm:"column:value" json:"value"`
 }
 
 // +---------------------+
@@ -248,7 +252,8 @@ type ScanSummary struct {
 
 type AutoDownloaderRule struct {
 	BaseModel
-	Value []byte `gorm:"column:value" json:"value"`
+	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
+	Value  []byte `gorm:"column:value" json:"value"`
 }
 
 type AutoDownloaderItem struct {
@@ -287,6 +292,7 @@ type SilencedMediaEntry struct {
 
 type Theme struct {
 	BaseModel
+	UserID uint `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
 	// Main
 	EnableColorSettings              bool   `gorm:"column:enable_color_settings" json:"enableColorSettings"`
 	BackgroundColor                  string `gorm:"column:background_color" json:"backgroundColor"`
@@ -344,8 +350,9 @@ type Theme struct {
 
 type PlaylistEntry struct {
 	BaseModel
-	Name  string `gorm:"column:name" json:"name"`
-	Value []byte `gorm:"column:value" json:"value"`
+	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
+	Name   string `gorm:"column:name" json:"name"`
+	Value  []byte `gorm:"column:value" json:"value"`
 }
 
 // +------------------------+
@@ -354,6 +361,7 @@ type PlaylistEntry struct {
 
 type ChapterDownloadQueueItem struct {
 	BaseModel
+	UserID        uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
 	Provider      string `gorm:"column:provider" json:"provider"`
 	MediaID       int    `gorm:"column:media_id" json:"mediaId"`
 	ChapterID     string `gorm:"column:chapter_id" json:"chapterId"`

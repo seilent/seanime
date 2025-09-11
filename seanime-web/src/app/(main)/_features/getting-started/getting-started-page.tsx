@@ -692,6 +692,58 @@ function FeaturesStep({ form }: { form: any }) {
                     </motion.div>
                 ))}
             </div>
+
+            {/* Admin Account Setup Section */}
+            <motion.div variants={itemVariants} className="mt-12">
+                <StepCard className="max-w-2xl mx-auto">
+                    <motion.div variants={itemVariants} className="space-y-6">
+                        <div className="text-center space-y-2">
+                            <div className="flex items-center justify-center space-x-3 mb-4">
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                                    <BiCog className="w-6 h-6 text-white" />
+                                </div>
+                                <h3 className="text-xl font-semibold">Admin Account Setup</h3>
+                            </div>
+                            <p className="text-sm text-[--muted]">
+                                Create your administrator account to manage Seanime and other users.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <Field.Text
+                                name="adminUsername"
+                                label="Admin Username"
+                                placeholder="Enter admin username"
+                                help="This will be your login username"
+                                required
+                            />
+                            <Field.Text
+                                name="adminPassword"
+                                label="Admin Password"
+                                type="password"
+                                placeholder="Enter a secure password"
+                                help="Choose a strong password for security"
+                                required
+                            />
+                            <Field.Text
+                                name="adminDisplayName"
+                                label="Display Name (Optional)"
+                                placeholder="Enter display name"
+                                help="How your name will appear in the interface"
+                            />
+                        </div>
+
+                        <Alert
+                            intent="info-basic"
+                            description={
+                                <p>
+                                    You'll use these credentials to log in to Seanime. As an admin, you can create additional user accounts later from the settings page.
+                                </p>
+                            }
+                        />
+                    </motion.div>
+                </StepCard>
+            </motion.div>
         </motion.div>
     )
 }

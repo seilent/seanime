@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"seanime/internal/api/anilist"
+	"seanime/internal/database/models"
 	"seanime/internal/events"
 	"seanime/internal/platforms/platform"
 	"seanime/internal/user"
@@ -16,12 +17,57 @@ func (a *App) GetUser() *user.User {
 	return a.user
 }
 
+// GetUserAnilistToken returns the AniList token for the current user.
+// In multi-user mode, this should be called with user context from handlers.
 func (a *App) GetUserAnilistToken() string {
 	if a.user == nil || a.user.Token == user.SimulatedUserToken {
 		return ""
 	}
 
 	return a.user.Token
+}
+
+// GetUserAnilistTokenForUser returns the AniList token for a specific database user.
+// This is used in multi-user mode when we have user context from middleware.
+func (a *App) GetUserAnilistTokenForUser(dbUser *models.User) string {
+	if dbUser == nil {
+		return ""
+	}
+	
+	// Get the account (AniList connection) for this user
+	account, err := a.Database.GetAccountForUser(dbUser.ID)
+	if err != nil || account == nil {
+		return ""
+	}
+	
+	return account.Token
+}
+
+// SetUserFromContext sets the current user based on database user context.
+// This should be called by handlers when they have user context from middleware.
+func (a *App) SetUserFromContext(dbUser *models.User) error {
+	if dbUser == nil {
+		a.user = user.NewSimulatedUser()
+		return nil
+	}
+	
+	// Get the account (AniList connection) for this user
+	account, err := a.Database.GetAccountForUser(dbUser.ID)
+	if err != nil {
+		// User exists but has no AniList connection - use simulated user
+		a.user = user.NewSimulatedUser()
+		return nil
+	}
+	
+	// Create user from account
+	u, err := user.NewUser(account)
+	if err != nil {
+		a.user = user.NewSimulatedUser()
+		return err
+	}
+	
+	a.user = u
+	return nil
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
