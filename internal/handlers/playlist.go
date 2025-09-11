@@ -28,7 +28,13 @@ func (h *Handler) HandleCreatePlaylist(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get the local files
+	// Get current user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Get the local files (shared across all users)
 	dbLfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -49,8 +55,8 @@ func (h *Handler) HandleCreatePlaylist(c echo.Context) error {
 	playlist := anime.NewPlaylist(b.Name)
 	playlist.SetLocalFiles(lfs)
 
-	// Save the playlist
-	if err := db_bridge.SavePlaylist(h.App.Database, playlist); err != nil {
+	// Save the playlist for this user
+	if err := db_bridge.SavePlaylist(h.App.Database, user.ID, playlist); err != nil {
 		return h.RespondWithError(c, err)
 	}
 
@@ -59,12 +65,18 @@ func (h *Handler) HandleCreatePlaylist(c echo.Context) error {
 
 // HandleGetPlaylists
 //
-//	@summary returns all playlists.
+//	@summary returns all playlists for the current user.
 //	@route /api/v1/playlists [GET]
 //	@returns []anime.Playlist
 func (h *Handler) HandleGetPlaylists(c echo.Context) error {
 
-	playlists, err := db_bridge.GetPlaylists(h.App.Database)
+	// Get current user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	playlists, err := db_bridge.GetPlaylists(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -93,7 +105,13 @@ func (h *Handler) HandleUpdatePlaylist(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get the local files
+	// Get current user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Get the local files (shared across all users)
 	dbLfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -116,8 +134,8 @@ func (h *Handler) HandleUpdatePlaylist(c echo.Context) error {
 	playlist.Name = b.Name
 	playlist.SetLocalFiles(lfs)
 
-	// Save the playlist
-	if err := db_bridge.UpdatePlaylist(h.App.Database, playlist); err != nil {
+	// Save the playlist (ensure it belongs to this user)
+	if err := db_bridge.UpdatePlaylist(h.App.Database, user.ID, playlist); err != nil {
 		return h.RespondWithError(c, err)
 	}
 
@@ -141,7 +159,14 @@ func (h *Handler) HandleDeletePlaylist(c echo.Context) error {
 
 	}
 
-	if err := db_bridge.DeletePlaylist(h.App.Database, b.DbId); err != nil {
+	// Get current user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Delete playlist (ensure it belongs to this user)
+	if err := db_bridge.DeletePlaylist(h.App.Database, user.ID, b.DbId); err != nil {
 		return h.RespondWithError(c, err)
 	}
 

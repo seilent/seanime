@@ -10,6 +10,16 @@ import (
 
 func (a *App) runMigrations() {
 
+	// Initialize multi-user tables first (synchronously)
+	if err := a.Database.InitializeMultiUserTables(); err != nil {
+		a.Logger.Error().Err(err).Msg("app: Failed to initialize multi-user tables")
+	}
+
+	// Run shared data migration (synchronously) - removes UserID from shared tables
+	if err := a.Database.MigrateSharedDataTables(); err != nil {
+		a.Logger.Error().Err(err).Msg("app: Failed to migrate shared data tables")
+	}
+
 	// Run version-specific migrations (asynchronously)
 	go func() {
 		done := false

@@ -12,13 +12,14 @@ var CurrLocalFilesDbId uint
 var CurrLocalFiles mo.Option[[]*anime.LocalFile]
 
 // GetLocalFiles will return the latest local files and the id of the entry.
+// This is now shared across all users (admin controlled).
 func GetLocalFiles(db *db.Database) ([]*anime.LocalFile, uint, error) {
 
 	if CurrLocalFiles.IsPresent() {
 		return CurrLocalFiles.MustGet(), CurrLocalFilesDbId, nil
 	}
 
-	// Get the latest entry
+	// Get the latest entry (shared across all users)
 	var res models.LocalFiles
 	err := db.Gorm().Last(&res).Error
 	if err != nil {
@@ -32,7 +33,7 @@ func GetLocalFiles(db *db.Database) ([]*anime.LocalFile, uint, error) {
 		return nil, 0, err
 	}
 
-	db.Logger.Debug().Msg("db: Local files retrieved")
+	db.Logger.Debug().Msg("db: Shared local files retrieved")
 
 	CurrLocalFiles = mo.Some(lfs)
 	CurrLocalFilesDbId = res.ID

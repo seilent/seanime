@@ -8,6 +8,7 @@ import (
 	"github.com/goccy/go-json"
 )
 
+// GetScanSummaries returns all scan summaries (shared across all users - admin controlled)
 func GetScanSummaries(database *db.Database) ([]*summary.ScanSummaryItem, error) {
 	var res []*models.ScanSummary
 	err := database.Gorm().Find(&res).Error

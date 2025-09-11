@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"strings"
+	"seanime/internal/database/models"
 
 	"github.com/labstack/echo/v4"
 )
@@ -231,4 +232,13 @@ func (h *Handler) OptionalAuth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return next(c)
 	}
+}
+
+// getCurrentUser extracts the current user from the Echo context
+func (h *Handler) getCurrentUser(c echo.Context) *models.User {
+	user, ok := c.Get("user").(*models.User)
+	if !ok {
+		return nil
+	}
+	return user
 }

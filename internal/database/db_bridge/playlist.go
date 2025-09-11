@@ -7,9 +7,10 @@ import (
 	"seanime/internal/library/anime"
 )
 
-func GetPlaylists(db *db.Database) ([]*anime.Playlist, error) {
+// GetPlaylists returns playlists for a specific user
+func GetPlaylists(db *db.Database, userID uint) ([]*anime.Playlist, error) {
 	var res []*models.PlaylistEntry
-	err := db.Gorm().Find(&res).Error
+	err := db.Gorm().Where("user_id = ?", userID).Find(&res).Error
 	if err != nil {
 		return nil, err
 	}
@@ -27,32 +28,33 @@ func GetPlaylists(db *db.Database) ([]*anime.Playlist, error) {
 	return playlists, nil
 }
 
-func SavePlaylist(db *db.Database, playlist *anime.Playlist) error {
+func SavePlaylist(db *db.Database, userID uint, playlist *anime.Playlist) error {
 	data, err := json.Marshal(playlist.LocalFiles)
 	if err != nil {
 		return err
 	}
 	playlistEntry := &models.PlaylistEntry{
-		Name:  playlist.Name,
-		Value: data,
+		UserID: userID,
+		Name:   playlist.Name,
+		Value:  data,
 	}
 
 	return db.Gorm().Save(playlistEntry).Error
 }
 
-func DeletePlaylist(db *db.Database, id uint) error {
-	return db.Gorm().Where("id = ?", id).Delete(&models.PlaylistEntry{}).Error
+func DeletePlaylist(db *db.Database, userID uint, id uint) error {
+	return db.Gorm().Where("id = ? AND user_id = ?", id, userID).Delete(&models.PlaylistEntry{}).Error
 }
 
-func UpdatePlaylist(db *db.Database, playlist *anime.Playlist) error {
+func UpdatePlaylist(db *db.Database, userID uint, playlist *anime.Playlist) error {
 	data, err := json.Marshal(playlist.LocalFiles)
 	if err != nil {
 		return err
 	}
 
-	// Get the playlist entry
+	// Get the playlist entry (ensure it belongs to the user)
 	playlistEntry := &models.PlaylistEntry{}
-	if err := db.Gorm().Where("id = ?", playlist.DbId).First(playlistEntry).Error; err != nil {
+	if err := db.Gorm().Where("id = ? AND user_id = ?", playlist.DbId, userID).First(playlistEntry).Error; err != nil {
 		return err
 	}
 
@@ -63,9 +65,9 @@ func UpdatePlaylist(db *db.Database, playlist *anime.Playlist) error {
 	return db.Gorm().Save(playlistEntry).Error
 }
 
-func GetPlaylist(db *db.Database, id uint) (*anime.Playlist, error) {
+func GetPlaylist(db *db.Database, userID uint, id uint) (*anime.Playlist, error) {
 	playlistEntry := &models.PlaylistEntry{}
-	if err := db.Gorm().Where("id = ?", id).First(playlistEntry).Error; err != nil {
+	if err := db.Gorm().Where("id = ? AND user_id = ?", id, userID).First(playlistEntry).Error; err != nil {
 		return nil, err
 	}
 

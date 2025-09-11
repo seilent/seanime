@@ -33,8 +33,7 @@ type Account struct {
 
 type LocalFiles struct {
 	BaseModel
-	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
-	Value  []byte `gorm:"column:value" json:"value"`
+	Value []byte `gorm:"column:value" json:"value"`
 }
 
 // +---------------------+
@@ -242,8 +241,7 @@ type Mal struct {
 
 type ScanSummary struct {
 	BaseModel
-	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
-	Value  []byte `gorm:"column:value" json:"value"`
+	Value []byte `gorm:"column:value" json:"value"`
 }
 
 // +---------------------+
@@ -252,8 +250,7 @@ type ScanSummary struct {
 
 type AutoDownloaderRule struct {
 	BaseModel
-	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
-	Value  []byte `gorm:"column:value" json:"value"`
+	Value []byte `gorm:"column:value" json:"value"`
 }
 
 type AutoDownloaderItem struct {
