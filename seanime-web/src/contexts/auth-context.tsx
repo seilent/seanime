@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useServerStatus } from '@/app/(main)/_hooks/use-server-status'
 
 // Types
 interface User {
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const router = useRouter()
+    const serverStatus = useServerStatus()
 
     const isAuthenticated = !!user
     const isAdmin = user?.role === 'admin'
@@ -123,6 +125,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return
             }
 
+            // Check if server needs setup before auth redirects
+            if (!serverStatus?.settings) {
+                return
+            }
+
             // If user is not authenticated and trying to access protected routes
             const protectedRoutes = [
                 '/',
@@ -152,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return
             }
         }
-    }, [isAuthenticated, isLoading, router])
+    }, [isAuthenticated, isLoading, router, serverStatus?.settings])
 
     const value: AuthContextType = {
         user,
