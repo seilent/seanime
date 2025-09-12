@@ -1,5 +1,5 @@
 "use client"
-import { useLogout } from "@/api/hooks/auth.hooks"
+import { useLogout, useAnilistDisconnect } from "@/api/hooks/auth.hooks"
 import { useAuth } from "@/contexts/auth-context"
 import { useGetExtensionUpdateData as useGetExtensionUpdateData } from "@/api/hooks/extensions.hooks"
 import { isLoginModalOpenAtom } from "@/app/(main)/_atoms/server-status.atoms"
@@ -68,14 +68,21 @@ function SiteLogoutMenuItem() {
     
     if (!authUser) return null
     
-    const handleSiteLogout = async () => {
-        await siteLogout()
-    }
+    const confirmSiteLogout = useConfirmationDialog({
+        title: "Sign out from site",
+        description: "Are you sure you want to sign out from the site?",
+        onConfirm: async () => {
+            await siteLogout()
+        },
+    })
     
     return (
-        <DropdownMenuItem onClick={handleSiteLogout}>
-            <BiLogOut /> Sign out from site
-        </DropdownMenuItem>
+        <>
+            <DropdownMenuItem onClick={confirmSiteLogout.open}>
+                <BiLogOut /> Sign out from site
+            </DropdownMenuItem>
+            <ConfirmationDialog {...confirmSiteLogout} />
+        </>
     )
 }
 
@@ -108,6 +115,7 @@ export function MainSidebar() {
 
     // Logout
     const { mutate: logout, data, isPending } = useLogout()
+    const { mutate: anilistDisconnect } = useAnilistDisconnect()
 
     React.useEffect(() => {
         if (!isPending) {
@@ -132,10 +140,10 @@ export function MainSidebar() {
     }
 
     const confirmSignOut = useConfirmationDialog({
-        title: "Sign out",
-        description: "Are you sure you want to sign out?",
+        title: "Disconnect AniList",
+        description: "Are you sure you want to disconnect from AniList?",
         onConfirm: () => {
-            logout()
+            anilistDisconnect()
         },
     })
 

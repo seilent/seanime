@@ -43,7 +43,6 @@ import (
 	"seanime/internal/torrents/torrent"
 	"seanime/internal/torrentstream"
 	"seanime/internal/updater"
-	"seanime/internal/user"
 	"seanime/internal/util"
 	"seanime/internal/util/filecache"
 	"seanime/internal/util/result"
@@ -107,11 +106,7 @@ type (
 		TotalLibrarySize   uint64 // Initialized in modules.go
 		LibraryDir         string
 		IsDesktopSidecar   bool
-		animeCollection    *anilist.AnimeCollection
-		rawAnimeCollection *anilist.AnimeCollection // (retains custom lists)
-		mangaCollection    *anilist.MangaCollection
-		rawMangaCollection *anilist.MangaCollection // (retains custom lists)
-		user               *user.User
+		// Global collections and user removed - now pure multiuser system
 		previousVersion    string
 		moduleMu           sync.Mutex
 		HookManager        hook.Manager
@@ -360,8 +355,7 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		isOffline:                       &isOffline,
 	}
 
-	// Run database migrations if version has changed
-	app.runMigrations()
+	// Database tables are created via GORM AutoMigrate during NewDatabase() - no migrations needed
 
 	// Initialize modules that only need to be initialized once
 	app.initModulesOnce()

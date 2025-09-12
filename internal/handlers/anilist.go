@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"seanime/internal/api/anilist"
+	"seanime/internal/platforms/anilist_platform"
 	"seanime/internal/util/result"
 	"strconv"
 	"time"
@@ -25,28 +26,25 @@ func (h *Handler) HandleGetAnimeCollection(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("authentication required"))
 	}
 
-	// Set user context for AniList operations
-	h.App.SetUserFromContext(user)
-
 	bypassCache := c.Request().Method == "POST"
 
 	if !bypassCache {
-		// Get the user's anilist collection
-		animeCollection, err := h.App.GetAnimeCollection(false)
+		// Get the user's anilist collection using user-specific context
+		animeCollection, err := h.App.GetAnimeCollectionForUser(user, false)
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}
 		return h.RespondWithData(c, animeCollection)
 	}
 
-	animeCollection, err := h.App.RefreshAnimeCollection()
+	animeCollection, err := h.App.RefreshAnimeCollectionForUser(user)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
 	go func() {
 		if h.App.Settings != nil && h.App.Settings.GetLibrary().EnableManga {
-			_, _ = h.App.RefreshMangaCollection()
+			_, _ = h.App.RefreshMangaCollectionForUser(user)
 		}
 	}()
 
@@ -65,13 +63,10 @@ func (h *Handler) HandleGetRawAnimeCollection(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("authentication required"))
 	}
 
-	// Set user context for AniList operations
-	h.App.SetUserFromContext(user)
-
 	bypassCache := c.Request().Method == "POST"
 
-	// Get the user's anilist collection
-	animeCollection, err := h.App.GetRawAnimeCollection(bypassCache)
+	// Get the user's raw anilist collection using user-specific context
+	animeCollection, err := h.App.GetRawAnimeCollectionForUser(user, bypassCache)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -93,9 +88,6 @@ func (h *Handler) HandleEditAnilistListEntry(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("authentication required"))
 	}
 
-	// Set user context for AniList operations
-	h.App.SetUserFromContext(user)
-
 	type body struct {
 		MediaId   *int                     `json:"mediaId"`
 		Status    *anilist.MediaListStatus `json:"status"`
@@ -111,7 +103,16 @@ func (h *Handler) HandleEditAnilistListEntry(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	err := h.App.AnilistPlatform.UpdateEntry(
+	// Create user-specific AniList client for this operation
+	token := h.App.GetUserAnilistTokenForUser(user)
+	if token == "" {
+		return h.RespondWithError(c, errors.New("user has no AniList connection"))
+	}
+
+	client := anilist.NewAnilistClient(token)
+	platform := anilist_platform.NewAnilistPlatform(client, h.App.Logger)
+
+	err := platform.UpdateEntry(
 		c.Request().Context(),
 		*p.MediaId,
 		p.Status,
@@ -126,12 +127,12 @@ func (h *Handler) HandleEditAnilistListEntry(c echo.Context) error {
 
 	switch p.Type {
 	case "anime":
-		_, _ = h.App.RefreshAnimeCollection()
+		_, _ = h.App.RefreshAnimeCollectionForUser(user)
 	case "manga":
-		_, _ = h.App.RefreshMangaCollection()
+		_, _ = h.App.RefreshMangaCollectionForUser(user)
 	default:
-		_, _ = h.App.RefreshAnimeCollection()
-		_, _ = h.App.RefreshMangaCollection()
+		_, _ = h.App.RefreshAnimeCollectionForUser(user)
+		_, _ = h.App.RefreshMangaCollectionForUser(user)
 	}
 
 	return h.RespondWithData(c, true)
@@ -160,7 +161,14 @@ func (h *Handler) HandleGetAnilistAnimeDetails(c echo.Context) error {
 	if details, ok := detailsCache.Get(mId); ok {
 		return h.RespondWithData(c, details)
 	}
-	details, err := h.App.AnilistPlatform.GetAnimeDetails(c.Request().Context(), mId)
+
+	// Get user-specific AniList platform
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	details, err := userPlatform.GetAnimeDetails(c.Request().Context(), mId)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -190,7 +198,14 @@ func (h *Handler) HandleGetAnilistStudioDetails(c echo.Context) error {
 	if details, ok := studioDetailsMap.Get(mId); ok {
 		return h.RespondWithData(c, details)
 	}
-	details, err := h.App.AnilistPlatform.GetStudioDetails(c.Request().Context(), mId)
+
+	// Get user-specific AniList platform
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	details, err := userPlatform.GetStudioDetails(c.Request().Context(), mId)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -220,9 +235,6 @@ func (h *Handler) HandleDeleteAnilistListEntry(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("authentication required"))
 	}
 
-	// Set user context for AniList operations
-	h.App.SetUserFromContext(user)
-
 	type body struct {
 		MediaId *int    `json:"mediaId"`
 		Type    *string `json:"type"`
@@ -239,10 +251,19 @@ func (h *Handler) HandleDeleteAnilistListEntry(c echo.Context) error {
 
 	var listEntryID int
 
+	// Create user-specific AniList client for this operation
+	token := h.App.GetUserAnilistTokenForUser(user)
+	if token == "" {
+		return h.RespondWithError(c, errors.New("user has no AniList connection"))
+	}
+
+	client := anilist.NewAnilistClient(token)
+	platform := anilist_platform.NewAnilistPlatform(client, h.App.Logger)
+
 	switch *p.Type {
 	case "anime":
 		// Get the list entry ID
-		animeCollection, err := h.App.GetAnimeCollection(false)
+		animeCollection, err := h.App.GetAnimeCollectionForUser(user, false)
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}
@@ -254,7 +275,7 @@ func (h *Handler) HandleDeleteAnilistListEntry(c echo.Context) error {
 		listEntryID = listEntry.ID
 	case "manga":
 		// Get the list entry ID
-		mangaCollection, err := h.App.GetMangaCollection(false)
+		mangaCollection, err := h.App.GetMangaCollectionForUser(user, false)
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}
@@ -267,16 +288,16 @@ func (h *Handler) HandleDeleteAnilistListEntry(c echo.Context) error {
 	}
 
 	// Delete the list entry
-	err := h.App.AnilistPlatform.DeleteEntry(c.Request().Context(), listEntryID)
+	err := platform.DeleteEntry(c.Request().Context(), listEntryID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
 	switch *p.Type {
 	case "anime":
-		_, _ = h.App.RefreshAnimeCollection()
+		_, _ = h.App.RefreshAnimeCollectionForUser(user)
 	case "manga":
-		_, _ = h.App.RefreshMangaCollection()
+		_, _ = h.App.RefreshMangaCollectionForUser(user)
 	}
 
 	return h.RespondWithData(c, true)
@@ -456,9 +477,6 @@ func (h *Handler) HandleAnilistListMissedSequels(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("authentication required"))
 	}
 
-	// Set user context for AniList operations
-	h.App.SetUserFromContext(user)
-
 	// Use user-specific cache key
 	cacheKey := int(user.ID)
 	cached, ok := anilistMissedSequelsCache.Get(cacheKey)
@@ -466,8 +484,17 @@ func (h *Handler) HandleAnilistListMissedSequels(c echo.Context) error {
 		return h.RespondWithData(c, cached)
 	}
 
+	// Create user-specific AniList client for this operation
+	token := h.App.GetUserAnilistTokenForUser(user)
+	if token == "" {
+		return h.RespondWithError(c, errors.New("user has no AniList connection"))
+	}
+
+	client := anilist.NewAnilistClient(token)
+	platform := anilist_platform.NewAnilistPlatform(client, h.App.Logger)
+
 	// Get complete anime collection
-	animeCollection, err := h.App.AnilistPlatform.GetAnimeCollectionWithRelations(c.Request().Context())
+	animeCollection, err := platform.GetAnimeCollectionWithRelations(c.Request().Context())
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -475,7 +502,7 @@ func (h *Handler) HandleAnilistListMissedSequels(c echo.Context) error {
 	ret, err := anilist.ListMissedSequels(
 		animeCollection,
 		h.App.Logger,
-		h.App.GetUserAnilistTokenForUser(user),
+		token,
 	)
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -502,9 +529,6 @@ func (h *Handler) HandleGetAniListStats(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("authentication required"))
 	}
 
-	// Set user context for AniList operations
-	h.App.SetUserFromContext(user)
-
 	// Use user-specific cache key
 	cacheKey := int(user.ID)
 	cached, ok := anilistStatsCache.Get(cacheKey)
@@ -512,7 +536,16 @@ func (h *Handler) HandleGetAniListStats(c echo.Context) error {
 		return h.RespondWithData(c, cached)
 	}
 
-	stats, err := h.App.AnilistPlatform.GetViewerStats(c.Request().Context())
+	// Create user-specific AniList client for this operation
+	token := h.App.GetUserAnilistTokenForUser(user)
+	if token == "" {
+		return h.RespondWithError(c, errors.New("user has no AniList connection"))
+	}
+
+	client := anilist.NewAnilistClient(token)
+	platform := anilist_platform.NewAnilistPlatform(client, h.App.Logger)
+
+	stats, err := platform.GetViewerStats(c.Request().Context())
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

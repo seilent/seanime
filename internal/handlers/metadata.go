@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,7 +22,13 @@ func (h *Handler) HandlePopulateFillerData(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	animeCollection, err := h.App.GetAnimeCollection(false)
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
+	animeCollection, err := h.App.GetAnimeCollectionForUser(user, false)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -28,7 +36,11 @@ func (h *Handler) HandlePopulateFillerData(c echo.Context) error {
 	media, found := animeCollection.FindAnime(b.MediaId)
 	if !found {
 		// Fetch media
-		media, err = h.App.AnilistPlatform.GetAnime(c.Request().Context(), b.MediaId)
+		userPlatform, err := h.GetUserPlatform(c)
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+		media, err = userPlatform.GetAnime(c.Request().Context(), b.MediaId)
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}

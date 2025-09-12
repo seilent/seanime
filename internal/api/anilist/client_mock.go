@@ -2,6 +2,7 @@ package anilist
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"seanime/internal/test_utils"
@@ -501,6 +502,26 @@ func (ac *MockAnilistClientImpl) AnimeDetailsByID(ctx context.Context, id *int, 
 func (ac *MockAnilistClientImpl) CompleteAnimeByID(ctx context.Context, id *int, interceptors ...clientv2.RequestInterceptor) (*CompleteAnimeByID, error) {
 	ac.logger.Debug().Int("mediaId", *id).Msg("anilist: Fetching complete media")
 	return ac.realAnilistClient.CompleteAnimeByID(ctx, id, interceptors...)
+}
+
+func (ac *MockAnilistClientImpl) BatchCompleteAnimeByIDs(ctx context.Context, ids []int) (map[int]*CompleteAnime, error) {
+	if len(ids) == 0 {
+		return make(map[int]*CompleteAnime), nil
+	}
+
+	result := make(map[int]*CompleteAnime)
+	for _, id := range ids {
+		// Use the existing CompleteAnimeByID method for each ID
+		response, err := ac.CompleteAnimeByID(ctx, &id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch anime %d: %w", id, err)
+		}
+		if response != nil && response.Media != nil {
+			result[id] = response.Media
+		}
+	}
+	
+	return result, nil
 }
 
 func (ac *MockAnilistClientImpl) ListAnime(ctx context.Context, page *int, search *string, perPage *int, sort []*MediaSort, status []*MediaStatus, genres []*string, averageScoreGreater *int, season *MediaSeason, seasonYear *int, format *MediaFormat, isAdult *bool, interceptors ...clientv2.RequestInterceptor) (*ListAnime, error) {

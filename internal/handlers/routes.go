@@ -1,9 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"path/filepath"
+	"seanime/internal/api/anilist"
 	"seanime/internal/core"
+	"seanime/internal/platforms/anilist_platform"
+	"seanime/internal/platforms/platform"
 	util "seanime/internal/util/proxies"
 	"strings"
 	"time"
@@ -547,6 +551,29 @@ func (h *Handler) RespondWithData(c echo.Context, data interface{}) error {
 
 func (h *Handler) RespondWithError(c echo.Context, err error) error {
 	return c.JSON(500, NewErrorResponse(err))
+}
+
+// GetUserPlatform returns a user-specific AniList platform instance
+// This creates an isolated platform context for the current user, preventing
+// global state pollution in multiuser scenarios
+func (h *Handler) GetUserPlatform(c echo.Context) (platform.Platform, error) {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return nil, errors.New("authentication required")
+	}
+
+	// Get user's AniList account data
+	account, err := h.App.Database.GetAccountForUser(user.ID)
+	if err != nil || account == nil || account.Token == "" {
+		return nil, errors.New("user has no AniList connection")
+	}
+
+	// Create user-specific AniList platform
+	client := anilist.NewAnilistClient(account.Token)
+	userPlatform := anilist_platform.NewAnilistPlatform(client, h.App.Logger)
+	userPlatform.SetUsername(account.Username)
+
+	return userPlatform, nil
 }
 
 func headMethodMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

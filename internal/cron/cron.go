@@ -25,17 +25,8 @@ func RunJobs(app *core.App) {
 		for {
 			select {
 			case <-refreshAnilistTicker.C:
-				if *app.IsOffline() {
-					continue
-				}
-				RefreshAnilistDataJob(ctx)
-				if app.LocalManager != nil &&
-					!app.GetUser().IsSimulated &&
-					app.Settings != nil &&
-					app.Settings.Library != nil &&
-					app.Settings.Library.AutoSyncToLocalAccount {
-					_ = app.LocalManager.SynchronizeAnilistToSimulatedCollection()
-				}
+				// Disabled: Collection refresh is now user-specific in pure multiuser system
+				// Users trigger their own collection refreshes via handlers
 			}
 		}
 	}()

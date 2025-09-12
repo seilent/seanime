@@ -77,6 +77,35 @@ func NewDatabase(appDataDir, dbName string, logger *zerolog.Logger) (*Database, 
 	return database, nil
 }
 
+// InitializeMultiUserTables ensures multi-user tables exist
+func (db *Database) InitializeMultiUserTables() error {
+	db.Logger.Info().Msg("database: Initializing multi-user tables")
+
+	// Create multi-user tables
+	if err := db.gormdb.AutoMigrate(&models.User{}, &models.UserSession{}); err != nil {
+		return err
+	}
+
+	// Start session cleanup
+	go db.startSessionCleanup()
+
+	db.Logger.Info().Msg("database: Multi-user tables initialized successfully")
+	return nil
+}
+
+// startSessionCleanup starts a goroutine to periodically clean up expired sessions
+func (db *Database) startSessionCleanup() {
+	ticker := time.NewTicker(1 * time.Hour) // Clean up every hour
+	go func() {
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := db.CleanupExpiredSessions(); err != nil {
+				db.Logger.Error().Err(err).Msg("database: Failed to cleanup expired sessions")
+			}
+		}
+	}()
+}
+
 // MigrateTables performs auto migration on the database
 func migrateTables(db *gorm.DB) error {
 	err := db.AutoMigrate(

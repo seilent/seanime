@@ -278,28 +278,70 @@ func FetchMediaFromLocalFiles(
 		return true
 	})
 
-	// Fetch all media from the AniList IDs
+	// Fetch all media from the AniList IDs using batch operation to reduce API calls
 	anilistMedia := make([]*anilist.CompleteAnime, 0)
-	lop.ForEach(anilistIds, func(id int, index int) {
-		anilistRateLimiter.Wait()
-		media, err := platform.GetAnimeWithRelations(ctx, id)
-		if err == nil {
-			anilistMedia = append(anilistMedia, media)
+	
+	if len(anilistIds) > 0 {
+		if scanLogger != nil {
+			scanLogger.LogMediaFetcher(zerolog.DebugLevel).
+				Str("module", "Enhanced").
+				Int("count", len(anilistIds)).
+				Msg("Batch fetching Anilist media")
+		}
+		
+		// Use batch operation instead of individual calls
+		mediaMap, err := platform.BatchGetAnimeWithRelations(ctx, anilistIds)
+		if err != nil {
 			if scanLogger != nil {
-				scanLogger.LogMediaFetcher(zerolog.DebugLevel).
+				scanLogger.LogMediaFetcher(zerolog.ErrorLevel).
 					Str("module", "Enhanced").
-					Str("title", media.GetTitleSafe()).
-					Msg("Fetched Anilist media from MAL id")
+					Err(err).
+					Msg("Failed to batch fetch Anilist media, falling back to individual calls")
 			}
+			
+			// Fallback to individual calls if batch fails
+			lop.ForEach(anilistIds, func(id int, index int) {
+				anilistRateLimiter.Wait()
+				media, err := platform.GetAnimeWithRelations(ctx, id)
+				if err == nil {
+					anilistMedia = append(anilistMedia, media)
+					if scanLogger != nil {
+						scanLogger.LogMediaFetcher(zerolog.DebugLevel).
+							Str("module", "Enhanced").
+							Str("title", media.GetTitleSafe()).
+							Msg("Fetched Anilist media from MAL id (fallback)")
+					}
+				} else {
+					if scanLogger != nil {
+						scanLogger.LogMediaFetcher(zerolog.WarnLevel).
+							Str("module", "Enhanced").
+							Int("id", id).
+							Msg("Failed to fetch Anilist media from MAL id (fallback)")
+					}
+				}
+			})
 		} else {
-			if scanLogger != nil {
-				scanLogger.LogMediaFetcher(zerolog.WarnLevel).
-					Str("module", "Enhanced").
-					Int("id", id).
-					Msg("Failed to fetch Anilist media from MAL id")
+			// Convert map to slice and log successful fetches
+			for id, media := range mediaMap {
+				if media != nil {
+					anilistMedia = append(anilistMedia, media)
+					if scanLogger != nil {
+						scanLogger.LogMediaFetcher(zerolog.DebugLevel).
+							Str("module", "Enhanced").
+							Str("title", media.GetTitleSafe()).
+							Msg("Fetched Anilist media from MAL id (batch)")
+					}
+				} else {
+					if scanLogger != nil {
+						scanLogger.LogMediaFetcher(zerolog.WarnLevel).
+							Str("module", "Enhanced").
+							Int("id", id).
+							Msg("Failed to fetch Anilist media from MAL id (batch)")
+					}
+				}
 			}
 		}
-	})
+	}
 
 	if scanLogger != nil {
 		scanLogger.LogMediaFetcher(zerolog.DebugLevel).

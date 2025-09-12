@@ -1356,10 +1356,10 @@
     }
   },
   {
-    "name": "legacyServerPasswordAuth",
-    "trimmedName": "legacyServerPasswordAuth",
+    "name": "isSetupPath",
+    "trimmedName": "isSetupPath",
     "comments": [
-      "legacyServerPasswordAuth provides backward compatibility for single-user mode",
+      "isSetupPath checks if a path should be accessible during initial setup (when no users exist)",
       ""
     ],
     "filepath": "internal/handlers/auth_middleware.go",

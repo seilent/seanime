@@ -32,7 +32,6 @@ import (
 	"seanime/internal/torrent_clients/transmission"
 	"seanime/internal/torrents/torrent"
 	"seanime/internal/torrentstream"
-	"seanime/internal/user"
 
 	"github.com/cli/browser"
 	"github.com/rs/zerolog"
@@ -43,18 +42,15 @@ import (
 // The settings of these modules will be set/refreshed in InitOrRefreshModules.
 func (a *App) initModulesOnce() {
 
-	a.LocalManager.SetRefreshAnilistCollectionsFunc(func() {
-		_, _ = a.RefreshAnimeCollection()
-		_, _ = a.RefreshMangaCollection()
-	})
+	// Skip setting global collection refresh callbacks in multiuser mode
+	// Collections are now fetched per-user via handlers
+	a.Logger.Debug().Msg("app: Skipping global LocalManager collection refresh callbacks in multiuser mode")
 
+	// Skip setting global plugin refresh callbacks in multiuser mode
+	// Collections are now fetched per-user via handlers
 	plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
-		OnRefreshAnilistAnimeCollection: func() {
-			_, _ = a.RefreshAnimeCollection()
-		},
-		OnRefreshAnilistMangaCollection: func() {
-			_, _ = a.RefreshMangaCollection()
-		},
+		// OnRefreshAnilistAnimeCollection and OnRefreshAnilistMangaCollection
+		// are intentionally omitted in multiuser mode
 	})
 
 	// +---------------------+
@@ -107,9 +103,7 @@ func (a *App) initModulesOnce() {
 		DiscordPresence:   a.DiscordPresence,
 		IsOffline:         a.IsOffline(),
 		ContinuityManager: a.ContinuityManager,
-		RefreshAnimeCollectionFunc: func() {
-			_, _ = a.RefreshAnimeCollection()
-		},
+		RefreshAnimeCollectionFunc: nil, // Disabled in multiuser mode
 	})
 
 	// +---------------------+
@@ -170,9 +164,7 @@ func (a *App) initModulesOnce() {
 		MetadataProvider:  a.MetadataProvider,
 		DiscordPresence:   a.DiscordPresence,
 		Platform:          a.AnilistPlatform,
-		RefreshAnimeCollectionFunc: func() {
-			_, _ = a.RefreshAnimeCollection()
-		},
+		RefreshAnimeCollectionFunc: nil, // Disabled in multiuser mode
 		IsOffline:    a.IsOffline(),
 		NativePlayer: a.NativePlayer,
 	})
@@ -640,51 +632,16 @@ func (a *App) InitOrRefreshDebridSettings() {
 	}
 }
 
-// InitOrRefreshAnilistData will initialize the Anilist anime collection and the account.
-// This function should be called after App.Database is initialized and after settings are updated.
+// InitOrRefreshAnilistData is now simplified for pure multiuser mode.
+// No global user or collections - everything is per-user via handlers.
 func (a *App) InitOrRefreshAnilistData() {
-	a.Logger.Debug().Msg("app: Fetching Anilist data")
+	a.Logger.Debug().Msg("app: Multiuser AniList initialization - no global user/collections")
 
-	var currUser *user.User
-	acc, err := a.Database.GetAccount()
-	if err != nil || acc.Username == "" {
-		a.ServerReady = true
-		currUser = user.NewSimulatedUser() // Create a simulated user if no account is found
-	} else {
-		currUser, err = user.NewUser(acc)
-		if err != nil {
-			a.Logger.Error().Err(err).Msg("app: Failed to create user from account")
-			return
-		}
-	}
+	// No global user setup - everything is handled per-user in handlers
+	a.ServerReady = true
+	a.WSEventManager.SendEvent(events.ServerReady, nil)
 
-	a.user = currUser
-
-	// Set username to Anilist platform
-	a.AnilistPlatform.SetUsername(currUser.Viewer.Name)
-
-	a.Logger.Info().Msg("app: Authenticated to AniList")
-
-	go func() {
-		_, err = a.RefreshAnimeCollection()
-		if err != nil {
-			a.Logger.Error().Err(err).Msg("app: Failed to fetch Anilist anime collection")
-		}
-
-		a.ServerReady = true
-		a.WSEventManager.SendEvent(events.ServerReady, nil)
-
-		_, err = a.RefreshMangaCollection()
-		if err != nil {
-			a.Logger.Error().Err(err).Msg("app: Failed to fetch Anilist manga collection")
-		}
-	}()
-
-	go func(username string) {
-		a.DiscordPresence.SetUsername(username)
-	}(currUser.Viewer.Name)
-
-	a.Logger.Info().Msg("app: Fetched Anilist data")
+	a.Logger.Info().Msg("app: Multiuser AniList initialization complete")
 }
 
 func (a *App) performActionsOnce() {

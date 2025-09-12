@@ -129,10 +129,7 @@ func (h *Handler) HandleLocalGetIsMediaTracked(c echo.Context) error {
 //	@route /api/v1/local/local [POST]
 //	@returns bool
 func (h *Handler) HandleLocalSyncData(c echo.Context) error {
-	// Do not allow syncing if the user is simulated
-	if h.App.GetUser().IsSimulated {
-		return h.RespondWithData(c, true)
-	}
+	// Pure multiuser system - all users can sync data
 	err := h.App.LocalManager.SynchronizeLocal()
 	if err != nil {
 		return h.RespondWithError(c, err)

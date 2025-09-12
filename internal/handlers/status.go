@@ -44,6 +44,7 @@ type Status struct {
 	FeatureFlags          core.FeatureFlags             `json:"featureFlags"`
 	ServerReady           bool                          `json:"serverReady"`
 	ServerHasPassword     bool                          `json:"serverHasPassword"`
+	HasUsers              bool                          `json:"hasUsers"`
 }
 
 var clientInfoCache = result.NewResultMap[string, util.ClientInfo]()
@@ -57,20 +58,49 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 	var theme *models.Theme
 	//var mal *models.Mal
 
-	// Get the user from the database (if logged in)
-	if dbAcc, _ = h.App.Database.GetAccount(); dbAcc != nil {
-		currentUser, _ = user.NewUser(dbAcc)
-		if currentUser != nil {
-			currentUser.Token = "HIDDEN"
+	// Get the current user from context and their account
+	if contextUser := h.getCurrentUser(c); contextUser != nil {
+		// Get account for the current user
+		if dbAcc, _ = h.App.Database.GetAccountForUser(contextUser.ID); dbAcc != nil {
+			currentUser, _ = user.NewUser(dbAcc)
+			if currentUser != nil {
+				currentUser.Token = "HIDDEN"
+			}
+		} else {
+			// User is logged in but has no AniList account
+			currentUser = user.NewSimulatedUser()
 		}
 	} else {
 		// If the user is not logged in, create a simulated user
 		currentUser = user.NewSimulatedUser()
 	}
 
-	if settings, _ = h.App.Database.GetSettings(); settings != nil {
-		if settings.ID == 0 || settings.Library == nil || settings.Torrent == nil || settings.MediaPlayer == nil {
-			settings = nil
+	// Get settings - merge global and user settings
+	if contextUser := h.getCurrentUser(c); contextUser != nil {
+		// Get user-specific settings
+		userSettings, _ := h.App.Database.GetSettingsForUser(contextUser.ID)
+		// Get global settings
+		globalSettings, _ := h.App.Database.GetSettings()
+		
+		// Merge settings: global for shared resources, user for personal preferences
+		if userSettings != nil && (userSettings.ID != 0 && userSettings.MediaPlayer != nil) {
+			settings = userSettings
+			
+			// Override with global settings for shared resources (admin-controlled)
+			if globalSettings != nil {
+				if globalSettings.Library != nil {
+					settings.Library = globalSettings.Library
+				}
+				if globalSettings.Torrent != nil {
+					settings.Torrent = globalSettings.Torrent
+				}
+				if globalSettings.AutoDownloader != nil {
+					settings.AutoDownloader = globalSettings.AutoDownloader
+				}
+			}
+		} else if globalSettings != nil {
+			// If no user settings exist, fall back to global settings
+			settings = globalSettings
 		}
 	}
 
@@ -105,17 +135,26 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 		ServerHasPassword:     false, // Always false since server password is removed
 	}
 
+	// Check if any users exist
+	users, err := h.App.Database.GetAllUsers()
+	if err == nil {
+		status.HasUsers = len(users) > 0
+	}
+
 	if c.Get("unauthenticated") != nil && c.Get("unauthenticated").(bool) {
-		// If the user is unauthenticated, return a status with no user data
 		status.OS = ""
 		status.DataDir = ""
 		status.User = user.NewSimulatedUser()
 		status.ThemeSettings = nil
 		status.MediastreamSettings = nil
 		status.TorrentstreamSettings = nil
-		status.Settings = &models.Settings{}
 		status.DebridSettings = nil
 		status.FeatureFlags = core.FeatureFlags{}
+		if status.Settings != nil {
+			status.Settings = &models.Settings{
+				BaseModel: models.BaseModel{ID: status.Settings.ID},
+			}
+		}
 	}
 
 	return status

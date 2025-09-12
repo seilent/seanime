@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"seanime/internal/database/models"
-	"seanime/internal/platforms/anilist_platform"
-	"seanime/internal/platforms/simulated_platform"
 	"seanime/internal/util"
 	"time"
 
@@ -75,9 +73,7 @@ func (h *Handler) HandleAnilistConnect(c echo.Context) error {
 
 	h.App.Logger.Info().Str("user", user.Username).Str("anilist_user", getViewer.Viewer.Name).Msg("app: Connected to AniList")
 
-	// Update the platform
-	anilistPlatform := anilist_platform.NewAnilistPlatform(h.App.AnilistClient, h.App.Logger)
-	h.App.UpdatePlatform(anilistPlatform)
+	// Note: No longer updating global platform - user-specific platforms are created per request
 
 	// Create a new status
 	status := h.NewStatus(c)
@@ -113,18 +109,10 @@ func (h *Handler) HandleAnilistDisconnect(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("user not found in context"))
 	}
 
-	// Update the anilist client
-	h.App.UpdateAnilistClientToken("")
-
-	// Update the platform
-	simulatedPlatform, err := simulated_platform.NewSimulatedPlatform(h.App.LocalManager, h.App.AnilistClient, h.App.Logger)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-	h.App.UpdatePlatform(simulatedPlatform)
+	// Note: In multi-user system, don't update global client/platform when individual user disconnects
 
 	// Clear account data in database for the current user
-	_, err = h.App.Database.UpsertAccountForUser(user.ID, &models.Account{
+	_, err := h.App.Database.UpsertAccountForUser(user.ID, &models.Account{
 		BaseModel: models.BaseModel{
 			UpdatedAt: time.Now(),
 		},

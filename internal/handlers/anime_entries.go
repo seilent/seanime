@@ -12,6 +12,7 @@ import (
 	"seanime/internal/library/anime"
 	"seanime/internal/library/scanner"
 	"seanime/internal/library/summary"
+	"seanime/internal/platforms/platform"
 	"seanime/internal/util"
 	"seanime/internal/util/limiter"
 	"seanime/internal/util/result"
@@ -35,6 +36,12 @@ import (
 //	@returns anime.Entry
 func (h *Handler) HandleGetAnimeEntry(c echo.Context) error {
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	mId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -53,7 +60,7 @@ func (h *Handler) HandleGetAnimeEntry(c echo.Context) error {
 	}
 
 	// Get the user's anilist collection
-	animeCollection, err := h.App.GetAnimeCollection(false)
+	animeCollection, err := h.App.GetAnimeCollectionForUser(user, false)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -62,14 +69,20 @@ func (h *Handler) HandleGetAnimeEntry(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("anime collection not found"))
 	}
 
+	// Get user-specific platform
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
 	// Create a new media entry
 	entry, err := anime.NewEntry(c.Request().Context(), &anime.NewEntryOptions{
 		MediaId:          mId,
 		LocalFiles:       lfs,
 		AnimeCollection:  animeCollection,
-		Platform:         h.App.AnilistPlatform,
+		Platform:         userPlatform,
 		MetadataProvider: h.App.MetadataProvider,
-		IsSimulated:      h.App.GetUser().IsSimulated,
+		IsSimulated:      false, // Pure multiuser system - no simulated users
 	})
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -238,6 +251,12 @@ var (
 //	@returns []anilist.BaseAnime
 func (h *Handler) HandleFetchAnimeEntrySuggestions(c echo.Context) error {
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	type body struct {
 		Dir string `json:"dir"`
 	}
@@ -292,7 +311,7 @@ func (h *Handler) HandleFetchAnimeEntrySuggestions(c echo.Context) error {
 		nil,
 		nil,
 		h.App.Logger,
-		h.App.GetUserAnilistToken(),
+		h.App.GetUserAnilistTokenForUser(user),
 	)
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -327,13 +346,24 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	animeCollectionWithRelations, err := h.App.AnilistPlatform.GetAnimeCollectionWithRelations(c.Request().Context())
+	// Get user-specific AniList platform
+	var userPlatform platform.Platform
+	var err error
+	userPlatform, err = h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	var animeCollectionWithRelations *anilist.AnimeCollectionWithRelations
+	animeCollectionWithRelations, err = userPlatform.GetAnimeCollectionWithRelations(c.Request().Context())
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
 	// Retrieve local files
-	lfs, lfsId, err := db_bridge.GetLocalFiles(h.App.Database)
+	var lfs []*anime.LocalFile
+	var lfsId uint
+	lfs, lfsId, err = db_bridge.GetLocalFiles(h.App.Database)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -357,8 +387,15 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 		return item
 	})
 
+	// Get user-specific AniList platform (second instance)
+	userPlatform, err = h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
 	// Get the media
-	media, err := h.App.AnilistPlatform.GetAnime(c.Request().Context(), b.MediaId)
+	var media *anilist.BaseAnime
+	media, err = userPlatform.GetAnime(c.Request().Context(), b.MediaId)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -379,7 +416,7 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 	fh := scanner.FileHydrator{
 		LocalFiles:         selectedLfs,
 		CompleteAnimeCache: anilist.NewCompleteAnimeCache(),
-		Platform:           h.App.AnilistPlatform,
+		Platform:           userPlatform,
 		MetadataProvider:   h.App.MetadataProvider,
 		AnilistRateLimiter: limiter.NewAnilistLimiter(),
 		Logger:             h.App.Logger,
@@ -447,6 +484,12 @@ var missingEpisodesCache *anime.MissingEpisodes
 //	@route /api/v1/library/missing-episodes [GET]
 //	@returns anime.MissingEpisodes
 func (h *Handler) HandleGetMissingEpisodes(c echo.Context) error {
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	h.App.AddOnRefreshAnilistCollectionFunc("HandleGetMissingEpisodes", func() {
 		missingEpisodesCache = nil
 	})
@@ -458,7 +501,7 @@ func (h *Handler) HandleGetMissingEpisodes(c echo.Context) error {
 	// Get the user's anilist collection
 	// Do not bypass the cache, since this handler might be called multiple times, and we don't want to spam the API
 	// A cron job will refresh the cache every 10 minutes
-	animeCollection, err := h.App.GetAnimeCollection(false)
+	animeCollection, err := h.App.GetAnimeCollectionForUser(user, false)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -566,6 +609,12 @@ func (h *Handler) HandleToggleAnimeEntrySilenceStatus(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandleUpdateAnimeEntryProgress(c echo.Context) error {
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	type body struct {
 		MediaId       int `json:"mediaId"`
 		MalId         int `json:"malId,omitempty"`
@@ -578,8 +627,14 @@ func (h *Handler) HandleUpdateAnimeEntryProgress(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	// Get user-specific AniList platform
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
 	// Update the progress on AniList
-	err := h.App.AnilistPlatform.UpdateEntryProgress(
+	err = userPlatform.UpdateEntryProgress(
 		c.Request().Context(),
 		b.MediaId,
 		b.EpisodeNumber,
@@ -589,7 +644,7 @@ func (h *Handler) HandleUpdateAnimeEntryProgress(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	_, _ = h.App.RefreshAnimeCollection() // Refresh the AniList collection
+	_, _ = h.App.RefreshAnimeCollectionForUser(user) // Refresh the AniList collection
 
 	return h.RespondWithData(c, true)
 }
@@ -615,7 +670,13 @@ func (h *Handler) HandleUpdateAnimeEntryRepeat(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	err := h.App.AnilistPlatform.UpdateEntryRepeat(
+	// Get user-specific AniList platform
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	err = userPlatform.UpdateEntryRepeat(
 		c.Request().Context(),
 		b.MediaId,
 		b.Repeat,
@@ -624,7 +685,7 @@ func (h *Handler) HandleUpdateAnimeEntryRepeat(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	//_, _ = h.App.RefreshAnimeCollection() // Refresh the AniList collection
+	//_, _ = h.App.RefreshAnimeCollectionForUser(user) // Refresh the AniList collection
 
 	return h.RespondWithData(c, true)
 }

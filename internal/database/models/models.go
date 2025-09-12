@@ -33,7 +33,8 @@ type Account struct {
 
 type LocalFiles struct {
 	BaseModel
-	Value []byte `gorm:"column:value" json:"value"`
+	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
+	Value  []byte `gorm:"column:value" json:"value"`
 }
 
 // +---------------------+

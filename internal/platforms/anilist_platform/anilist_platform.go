@@ -292,6 +292,17 @@ func (ap *AnilistPlatform) GetAnimeWithRelations(ctx context.Context, mediaID in
 	return ret.GetMedia(), nil
 }
 
+func (ap *AnilistPlatform) BatchGetAnimeWithRelations(ctx context.Context, mediaIDs []int) (map[int]*anilist.CompleteAnime, error) {
+	ap.logger.Trace().Ints("mediaIDs", mediaIDs).Msg("anilist platform: Batch fetching anime with relations")
+	
+	if len(mediaIDs) == 0 {
+		return make(map[int]*anilist.CompleteAnime), nil
+	}
+	
+	// Use the new batch method from the client
+	return ap.anilistClient.BatchCompleteAnimeByIDs(ctx, mediaIDs)
+}
+
 func (ap *AnilistPlatform) GetManga(ctx context.Context, mediaID int) (*anilist.BaseManga, error) {
 	ap.logger.Trace().Msg("anilist platform: Fetching manga")
 	ret, err := ap.anilistClient.BaseMangaByID(ctx, &mediaID)

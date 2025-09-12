@@ -29,7 +29,15 @@ export function CallbackPage(props: CallbackPageProps) {
              */
             const _token = window?.location?.hash?.replace("#access_token=", "")?.replace(/&.*/, "")
             if (!!_token && !called.current) {
-                connectAnilist({ token: _token })
+                connectAnilist({ token: _token }, {
+                    onSuccess: () => {
+                        router.push("/")
+                    },
+                    onError: () => {
+                        toast.error("Failed to authenticate")
+                        router.push("/")
+                    }
+                })
                 called.current = true
             } else {
                 toast.error("Invalid token")

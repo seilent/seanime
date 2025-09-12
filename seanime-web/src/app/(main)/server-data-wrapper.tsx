@@ -83,8 +83,10 @@ export function ServerDataWrapper(props: ServerDataWrapperProps) {
 
     /**
      * If the server status doesn't have settings, show the getting started page
+     * Empty settings object means fresh install (id: 0 means never saved to DB)
+     * Only show getting started if no users exist (first-time setup)
      */
-    if (!serverStatus?.settings) {
+    if ((!serverStatus?.settings || serverStatus?.settings?.id === 0) && !serverStatus?.hasUsers) {
         return <GettingStartedPage status={serverStatus} />
     }
 

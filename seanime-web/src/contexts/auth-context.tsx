@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useServerStatus } from '@/app/(main)/_hooks/use-server-status'
+import { logger } from '@/lib/helpers/debug'
 
 // Types
 interface User {
@@ -105,28 +106,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Check auth on mount
     useEffect(() => {
+        logger("DBG").info("AuthProvider mounted, checking auth")
         checkAuth()
     }, [])
 
     // Auto-redirect logic
     useEffect(() => {
-        if (!isLoading) {
+        if (!isLoading && serverStatus !== null) {
             const currentPath = window.location.pathname
+            
+            logger("DBG").info("Auth redirect logic", {
+                currentPath,
+                isAuthenticated,
+                isLoading,
+                hasSettings: !!serverStatus?.settings,
+                serverStatusKeys: serverStatus ? Object.keys(serverStatus) : null,
+                settingsObject: serverStatus?.settings
+            })
             
             // If user is authenticated and on login page, redirect to home
             if (isAuthenticated && currentPath === '/login') {
+                logger("DBG").info("Redirecting authenticated user from login to home")
                 router.push('/')
                 return
             }
 
             // If user is authenticated and on getting-started, redirect to home
             if (isAuthenticated && currentPath === '/getting-started') {
+                logger("DBG").info("Redirecting authenticated user from getting-started to home")
                 router.push('/')
-                return
-            }
-
-            // Check if server needs setup before auth redirects
-            if (!serverStatus?.settings) {
                 return
             }
 
@@ -155,9 +163,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             )
 
             if (!isAuthenticated && isProtectedRoute) {
+                logger("DBG").info("Redirecting unauthenticated user to login from protected route", currentPath)
                 router.push('/login')
                 return
             }
+        } else {
+            logger("DBG").info("Auth redirect logic waiting", {
+                isLoading,
+                hasServerStatus: serverStatus !== null
+            })
         }
     }, [isAuthenticated, isLoading, router, serverStatus?.settings])
 

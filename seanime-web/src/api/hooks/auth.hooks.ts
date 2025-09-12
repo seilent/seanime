@@ -63,3 +63,27 @@ export function useLogout() {
         },
     })
 }
+
+export function useAnilistDisconnect() {
+    const queryClient = useQueryClient()
+    const setServerStatus = useSetServerStatus()
+
+    return useServerMutation<Status>({
+        endpoint: API_ENDPOINTS.ANILIST_CONNECTION.AnilistDisconnect.endpoint,
+        method: API_ENDPOINTS.ANILIST_CONNECTION.AnilistDisconnect.methods[0],
+        mutationKey: [API_ENDPOINTS.ANILIST_CONNECTION.AnilistDisconnect.key],
+        onSuccess: async (data) => {
+            toast.success("Successfully disconnected from AniList")
+            if (data) {
+                setServerStatus(data)
+            }
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetLibraryCollection.key] })
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANILIST.GetRawAnimeCollection.key] })
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANILIST.GetAnimeCollection.key] })
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.MANGA.GetMangaCollection.key] })
+            queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetMissingEpisodes.key] })
+            queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetAnimeEntry.key] })
+            queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.MANGA.GetMangaEntry.key] })
+        },
+    })
+}

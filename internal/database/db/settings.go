@@ -45,18 +45,36 @@ func (db *Database) GetSettings() (*models.Settings, error) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (db *Database) GetLibraryPathFromSettings() (string, error) {
-	settings, err := db.GetSettings()
+	// Library path should be global - try to get from system settings first (user_id = 0)
+	var settings models.Settings
+	err := db.gormdb.Where("user_id = ?", 0).First(&settings).Error
+	if err == nil && settings.Library.LibraryPath != "" {
+		return settings.Library.LibraryPath, nil
+	}
+	
+	// Fallback to the first non-empty library path from any user
+	err = db.gormdb.Where("library_path != '' AND library_path IS NOT NULL").First(&settings).Error
 	if err != nil {
 		return "", err
 	}
+	
 	return settings.Library.LibraryPath, nil
 }
 
 func (db *Database) GetAdditionalLibraryPathsFromSettings() ([]string, error) {
-	settings, err := db.GetSettings()
-	if err != nil {
-		return []string{}, err
+	// Library paths should be global - try to get from system settings first (user_id = 0)
+	var settings models.Settings
+	err := db.gormdb.Where("user_id = ?", 0).First(&settings).Error
+	if err == nil && len(settings.Library.LibraryPaths) > 0 {
+		return settings.Library.LibraryPaths, nil
 	}
+	
+	// Fallback to the first non-empty library paths from any user
+	err = db.gormdb.Where("library_paths != '' AND library_paths IS NOT NULL").First(&settings).Error
+	if err != nil {
+		return []string{}, nil // Return empty slice instead of error
+	}
+	
 	return settings.Library.LibraryPaths, nil
 }
 

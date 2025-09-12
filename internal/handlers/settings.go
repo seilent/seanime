@@ -24,12 +24,24 @@ func (h *Handler) HandleGetSettings(c echo.Context) error {
 		return c.JSON(401, map[string]string{"error": "Authentication required"})
 	}
 
-	settings, err := h.App.Database.GetSettingsForUser(user.ID)
+	// Get user-specific settings
+	userSettings, err := h.App.Database.GetSettingsForUser(user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	return h.RespondWithData(c, settings)
+	// Get global/system settings for shared resources like library path
+	globalSettings, err := h.App.Database.GetSettings()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Merge settings: use global library settings, user settings for personal preferences
+	if globalSettings != nil && globalSettings.Library != nil {
+		userSettings.Library = globalSettings.Library
+	}
+
+	return h.RespondWithData(c, userSettings)
 }
 
 // HandleGettingStarted
@@ -226,45 +238,79 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		return c.JSON(401, map[string]string{"error": "Authentication required"})
 	}
 
-	// Get existing settings for the user
+	// Check if user is admin to determine what settings they can modify
+	isAdmin := user.IsAdmin()
+	
+	// Handle global settings (admin-only)
+	if isAdmin {
+		// Admin can modify global settings (library, torrent, auto-downloader)
+		globalSettings, err := h.App.Database.GetSettings()
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+		
+		if globalSettings == nil {
+			globalSettings = &models.Settings{
+				BaseModel: models.BaseModel{ID: 1, UpdatedAt: time.Now()},
+			}
+		}
+
+		// Update global settings with admin changes
+		globalSettings.Library = &b.Library
+		globalSettings.Torrent = &b.Torrent
+		
+		// Handle auto-downloader settings
+		autoDownloaderSettings := models.AutoDownloaderSettings{}
+		if globalSettings.AutoDownloader != nil {
+			autoDownloaderSettings = *globalSettings.AutoDownloader
+		}
+		if b.Library.TorrentProvider == torrent.ProviderNone && autoDownloaderSettings.Enabled {
+			h.App.Logger.Debug().Msg("app: Disabling auto-downloader because the torrent provider is set to none")
+			autoDownloaderSettings.Enabled = false
+		}
+		globalSettings.AutoDownloader = &autoDownloaderSettings
+		
+		// Save global settings
+		_, err = h.App.Database.UpsertSettings(globalSettings)
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+	}
+
+	// Handle user-specific settings (all users)
 	prevSettings, err := h.App.Database.GetSettingsForUser(user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	autoDownloaderSettings := models.AutoDownloaderSettings{}
-	if prevSettings.AutoDownloader != nil {
-		autoDownloaderSettings = *prevSettings.AutoDownloader
-	}
-	// Disable auto-downloader if the torrent provider is set to none
-	if b.Library.TorrentProvider == torrent.ProviderNone && autoDownloaderSettings.Enabled {
-		h.App.Logger.Debug().Msg("app: Disabling auto-downloader because the torrent provider is set to none")
-		autoDownloaderSettings.Enabled = false
-	}
-
-	settings := &models.Settings{
+	// Create user settings with only personal preferences
+	userSettings := &models.Settings{
 		BaseModel: models.BaseModel{
 			ID:        prevSettings.ID,
 			UpdatedAt: time.Now(),
 		},
-		UserID:         user.ID,
-		Library:        &b.Library,
-		MediaPlayer:    &b.MediaPlayer,
-		Torrent:        &b.Torrent,
-		Anilist:        &b.Anilist,
-		Manga:          &b.Manga,
-		Discord:        &b.Discord,
-		Notifications:  &b.Notifications,
-		Nakama:         &b.Nakama,
-		AutoDownloader: &autoDownloaderSettings,
+		UserID:        user.ID,
+		MediaPlayer:   &b.MediaPlayer,
+		Anilist:       &b.Anilist,
+		Discord:       &b.Discord,
+		Manga:         &b.Manga,
+		Notifications: &b.Notifications,
+		Nakama:        &b.Nakama,
 	}
 
-	err = h.App.Database.SaveSettingsForUser(user.ID, settings)
+	// Non-admins cannot modify library/torrent settings, so keep existing values
+	if !isAdmin && prevSettings != nil {
+		userSettings.Library = prevSettings.Library
+		userSettings.Torrent = prevSettings.Torrent  
+		userSettings.AutoDownloader = prevSettings.AutoDownloader
+	}
+
+	err = h.App.Database.SaveSettingsForUser(user.ID, userSettings)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	h.App.WSEventManager.SendEvent("settings", settings)
+	h.App.WSEventManager.SendEvent("settings", userSettings)
 
 	status := h.NewStatus(c)
 

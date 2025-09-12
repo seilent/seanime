@@ -17,14 +17,22 @@ func (h *Handler) UserAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 
+		// Allow setup-related APIs during initial setup (when no users exist)
+		if h.isSetupPath(path) {
+			users, err := h.App.Database.GetAllUsers()
+			if err == nil && len(users) == 0 {
+				// No users exist, allow setup APIs
+				return next(c)
+			}
+		}
+
 		// Check user session
 		token := h.getSessionToken(c)
 		if token != "" {
 			user, err := h.validateUserSession(token)
 			if err == nil {
 				c.Set("user", user)
-				// Set user context in App for AniList operations
-				h.App.SetUserFromContext(user)
+				// User context is now handled per-request in individual handlers
 				return next(c)
 			}
 		}
@@ -97,6 +105,22 @@ func (h *Handler) isPublicPath(path string) bool {
 	return false
 }
 
+// isSetupPath checks if a path should be accessible during initial setup (when no users exist)
+func (h *Handler) isSetupPath(path string) bool {
+	setupPaths := []string{
+		"/api/v1/directory-selector",    // Needed for library path selection
+		"/api/v1/start",                 // Getting started API endpoint
+	}
+
+	// Check exact matches
+	for _, setupPath := range setupPaths {
+		if path == setupPath {
+			return true
+		}
+	}
+
+	return false
+}
 
 // RequireAdmin middleware ensures the current user is an admin
 func (h *Handler) RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
@@ -138,3 +162,4 @@ func (h *Handler) getCurrentUser(c echo.Context) *models.User {
 	}
 	return user
 }
+

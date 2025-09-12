@@ -87,14 +87,17 @@ func (h *Handler) HandleGetNakamaAnimeLibrary(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("host is not sharing its anime library"))
 	}
 
-	animeCollection, err := h.App.GetAnimeCollection(false)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
+	// Disabled: Nakama P2P features incompatible with centralized multiuser design
+	return h.RespondWithError(c, errors.New("Nakama P2P features disabled in multiuser mode"))
+	
+	// animeCollection, err := h.App.GetAnimeCollection(false)
+	// if err != nil {
+	// 	return h.RespondWithError(c, err)
+	// }
 
-	if animeCollection == nil {
-		return h.RespondWithData(c, &anime.LibraryCollection{})
-	}
+	// if animeCollection == nil {
+	// 	return h.RespondWithData(c, &anime.LibraryCollection{})
+	// }
 
 	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
 	if err != nil {
@@ -113,7 +116,7 @@ func (h *Handler) HandleGetNakamaAnimeLibrary(c echo.Context) error {
 	})
 
 	libraryCollection, err := anime.NewLibraryCollection(c.Request().Context(), &anime.NewLibraryCollectionOptions{
-		AnimeCollection:  animeCollection,
+		// AnimeCollection:  animeCollection,
 		Platform:         h.App.AnilistPlatform,
 		LocalFiles:       lfs,
 		MetadataProvider: h.App.MetadataProvider,
@@ -129,7 +132,7 @@ func (h *Handler) HandleGetNakamaAnimeLibrary(c echo.Context) error {
 
 	return h.RespondWithData(c, &nakama.NakamaAnimeLibrary{
 		LocalFiles:      lfs,
-		AnimeCollection: animeCollection,
+		// AnimeCollection: animeCollection,
 	})
 }
 
@@ -145,14 +148,17 @@ func (h *Handler) HandleGetNakamaAnimeLibraryCollection(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("host is not sharing its anime library"))
 	}
 
-	animeCollection, err := h.App.GetAnimeCollection(false)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
+	// Disabled: Nakama P2P features incompatible with centralized multiuser design
+	return h.RespondWithError(c, errors.New("Nakama P2P features disabled in multiuser mode"))
+	
+	// animeCollection, err := h.App.GetAnimeCollection(false)
+	// if err != nil {
+	// 	return h.RespondWithError(c, err)
+	// }
 
-	if animeCollection == nil {
-		return h.RespondWithData(c, &anime.LibraryCollection{})
-	}
+	// if animeCollection == nil {
+	// 	return h.RespondWithData(c, &anime.LibraryCollection{})
+	// }
 
 	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
 	if err != nil {
@@ -171,7 +177,7 @@ func (h *Handler) HandleGetNakamaAnimeLibraryCollection(c echo.Context) error {
 	})
 
 	libraryCollection, err := anime.NewLibraryCollection(c.Request().Context(), &anime.NewLibraryCollectionOptions{
-		AnimeCollection:  animeCollection,
+		// AnimeCollection:  animeCollection,
 		Platform:         h.App.AnilistPlatform,
 		LocalFiles:       lfs,
 		MetadataProvider: h.App.MetadataProvider,
@@ -279,7 +285,12 @@ func (h *Handler) HandleNakamaPlayVideo(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("not connected to host"))
 	}
 
-	media, err := h.App.AnilistPlatform.GetAnime(c.Request().Context(), b.MediaId)
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+	
+	media, err := userPlatform.GetAnime(c.Request().Context(), b.MediaId)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

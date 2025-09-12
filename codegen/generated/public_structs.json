@@ -27701,17 +27701,6 @@
         "required": false,
         "public": true,
         "comments": []
-      },
-      {
-        "name": "ServerPasswordHash",
-        "jsonName": "ServerPasswordHash",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": [
-          " SHA-256 hash of the server password"
-        ]
       }
     ],
     "comments": []
@@ -27833,9 +27822,9 @@
         "name": "Server",
         "jsonName": "Server",
         "goType": "INTERNAL_Config_Server",
-        "inlineStructType": "struct{\nHost string\nPort int\nOffline bool\nUseBinaryPath bool\nSystray bool\nDoHUrl string\nPassword string}",
+        "inlineStructType": "struct{\nHost string\nPort int\nOffline bool\nUseBinaryPath bool\nSystray bool\nDoHUrl string}",
         "typescriptType": "INTERNAL_Config_Server",
-        "usedTypescriptType": "{ Host: string; Port: number; Offline: boolean; UseBinaryPath: boolean; Systray: boolean; DoHUrl: string; Password: string; }",
+        "usedTypescriptType": "{ Host: string; Port: number; Offline: boolean; UseBinaryPath: boolean; Systray: boolean; DoHUrl: string; }",
         "usedStructName": "core.Config_Server",
         "required": true,
         "public": true,
@@ -28021,15 +28010,6 @@
       {
         "name": "DoHUrl",
         "jsonName": "DoHUrl",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Password",
-        "jsonName": "Password",
         "goType": "string",
         "typescriptType": "string",
         "required": true,
@@ -40540,6 +40520,15 @@
       {
         "name": "ServerHasPassword",
         "jsonName": "serverHasPassword",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "HasUsers",
+        "jsonName": "hasUsers",
         "goType": "bool",
         "typescriptType": "boolean",
         "required": true,

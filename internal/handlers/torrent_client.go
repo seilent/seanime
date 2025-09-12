@@ -5,10 +5,8 @@ import (
 	"path/filepath"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
-	"seanime/internal/events"
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
 	"seanime/internal/torrent_clients/torrent_client"
-	"seanime/internal/util"
 
 	"github.com/labstack/echo/v4"
 )
@@ -136,7 +134,12 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("could not contact torrent client, verify your settings or make sure it's running"))
 	}
 
-	completeAnime, err := h.App.AnilistPlatform.GetAnimeWithRelations(c.Request().Context(), b.Media.ID)
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+	
+	completeAnime, err := userPlatform.GetAnimeWithRelations(c.Request().Context(), b.Media.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -184,28 +187,8 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 		}
 	}
 
-	// Add the media to the collection (if it wasn't already)
-	go func() {
-		defer util.HandlePanicInModuleThen("handlers/HandleTorrentClientDownload", func() {})
-		if b.Media != nil {
-			// Check if the media is already in the collection
-			animeCollection, err := h.App.GetAnimeCollection(false)
-			if err != nil {
-				return
-			}
-			_, found := animeCollection.FindAnime(b.Media.ID)
-			if found {
-				return
-			}
-			// Add the media to the collection
-			err = h.App.AnilistPlatform.AddMediaToCollection(c.Request().Context(), []int{b.Media.ID})
-			if err != nil {
-				h.App.Logger.Error().Err(err).Msg("anilist: Failed to add media to collection")
-			}
-			ac, _ := h.App.RefreshAnimeCollection()
-			h.App.WSEventManager.SendEvent(events.RefreshedAnilistAnimeCollection, ac)
-		}
-	}()
+	// Note: Files will be downloaded to library folder and picked up by scanner
+	// Users can manually refresh their AniList collections if needed
 
 	return h.RespondWithData(c, true)
 

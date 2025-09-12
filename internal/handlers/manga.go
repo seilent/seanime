@@ -30,6 +30,12 @@ var (
 //	@returns anilist.MangaCollection
 func (h *Handler) HandleGetAnilistMangaCollection(c echo.Context) error {
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	type body struct {
 		BypassCache bool `json:"bypassCache"`
 	}
@@ -39,7 +45,7 @@ func (h *Handler) HandleGetAnilistMangaCollection(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	collection, err := h.App.GetMangaCollection(b.BypassCache)
+	collection, err := h.App.GetMangaCollectionForUser(user, b.BypassCache)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -54,10 +60,16 @@ func (h *Handler) HandleGetAnilistMangaCollection(c echo.Context) error {
 //	@returns anilist.MangaCollection
 func (h *Handler) HandleGetRawAnilistMangaCollection(c echo.Context) error {
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	bypassCache := c.Request().Method == "POST"
 
 	// Get the user's anilist collection
-	mangaCollection, err := h.App.GetRawMangaCollection(bypassCache)
+	mangaCollection, err := h.App.GetRawMangaCollectionForUser(user, bypassCache)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -75,14 +87,26 @@ func (h *Handler) HandleGetRawAnilistMangaCollection(c echo.Context) error {
 //	@returns manga.Collection
 func (h *Handler) HandleGetMangaCollection(c echo.Context) error {
 
-	animeCollection, err := h.App.GetMangaCollection(false)
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
+	animeCollection, err := h.App.GetMangaCollectionForUser(user, false)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Get user-specific platform
+	userPlatform, err := h.GetUserPlatform(c)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
 	collection, err := manga.NewCollection(&manga.NewCollectionOptions{
 		MangaCollection: animeCollection,
-		Platform:        h.App.AnilistPlatform,
+		Platform:        userPlatform,
 	})
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -100,12 +124,24 @@ func (h *Handler) HandleGetMangaCollection(c echo.Context) error {
 //	@returns manga.Entry
 func (h *Handler) HandleGetMangaEntry(c echo.Context) error {
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	animeCollection, err := h.App.GetMangaCollection(false)
+	animeCollection, err := h.App.GetMangaCollectionForUser(user, false)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Get user-specific platform
+	userPlatform, err := h.GetUserPlatform(c)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -114,7 +150,7 @@ func (h *Handler) HandleGetMangaEntry(c echo.Context) error {
 		MediaId:         id,
 		Logger:          h.App.Logger,
 		FileCacher:      h.App.FileCacher,
-		Platform:        h.App.AnilistPlatform,
+		Platform:        userPlatform,
 		MangaCollection: animeCollection,
 	})
 	if err != nil {
@@ -146,7 +182,12 @@ func (h *Handler) HandleGetMangaEntryDetails(c echo.Context) error {
 		return h.RespondWithData(c, detailsMedia)
 	}
 
-	details, err := h.App.AnilistPlatform.GetMangaDetails(c.Request().Context(), id)
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+	
+	details, err := userPlatform.GetMangaDetails(c.Request().Context(), id)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -179,6 +220,12 @@ func (h *Handler) HandleGetMangaLatestChapterNumbersMap(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandleRefetchMangaChapterContainers(c echo.Context) error {
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	type body struct {
 		SelectedProviderMap map[int]string `json:"selectedProviderMap"`
 	}
@@ -188,7 +235,7 @@ func (h *Handler) HandleRefetchMangaChapterContainers(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	mangaCollection, err := h.App.GetMangaCollection(false)
+	mangaCollection, err := h.App.GetMangaCollectionForUser(user, false)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -248,7 +295,11 @@ func (h *Handler) HandleGetMangaEntryChapters(c echo.Context) error {
 	baseManga, found := baseMangaCache.Get(b.MediaId)
 	if !found {
 		var err error
-		baseManga, err = h.App.AnilistPlatform.GetManga(c.Request().Context(), b.MediaId)
+		userPlatform, err := h.GetUserPlatform(c)
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+		baseManga, err = userPlatform.GetManga(c.Request().Context(), b.MediaId)
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}
@@ -311,12 +362,18 @@ func (h *Handler) HandleGetMangaEntryPages(c echo.Context) error {
 //	@returns []manga.ChapterContainer
 func (h *Handler) HandleGetMangaEntryDownloadedChapters(c echo.Context) error {
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	mId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	mangaCollection, err := h.App.GetMangaCollection(false)
+	mangaCollection, err := h.App.GetMangaCollectionForUser(user, false)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -342,6 +399,12 @@ var (
 //	@route /api/v1/manga/anilist/list [POST]
 //	@returns anilist.ListManga
 func (h *Handler) HandleAnilistListManga(c echo.Context) error {
+
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
 
 	type body struct {
 		Page                *int                   `json:"page,omitempty"`
@@ -405,7 +468,7 @@ func (h *Handler) HandleAnilistListManga(c echo.Context) error {
 		p.CountryOfOrigin,
 		&isAdult,
 		h.App.Logger,
-		h.App.GetUserAnilistToken(),
+		h.App.GetUserAnilistTokenForUser(user),
 	)
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -426,6 +489,12 @@ func (h *Handler) HandleAnilistListManga(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandleUpdateMangaProgress(c echo.Context) error {
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
 	type body struct {
 		MediaId       int `json:"mediaId"`
 		MalId         int `json:"malId,omitempty"`
@@ -438,8 +507,13 @@ func (h *Handler) HandleUpdateMangaProgress(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+	
 	// Update the progress on AniList
-	err := h.App.AnilistPlatform.UpdateEntryProgress(
+	err = userPlatform.UpdateEntryProgress(
 		c.Request().Context(),
 		b.MediaId,
 		b.ChapterNumber,
@@ -449,7 +523,7 @@ func (h *Handler) HandleUpdateMangaProgress(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	_, _ = h.App.RefreshMangaCollection() // Refresh the AniList collection
+	_, _ = h.App.RefreshMangaCollectionForUser(user) // Refresh the AniList collection
 
 	return h.RespondWithData(c, true)
 }

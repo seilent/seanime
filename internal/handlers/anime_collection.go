@@ -23,8 +23,20 @@ import (
 //	@route /api/v1/library/collection [GET,POST]
 //	@returns anime.LibraryCollection
 func (h *Handler) HandleGetLibraryCollection(c echo.Context) error {
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
 
-	animeCollection, err := h.App.GetAnimeCollection(false)
+	// Check if the user has an AniList account linked
+	userToken := h.App.GetUserAnilistTokenForUser(user)
+	if userToken == "" {
+		// User doesn't have AniList linked, return empty library collection
+		return h.RespondWithData(c, &anime.LibraryCollection{})
+	}
+
+	animeCollection, err := h.App.GetAnimeCollectionForUser(user, false)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -80,15 +92,23 @@ func (h *Handler) HandleGetLibraryCollection(c echo.Context) error {
 		}
 
 	} else {
-		lfs, _, err = db_bridge.GetLocalFiles(h.App.Database)
+		// Get user-specific local files
+		lfs, _, err = db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 		if err != nil {
-			return h.RespondWithError(c, err)
+			// If no local files exist for this user, use empty slice
+			lfs = []*anime.LocalFile{}
 		}
+	}
+
+	// Use existing GetUserPlatform method instead of global platform
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
 	}
 
 	libraryCollection, err := anime.NewLibraryCollection(c.Request().Context(), &anime.NewLibraryCollectionOptions{
 		AnimeCollection:  animeCollection,
-		Platform:         h.App.AnilistPlatform,
+		Platform:         userPlatform,
 		LocalFiles:       lfs,
 		MetadataProvider: h.App.MetadataProvider,
 	})
@@ -151,6 +171,18 @@ var animeScheduleCache = result.NewCache[int, []*anime.ScheduleItem]()
 //	@route /api/v1/library/schedule [GET]
 //	@returns []anime.ScheduleItem
 func (h *Handler) HandleGetAnimeCollectionSchedule(c echo.Context) error {
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
+	// Check if the user has an AniList account linked
+	userToken := h.App.GetUserAnilistTokenForUser(user)
+	if userToken == "" {
+		// User doesn't have AniList linked, return empty schedule
+		return h.RespondWithData(c, []*anime.ScheduleItem{})
+	}
 
 	// Invalidate the cache when the Anilist collection is refreshed
 	h.App.AddOnRefreshAnilistCollectionFunc("HandleGetAnimeCollectionSchedule", func() {
@@ -161,12 +193,17 @@ func (h *Handler) HandleGetAnimeCollectionSchedule(c echo.Context) error {
 		return h.RespondWithData(c, ret)
 	}
 
-	animeSchedule, err := h.App.AnilistPlatform.GetAnimeAiringSchedule(c.Request().Context())
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+	
+	animeSchedule, err := userPlatform.GetAnimeAiringSchedule(c.Request().Context())
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	animeCollection, err := h.App.GetAnimeCollection(false)
+	animeCollection, err := h.App.GetAnimeCollectionForUser(user, false)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -196,13 +233,24 @@ func (h *Handler) HandleAddUnknownMedia(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+	
 	// Add non-added media entries to AniList collection
-	if err := h.App.AnilistPlatform.AddMediaToCollection(c.Request().Context(), b.MediaIds); err != nil {
+	if err := userPlatform.AddMediaToCollection(c.Request().Context(), b.MediaIds); err != nil {
 		return h.RespondWithError(c, errors.New("error: Anilist responded with an error, this is most likely a rate limit issue"))
 	}
 
 	// Bypass the cache
-	animeCollection, err := h.App.GetAnimeCollection(true)
+	animeCollection, err := h.App.GetAnimeCollectionForUser(user, true)
 	if err != nil {
 		return h.RespondWithError(c, errors.New("error: Anilist responded with an error, wait one minute before refreshing"))
 	}

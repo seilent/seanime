@@ -24,6 +24,9 @@ type Platform interface {
 	// GetAnimeWithRelations gets the anime with relations for the given media ID
 	// This is used for scanning purposes in order to build the relation tree
 	GetAnimeWithRelations(context context.Context, mediaID int) (*anilist.CompleteAnime, error)
+
+	// BatchGetAnimeWithRelations gets multiple anime with relations in a single request to reduce API calls
+	BatchGetAnimeWithRelations(context context.Context, mediaIDs []int) (map[int]*anilist.CompleteAnime, error)
 	// GetAnimeDetails gets the anime details for the given media ID
 	// These details are only fetched by the anime page
 	GetAnimeDetails(context context.Context, mediaID int) (*anilist.AnimeDetailsById_Media, error)

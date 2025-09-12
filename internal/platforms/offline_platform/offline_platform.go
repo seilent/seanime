@@ -355,6 +355,11 @@ func (lp *OfflinePlatform) GetAnimeWithRelations(ctx context.Context, mediaID in
 	return nil, ErrActionNotSupported
 }
 
+// BatchGetAnimeWithRelations isn't supported for the offline platform, always returns an error.
+func (lp *OfflinePlatform) BatchGetAnimeWithRelations(ctx context.Context, mediaIDs []int) (map[int]*anilist.CompleteAnime, error) {
+	return nil, ErrActionNotSupported
+}
+
 func (lp *OfflinePlatform) GetManga(ctx context.Context, mediaID int) (*anilist.BaseManga, error) {
 	if lp.localManager.GetLocalMangaCollection().IsPresent() {
 		mangaCollection := lp.localManager.GetLocalMangaCollection().MustGet()

@@ -2,8 +2,8 @@ package simulated_platform
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"seanime/internal/api/anilist"
 	"seanime/internal/local"
 	"seanime/internal/platforms/platform"
@@ -62,157 +62,23 @@ func (sp *SimulatedPlatform) SetAnilistClient(client anilist.AnilistClient) {
 // UpdateEntry updates the entry for the given media ID.
 // If the entry doesn't exist, it will be added automatically after determining the media type.
 func (sp *SimulatedPlatform) UpdateEntry(ctx context.Context, mediaID int, status *anilist.MediaListStatus, scoreRaw *int, progress *int, startedAt *anilist.FuzzyDateInput, completedAt *anilist.FuzzyDateInput) error {
-	sp.logger.Trace().Int("mediaID", mediaID).Msg("simulated platform: Updating entry")
-
-	sp.mu.Lock()
-	defer sp.mu.Unlock()
-
-	// Try anime first
-	animeWrapper := sp.GetAnimeCollectionWrapper()
-	if _, err := animeWrapper.FindEntry(mediaID); err == nil {
-		return animeWrapper.UpdateEntry(mediaID, status, scoreRaw, progress, startedAt, completedAt)
-	}
-
-	// Try manga
-	mangaWrapper := sp.GetMangaCollectionWrapper()
-	if _, err := mangaWrapper.FindEntry(mediaID); err == nil {
-		return mangaWrapper.UpdateEntry(mediaID, status, scoreRaw, progress, startedAt, completedAt)
-	}
-
-	// Entry doesn't exist, determine media type and add it
-	defaultStatus := anilist.MediaListStatusPlanning
-	if status != nil {
-		defaultStatus = *status
-	}
-
-	// Try to fetch as anime first
-	if _, err := sp.client.BaseAnimeByID(ctx, &mediaID); err == nil {
-		// It's an anime, add it to anime collection
-		sp.logger.Trace().Int("mediaID", mediaID).Msg("simulated platform: Adding new anime entry")
-		if err := animeWrapper.AddEntry(mediaID, defaultStatus); err != nil {
-			return err
-		}
-		// Update with provided values if there are additional updates needed
-		if status != &defaultStatus || scoreRaw != nil || progress != nil || startedAt != nil || completedAt != nil {
-			return animeWrapper.UpdateEntry(mediaID, status, scoreRaw, progress, startedAt, completedAt)
-		}
-		return nil
-	}
-
-	// Try to fetch as manga
-	if _, err := sp.client.BaseMangaByID(ctx, &mediaID); err == nil {
-		// It's a manga, add it to manga collection
-		sp.logger.Trace().Int("mediaID", mediaID).Msg("simulated platform: Adding new manga entry")
-		if err := mangaWrapper.AddEntry(mediaID, defaultStatus); err != nil {
-			return err
-		}
-		// Update with provided values if there are additional updates needed
-		if status != &defaultStatus || scoreRaw != nil || progress != nil || startedAt != nil || completedAt != nil {
-			return mangaWrapper.UpdateEntry(mediaID, status, scoreRaw, progress, startedAt, completedAt)
-		}
-		return nil
-	}
-
-	// Media not found in either anime or manga
-	return errors.New("media not found on AniList")
+	sp.logger.Trace().Int("mediaID", mediaID).Msg("simulated platform: Cannot update entry - no AniList connection")
+	return errors.New("cannot update entry: AniList account not connected")
 }
 
 func (sp *SimulatedPlatform) UpdateEntryProgress(ctx context.Context, mediaID int, progress int, totalEpisodes *int) error {
-	sp.logger.Trace().Int("mediaID", mediaID).Int("progress", progress).Msg("simulated platform: Updating entry progress")
-
-	sp.mu.Lock()
-	defer sp.mu.Unlock()
-
-	status := anilist.MediaListStatusCurrent
-	if totalEpisodes != nil && progress >= *totalEpisodes {
-		status = anilist.MediaListStatusCompleted
-	}
-
-	// Try anime first
-	animeWrapper := sp.GetAnimeCollectionWrapper()
-	if _, err := animeWrapper.FindEntry(mediaID); err == nil {
-		return animeWrapper.UpdateEntryProgress(mediaID, progress, totalEpisodes)
-	}
-
-	// Try manga
-	mangaWrapper := sp.GetMangaCollectionWrapper()
-	if _, err := mangaWrapper.FindEntry(mediaID); err == nil {
-		return mangaWrapper.UpdateEntryProgress(mediaID, progress, totalEpisodes)
-	}
-
-	// Entry doesn't exist, determine media type and add it
-	// Try to fetch as anime first
-	if _, err := sp.client.BaseAnimeByID(ctx, &mediaID); err == nil {
-		// It's an anime, add it to anime collection
-		sp.logger.Trace().Int("mediaID", mediaID).Msg("simulated platform: Adding new anime entry for progress update")
-		if err := animeWrapper.AddEntry(mediaID, status); err != nil {
-			return err
-		}
-		return animeWrapper.UpdateEntryProgress(mediaID, progress, totalEpisodes)
-	}
-
-	// Try to fetch as manga
-	if _, err := sp.client.BaseMangaByID(ctx, &mediaID); err == nil {
-		// It's a manga, add it to manga collection
-		sp.logger.Trace().Int("mediaID", mediaID).Msg("simulated platform: Adding new manga entry for progress update")
-		if err := mangaWrapper.AddEntry(mediaID, status); err != nil {
-			return err
-		}
-		return mangaWrapper.UpdateEntryProgress(mediaID, progress, totalEpisodes)
-	}
-
-	// Media not found in either anime or manga
-	return errors.New("media not found on AniList")
+	sp.logger.Trace().Int("mediaID", mediaID).Int("progress", progress).Msg("simulated platform: Cannot update entry progress - no AniList connection")
+	return errors.New("cannot update entry progress: AniList account not connected")
 }
 
 func (sp *SimulatedPlatform) UpdateEntryRepeat(ctx context.Context, mediaID int, repeat int) error {
-	sp.logger.Trace().Int("mediaID", mediaID).Int("repeat", repeat).Msg("simulated platform: Updating entry repeat")
-
-	sp.mu.Lock()
-	defer sp.mu.Unlock()
-
-	// Try anime first
-	wrapper := sp.GetAnimeCollectionWrapper()
-	if entry, err := wrapper.FindEntry(mediaID); err == nil {
-		if animeEntry, ok := entry.(*anilist.AnimeCollection_MediaListCollection_Lists_Entries); ok {
-			animeEntry.Repeat = &repeat
-			sp.localManager.SaveSimulatedAnimeCollection(sp.animeCollection)
-			return nil
-		}
-	}
-
-	// Try manga
-	wrapper = sp.GetMangaCollectionWrapper()
-	if entry, err := wrapper.FindEntry(mediaID); err == nil {
-		if mangaEntry, ok := entry.(*anilist.MangaCollection_MediaListCollection_Lists_Entries); ok {
-			mangaEntry.Repeat = &repeat
-			sp.localManager.SaveSimulatedMangaCollection(sp.mangaCollection)
-			return nil
-		}
-	}
-
-	return ErrMediaNotFound
+	sp.logger.Trace().Int("mediaID", mediaID).Int("repeat", repeat).Msg("simulated platform: Cannot update entry repeat - no AniList connection")
+	return errors.New("cannot update entry repeat: AniList account not connected")
 }
 
 func (sp *SimulatedPlatform) DeleteEntry(ctx context.Context, entryId int) error {
-	sp.logger.Trace().Int("entryId", entryId).Msg("simulated platform: Deleting entry")
-
-	sp.mu.Lock()
-	defer sp.mu.Unlock()
-
-	// Try anime first
-	wrapper := sp.GetAnimeCollectionWrapper()
-	if _, err := wrapper.FindEntry(entryId, true); err == nil {
-		return wrapper.DeleteEntry(entryId, true)
-	}
-
-	// Try manga
-	wrapper = sp.GetMangaCollectionWrapper()
-	if _, err := wrapper.FindEntry(entryId, true); err == nil {
-		return wrapper.DeleteEntry(entryId, true)
-	}
-
-	return ErrMediaNotFound
+	sp.logger.Trace().Int("entryId", entryId).Msg("simulated platform: Cannot delete entry - no AniList connection")
+	return errors.New("cannot delete entry: AniList account not connected")
 }
 
 func (sp *SimulatedPlatform) GetAnime(ctx context.Context, mediaID int) (*anilist.BaseAnime, error) {
@@ -278,6 +144,21 @@ func (sp *SimulatedPlatform) GetAnimeWithRelations(ctx context.Context, mediaID 
 	return resp.GetMedia(), nil
 }
 
+func (sp *SimulatedPlatform) BatchGetAnimeWithRelations(ctx context.Context, mediaIDs []int) (map[int]*anilist.CompleteAnime, error) {
+	sp.logger.Trace().Ints("mediaIDs", mediaIDs).Msg("simulated platform: Batch getting anime with relations")
+	
+	result := make(map[int]*anilist.CompleteAnime)
+	for _, mediaID := range mediaIDs {
+		anime, err := sp.GetAnimeWithRelations(ctx, mediaID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get anime %d: %w", mediaID, err)
+		}
+		result[mediaID] = anime
+	}
+	
+	return result, nil
+}
+
 func (sp *SimulatedPlatform) GetManga(ctx context.Context, mediaID int) (*anilist.BaseManga, error) {
 	sp.logger.Trace().Int("mediaID", mediaID).Msg("simulated platform: Getting manga")
 
@@ -310,14 +191,14 @@ func (sp *SimulatedPlatform) GetMangaDetails(ctx context.Context, mediaID int) (
 }
 
 func (sp *SimulatedPlatform) GetAnimeCollection(ctx context.Context, bypassCache bool) (*anilist.AnimeCollection, error) {
-	sp.logger.Trace().Bool("bypassCache", bypassCache).Msg("simulated platform: Getting anime collection")
+	sp.logger.Trace().Bool("bypassCache", bypassCache).Msg("simulated platform: Getting anime collection (empty - no AniList connection)")
 
-	if bypassCache {
-		sp.invalidateAnimeCollectionCache()
-		return sp.getOrCreateAnimeCollection()
-	}
-
-	return sp.animeCollection, nil
+	// Return empty collection when not connected to AniList
+	return &anilist.AnimeCollection{
+		MediaListCollection: &anilist.AnimeCollection_MediaListCollection{
+			Lists: []*anilist.AnimeCollection_MediaListCollection_Lists{},
+		},
+	}, nil
 }
 
 func (sp *SimulatedPlatform) GetRawAnimeCollection(ctx context.Context, bypassCache bool) (*anilist.AnimeCollection, error) {
@@ -325,46 +206,36 @@ func (sp *SimulatedPlatform) GetRawAnimeCollection(ctx context.Context, bypassCa
 }
 
 func (sp *SimulatedPlatform) RefreshAnimeCollection(ctx context.Context) (*anilist.AnimeCollection, error) {
-	sp.logger.Trace().Msg("simulated platform: Refreshing anime collection")
-
-	sp.invalidateAnimeCollectionCache()
-	return sp.getOrCreateAnimeCollection()
+	sp.logger.Trace().Msg("simulated platform: Refreshing anime collection (empty - no AniList connection)")
+	// Return empty collection when not connected to AniList
+	return &anilist.AnimeCollection{
+		MediaListCollection: &anilist.AnimeCollection_MediaListCollection{
+			Lists: []*anilist.AnimeCollection_MediaListCollection_Lists{},
+		},
+	}, nil
 }
 
 // GetAnimeCollectionWithRelations returns the anime collection (without relations)
 func (sp *SimulatedPlatform) GetAnimeCollectionWithRelations(ctx context.Context) (*anilist.AnimeCollectionWithRelations, error) {
-	sp.logger.Trace().Msg("simulated platform: Getting anime collection with relations")
+	sp.logger.Trace().Msg("simulated platform: Getting anime collection with relations (empty - no AniList connection)")
 
-	// Use JSON to convert the collection structs
-	collection, err := sp.getOrCreateAnimeCollection()
-	if err != nil {
-		return nil, err
-	}
-
-	collectionWithRelations := &anilist.AnimeCollectionWithRelations{}
-
-	marshaled, err := json.Marshal(collection)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(marshaled, collectionWithRelations)
-	if err != nil {
-		return nil, err
-	}
-
-	// For simulated platform, the anime collection will not have relations
-	return collectionWithRelations, nil
+	// Return empty collection when not connected to AniList
+	return &anilist.AnimeCollectionWithRelations{
+		MediaListCollection: &anilist.AnimeCollectionWithRelations_MediaListCollection{
+			Lists: []*anilist.AnimeCollectionWithRelations_MediaListCollection_Lists{},
+		},
+	}, nil
 }
 
 func (sp *SimulatedPlatform) GetMangaCollection(ctx context.Context, bypassCache bool) (*anilist.MangaCollection, error) {
-	sp.logger.Trace().Bool("bypassCache", bypassCache).Msg("simulated platform: Getting manga collection")
+	sp.logger.Trace().Bool("bypassCache", bypassCache).Msg("simulated platform: Getting manga collection (empty - no AniList connection)")
 
-	if bypassCache {
-		sp.invalidateMangaCollectionCache()
-		return sp.getOrCreateMangaCollection()
-	}
-
-	return sp.mangaCollection, nil
+	// Return empty collection when not connected to AniList
+	return &anilist.MangaCollection{
+		MediaListCollection: &anilist.MangaCollection_MediaListCollection{
+			Lists: []*anilist.MangaCollection_MediaListCollection_Lists{},
+		},
+	}, nil
 }
 
 func (sp *SimulatedPlatform) GetRawMangaCollection(ctx context.Context, bypassCache bool) (*anilist.MangaCollection, error) {
@@ -372,26 +243,18 @@ func (sp *SimulatedPlatform) GetRawMangaCollection(ctx context.Context, bypassCa
 }
 
 func (sp *SimulatedPlatform) RefreshMangaCollection(ctx context.Context) (*anilist.MangaCollection, error) {
-	sp.logger.Trace().Msg("simulated platform: Refreshing manga collection")
-
-	sp.invalidateMangaCollectionCache()
-	return sp.getOrCreateMangaCollection()
+	sp.logger.Trace().Msg("simulated platform: Refreshing manga collection (empty - no AniList connection)")
+	// Return empty collection when not connected to AniList
+	return &anilist.MangaCollection{
+		MediaListCollection: &anilist.MangaCollection_MediaListCollection{
+			Lists: []*anilist.MangaCollection_MediaListCollection_Lists{},
+		},
+	}, nil
 }
 
 func (sp *SimulatedPlatform) AddMediaToCollection(ctx context.Context, mIds []int) error {
-	sp.logger.Trace().Interface("mediaIDs", mIds).Msg("simulated platform: Adding media to collection")
-
-	sp.mu.Lock()
-	defer sp.mu.Unlock()
-
-	// DEVNOTE: We assume it's anime for now since it's only been used for anime
-	wrapper := sp.GetAnimeCollectionWrapper()
-	for _, mediaID := range mIds {
-		// Try to add as anime first, if it fails, ignore
-		_ = wrapper.AddEntry(mediaID, anilist.MediaListStatusPlanning)
-	}
-
-	return nil
+	sp.logger.Trace().Interface("mediaIDs", mIds).Msg("simulated platform: Cannot add media to collection - no AniList connection")
+	return errors.New("cannot add media to collection: AniList account not connected")
 }
 
 func (sp *SimulatedPlatform) GetStudioDetails(ctx context.Context, studioID int) (*anilist.StudioDetails, error) {

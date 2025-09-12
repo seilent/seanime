@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"seanime/internal/events"
 	"seanime/internal/manga"
 	chapter_downloader "seanime/internal/manga/downloader"
@@ -194,7 +195,13 @@ func (h *Handler) HandleDeleteMangaDownloadedChapters(c echo.Context) error {
 //	@returns []manga.DownloadListItem
 func (h *Handler) HandleGetMangaDownloadsList(c echo.Context) error {
 
-	mangaCollection, err := h.App.GetMangaCollection(false)
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
+
+	mangaCollection, err := h.App.GetMangaCollectionForUser(user, false)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

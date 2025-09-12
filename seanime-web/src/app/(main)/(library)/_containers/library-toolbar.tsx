@@ -112,6 +112,7 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
                         </Button>}
                     </>
                 )}
+                {/* HIDDEN: Resolve unmatched and hidden media buttons - can be reverted if needed
                 {(unmatchedLocalFiles.length > 0) && <Button
                     data-library-toolbar-unmatched-button
                     intent="alert"
@@ -130,6 +131,7 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
                 >
                     Resolve hidden media ({unknownGroups.length})
                 </Button>}
+                */}
 
                 {(!isStreamingOnly && !isNakamaLibrary && hasLibraryPath) &&
                     <DropdownMenu

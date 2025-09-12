@@ -16,6 +16,7 @@ import (
 	"github.com/Yamashou/gqlgenc/graphqljson"
 	"github.com/goccy/go-json"
 	"github.com/rs/zerolog"
+	"golang.org/x/time/rate"
 )
 
 var (
@@ -31,6 +32,9 @@ type AnilistClient interface {
 	BaseAnimeByMalID(ctx context.Context, id *int, interceptors ...clientv2.RequestInterceptor) (*BaseAnimeByMalID, error)
 	BaseAnimeByID(ctx context.Context, id *int, interceptors ...clientv2.RequestInterceptor) (*BaseAnimeByID, error)
 	SearchBaseAnimeByIds(ctx context.Context, ids []*int, page *int, perPage *int, status []*MediaStatus, inCollection *bool, sort []*MediaSort, season *MediaSeason, year *int, genre *string, format *MediaFormat, interceptors ...clientv2.RequestInterceptor) (*SearchBaseAnimeByIds, error)
+	// BatchCompleteAnimeByIDs fetches multiple complete anime in a single request to reduce API calls
+	BatchCompleteAnimeByIDs(ctx context.Context, ids []int) (map[int]*CompleteAnime, error)
+
 	CompleteAnimeByID(ctx context.Context, id *int, interceptors ...clientv2.RequestInterceptor) (*CompleteAnimeByID, error)
 	AnimeDetailsByID(ctx context.Context, id *int, interceptors ...clientv2.RequestInterceptor) (*AnimeDetailsByID, error)
 	ListAnime(ctx context.Context, page *int, search *string, perPage *int, sort []*MediaSort, status []*MediaStatus, genres []*string, averageScoreGreater *int, season *MediaSeason, seasonYear *int, format *MediaFormat, isAdult *bool, interceptors ...clientv2.RequestInterceptor) (*ListAnime, error)
@@ -54,9 +58,10 @@ type AnilistClient interface {
 type (
 	// AnilistClientImpl is a wrapper around the AniList API client.
 	AnilistClientImpl struct {
-		Client *Client
-		logger *zerolog.Logger
-		token  string // The token used for authentication with the AniList API
+		Client      *Client
+		logger      *zerolog.Logger
+		token       string // The token used for authentication with the AniList API
+		rateLimiter *rate.Limiter
 	}
 )
 
@@ -76,7 +81,8 @@ func NewAnilistClient(token string) *AnilistClientImpl {
 					return next(ctx, req, gqlInfo, res)
 				}),
 		},
-		logger: util.NewLogger(),
+		logger:      util.NewLogger(),
+		rateLimiter: rate.NewLimiter(rate.Every(1200*time.Millisecond), 1), // Max 50 requests per minute (AniList limit is 90/min)
 	}
 
 	ac.Client.Client.CustomDo = ac.customDoFunc
@@ -194,6 +200,16 @@ func (ac *AnilistClientImpl) CompleteAnimeByID(ctx context.Context, id *int, int
 	return ac.Client.CompleteAnimeByID(ctx, id, interceptors...)
 }
 
+// BatchCompleteAnimeByIDs fetches multiple complete anime in a single request to reduce API calls
+func (ac *AnilistClientImpl) BatchCompleteAnimeByIDs(ctx context.Context, ids []int) (map[int]*CompleteAnime, error) {
+	if len(ids) == 0 {
+		return make(map[int]*CompleteAnime), nil
+	}
+
+	// Use the compound query to fetch multiple anime at once
+	return FetchCompleteAnimeMap(ids)
+}
+
 func (ac *AnilistClientImpl) ListAnime(ctx context.Context, page *int, search *string, perPage *int, sort []*MediaSort, status []*MediaStatus, genres []*string, averageScoreGreater *int, season *MediaSeason, seasonYear *int, format *MediaFormat, isAdult *bool, interceptors ...clientv2.RequestInterceptor) (*ListAnime, error) {
 	ac.logger.Debug().Msg("anilist: Fetching media list")
 	return ac.Client.ListAnime(ctx, page, search, perPage, sort, status, genres, averageScoreGreater, season, seasonYear, format, isAdult, interceptors...)
@@ -252,6 +268,11 @@ var sentRateLimitWarningTime = time.Now().Add(-10 * time.Second)
 func (ac *AnilistClientImpl) customDoFunc(ctx context.Context, req *http.Request, gqlInfo *clientv2.GQLRequestInfo, res interface{}) (err error) {
 	var rlRemainingStr string
 
+	// Global rate limiter to prevent too many concurrent requests
+	if err := ac.rateLimiter.Wait(ctx); err != nil {
+		return fmt.Errorf("rate limiter wait failed: %w", err)
+	}
+
 	reqTime := time.Now()
 	defer func() {
 		timeSince := time.Since(reqTime)
@@ -270,10 +291,10 @@ func (ac *AnilistClientImpl) customDoFunc(ctx context.Context, req *http.Request
 	client := http.DefaultClient
 	var resp *http.Response
 
-	retryCount := 2
+	maxRetries := 3
+	baseDelay := 1 * time.Second
 
-	for i := 0; i < retryCount; i++ {
-
+	for attempt := 0; attempt < maxRetries; attempt++ {
 		// Reset response body for retry
 		if resp != nil && resp.Body != nil {
 			resp.Body.Close()
@@ -290,32 +311,51 @@ func (ac *AnilistClientImpl) customDoFunc(ctx context.Context, req *http.Request
 
 		resp, err = client.Do(req)
 		if err != nil {
-			return fmt.Errorf("request failed: %w", err)
+			if attempt < maxRetries-1 {
+				delay := baseDelay * time.Duration(1<<attempt) // Exponential backoff
+				ac.logger.Warn().Msgf("anilist: Request failed, retrying in %v (attempt %d/%d)", delay, attempt+1, maxRetries)
+				time.Sleep(delay)
+				continue
+			}
+			return fmt.Errorf("request failed after %d attempts: %w", maxRetries, err)
 		}
 
 		rlRemainingStr = resp.Header.Get("X-Ratelimit-Remaining")
 		rlRetryAfterStr := resp.Header.Get("Retry-After")
-		//println("Remaining:", rlRemainingStr, " | RetryAfter:", rlRetryAfterStr)
 
-		// If we have a rate limit, sleep for the time
-		rlRetryAfter, err := strconv.Atoi(rlRetryAfterStr)
-		if err == nil {
-			ac.logger.Warn().Msgf("anilist: Rate limited, retrying in %d seconds", rlRetryAfter+1)
-			if time.Since(sentRateLimitWarningTime) > 10*time.Second {
-				events.GlobalWSEventManager.SendEvent(events.WarningToast, "anilist: Rate limited, retrying in "+strconv.Itoa(rlRetryAfter+1)+" seconds")
+		// Handle rate limiting
+		if resp.StatusCode == 429 || rlRetryAfterStr != "" {
+			rlRetryAfter, parseErr := strconv.Atoi(rlRetryAfterStr)
+			if parseErr != nil {
+				rlRetryAfter = 30 // Default to 30 seconds if can't parse
+			}
+			
+			// Increase delay for subsequent attempts
+			rlRetryAfter += attempt * 10
+			
+			ac.logger.Warn().Msgf("anilist: Rate limited, retrying in %d seconds (attempt %d/%d)", rlRetryAfter, attempt+1, maxRetries)
+			
+			if time.Since(sentRateLimitWarningTime) > 30*time.Second {
+				events.GlobalWSEventManager.SendEvent(events.WarningToast, fmt.Sprintf("anilist: Rate limited, retrying in %d seconds", rlRetryAfter))
 				sentRateLimitWarningTime = time.Now()
 			}
-			select {
-			case <-time.After(time.Duration(rlRetryAfter+1) * time.Second):
-				continue
+			
+			if attempt < maxRetries-1 {
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-time.After(time.Duration(rlRetryAfter) * time.Second):
+					continue
+				}
+			} else {
+				return fmt.Errorf("rate limited after %d attempts", maxRetries)
 			}
 		}
 
-		if rlRemainingStr == "" {
-			select {
-			case <-time.After(5 * time.Second):
-				continue
-			}
+		// Check rate limit remaining and slow down proactively
+		if rlRemaining, parseErr := strconv.Atoi(rlRemainingStr); parseErr == nil && rlRemaining <= 10 {
+			ac.logger.Warn().Msgf("anilist: Low rate limit remaining (%d), adding delay", rlRemaining)
+			time.Sleep(2 * time.Second)
 		}
 
 		break
