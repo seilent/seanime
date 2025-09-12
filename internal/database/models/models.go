@@ -515,3 +515,61 @@ func (o StringSlice) Value() (driver.Value, error) {
 	}
 	return strings.Join(o, ","), nil
 }
+
+// +---------------------+
+// |   User Sync System  |
+// +---------------------+
+
+// UserLibraryEntry tracks which anime each user has in their library
+type UserLibraryEntry struct {
+	BaseModel
+	UserID    uint      `gorm:"uniqueIndex:idx_user_media" json:"userId"`
+	MediaID   int       `gorm:"uniqueIndex:idx_user_media" json:"mediaId"`
+	AddedAt   time.Time `json:"addedAt"`
+	IsActive  bool      `gorm:"default:true" json:"isActive"` // For filtering inactive entries
+}
+
+// UserEpisodeProgress tracks per-user episode watch progress with resume functionality
+type UserEpisodeProgress struct {
+	BaseModel
+	UserID             uint      `gorm:"uniqueIndex:idx_user_episode" json:"userId"`
+	MediaID            int       `gorm:"uniqueIndex:idx_user_episode" json:"mediaId"`
+	EpisodeNumber      int       `gorm:"uniqueIndex:idx_user_episode" json:"episodeNumber"`
+	AniDBEpisode       string    `json:"aniDbEpisode"`
+	
+	// Progress tracking
+	WatchTimeSeconds   int       `json:"watchTimeSeconds"`   // Current watch position
+	DurationSeconds    int       `json:"durationSeconds"`    // Total episode duration
+	CompletionPercent  float64   `json:"completionPercent"`  // Calculated percentage
+	IsCompleted        bool      `json:"isCompleted"`        // Marked as watched
+	LastWatchedAt      time.Time `json:"lastWatchedAt"`
+	
+	// File association
+	LocalFilePath      string    `json:"localFilePath"`      // Which file was being watched
+	LocalFileHash      string    `json:"localFileHash"`      // For file integrity checking
+	
+	// Playback context
+	MediaPlayerUsed    string    `json:"mediaPlayerUsed"`    // "mpv", "vlc", etc.
+	DeviceInfo         string    `json:"deviceInfo"`         // Optional device identifier
+}
+
+// UserActivePlayback tracks active playback sessions for real-time sync
+type UserActivePlayback struct {
+	BaseModel
+	UserID            uint      `gorm:"unique" json:"userId"`
+	MediaID           int       `json:"mediaId"`
+	EpisodeNumber     int       `json:"episodeNumber"`
+	CurrentTimeSeconds int      `json:"currentTimeSeconds"`
+	PlaybackState     string    `json:"playbackState"`     // "playing", "paused", "stopped"
+	LastUpdateAt      time.Time `json:"lastUpdateAt"`
+	SessionID         string    `json:"sessionId"`         // WebSocket session identifier
+}
+
+// UserMediaSubscription tracks which media each user wants real-time updates for
+type UserMediaSubscription struct {
+	BaseModel
+	UserID    uint      `gorm:"uniqueIndex:idx_user_media_sub" json:"userId"`
+	MediaID   int       `gorm:"uniqueIndex:idx_user_media_sub" json:"mediaId"`
+	IsActive  bool      `gorm:"default:true" json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
+}

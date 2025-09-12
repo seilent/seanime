@@ -122,6 +122,39 @@ func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 	// Save the scan summary
 	_ = db_bridge.InsertScanSummary(h.App.Database, scanSummaryLogger.GenerateSummary())
 
+	// Process LocalFiles through sync system for real-time broadcasting
+	if h.App.SyncManager != nil {
+		err = h.App.SyncManager.ProcessBulkLocalFiles(lfs)
+		if err != nil {
+			h.App.Logger.Error().Err(err).Msg("handlers: Failed to process LocalFiles through sync system")
+		}
+		
+		// Sync user's library subscriptions based on discovered media
+		mediaIDs := make([]int, 0)
+		for _, lf := range lfs {
+			if lf.MediaId != 0 {
+				// Check if we already have this MediaID
+				found := false
+				for _, id := range mediaIDs {
+					if id == lf.MediaId {
+						found = true
+						break
+					}
+				}
+				if !found {
+					mediaIDs = append(mediaIDs, lf.MediaId)
+				}
+			}
+		}
+		
+		if len(mediaIDs) > 0 {
+			err = h.App.SyncManager.SyncUserLibrary(user.ID, mediaIDs)
+			if err != nil {
+				h.App.Logger.Error().Err(err).Msg("handlers: Failed to sync user library subscriptions")
+			}
+		}
+	}
+
 	go h.App.AutoDownloader.CleanUpDownloadedItems()
 
 	return h.RespondWithData(c, lfs)

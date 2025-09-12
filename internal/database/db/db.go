@@ -129,6 +129,11 @@ func migrateTables(db *gorm.DB) error {
 		&models.DebridSettings{},
 		&models.DebridTorrentItem{},
 		&models.PluginData{},
+		// User-specific models for multi-user support
+		&models.UserLibraryEntry{},
+		&models.UserEpisodeProgress{},
+		&models.UserActivePlayback{},
+		&models.UserMediaSubscription{},
 		//&models.MangaChapterContainer{},
 	)
 	if err != nil {

@@ -73,6 +73,22 @@ const (
 	ConsoleLog        = "console-log"
 	ConsoleWarn       = "console-warn"
 
+	// User sync system events
+	EventLocalFileAddedForMedia    = "localfile-added-for-media"
+	EventLocalFileRemovedForMedia  = "localfile-removed-for-media"  
+	EventLocalFileUpdatedForMedia  = "localfile-updated-for-media"
+	EventLocalFilesBatchUpdate     = "localfiles-batch-update"
+	EventUserLibraryStateChanged   = "user-library-state-changed"
+	
+	// Progress tracking events
+	EventProgressUpdated           = "progress-updated"
+	EventResumePointAvailable     = "progress-resume-available"
+	EventUserStartedWatching      = "progress-started"
+	EventUserPausedWatching       = "progress-paused" 
+	EventUserStoppedWatching      = "progress-stopped"
+	EventUserCompletedEpisode     = "progress-completed"
+	EventDeviceProgressSync       = "progress-device-sync"
+
 	ShowIndefiniteLoader = "show-indefinite-loader"
 	HideIndefiniteLoader = "hide-indefinite-loader"
 

@@ -7,6 +7,7 @@ import (
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/library/anime"
 	"seanime/internal/library/filesystem"
+	"strconv"
 	"time"
 
 	"github.com/goccy/go-json"
@@ -324,4 +325,34 @@ func (h *Handler) HandleRemoveEmptyDirectories(c echo.Context) error {
 	}
 
 	return h.RespondWithData(c, true)
+}
+
+// HandleGetMediaAvailability
+//
+//	@summary returns available episodes for a specific media across the entire server.
+//	@desc This endpoint returns all locally available episodes for a media from the server-wide file mapping.
+//	@desc Useful for checking what episodes are available when a user adds anime to their library.
+//	@route /api/v1/library/media-availability/{id} [GET]
+//	@returns []anime.LocalFile
+func (h *Handler) HandleGetMediaAvailability(c echo.Context) error {
+	mId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Get all LocalFiles from global database
+	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+	
+	// Filter files for this specific media
+	var mediaFiles []*anime.LocalFile
+	for _, lf := range lfs {
+		if lf.MediaId == mId {
+			mediaFiles = append(mediaFiles, lf)
+		}
+	}
+
+	return h.RespondWithData(c, mediaFiles)
 }

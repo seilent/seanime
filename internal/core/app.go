@@ -22,6 +22,7 @@ import (
 	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/library/scanner"
+	libsync "seanime/internal/library/sync"
 	"seanime/internal/local"
 	"seanime/internal/manga"
 	"seanime/internal/mediaplayers/iina"
@@ -113,6 +114,7 @@ type (
 		ServerReady        bool // Whether the Anilist data from the first request has been fetched
 		isOffline          *bool
 		NakamaManager      *nakama.Manager
+		SyncManager        *libsync.SyncManager // Real-time sync system for LocalFiles and progress
 	}
 )
 
@@ -197,6 +199,16 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Exit if no WebSocket connections in desktop sidecar mode
 	if configOpts.IsDesktopSidecar {
 		wsEventManager.ExitIfNoConnsAsDesktopSidecar()
+	}
+
+	// Initialize sync manager for real-time LocalFile and progress tracking
+	syncManager, err := libsync.NewSyncManager(&libsync.SyncManagerOptions{
+		Database:     database,
+		Logger:       logger,
+		LibraryPaths: animeLibraryPaths,
+	})
+	if err != nil {
+		logger.Fatal().Err(err).Msgf("app: Failed to initialize sync manager")
 	}
 
 	// Initialize DNS-over-HTTPS service in background
@@ -353,6 +365,7 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		OnRefreshAnilistCollectionFuncs: result.NewResultMap[string, func()](),
 		HookManager:                     hookManager,
 		isOffline:                       &isOffline,
+		SyncManager:                     syncManager,
 	}
 
 	// Database tables are created via GORM AutoMigrate during NewDatabase() - no migrations needed
@@ -378,6 +391,16 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Initialize all modules that depend on settings
 	app.InitOrRefreshModules()
 
+	// Start sync manager for real-time LocalFile and progress tracking
+	if app.SyncManager != nil {
+		err = app.SyncManager.Start()
+		if err != nil {
+			logger.Error().Err(err).Msg("app: Failed to start sync manager")
+		} else {
+			logger.Info().Msg("app: Sync manager started successfully")
+		}
+	}
+
 	// Load built-in extensions into extension consumers
 	app.AddExtensionBankToConsumers()
 
@@ -399,6 +422,11 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 
 	// Register Nakama manager cleanup
 	app.AddCleanupFunction(app.NakamaManager.Cleanup)
+	
+	// Register sync manager cleanup
+	if app.SyncManager != nil {
+		app.AddCleanupFunction(app.SyncManager.Stop)
+	}
 
 	// Run one-time initialization actions
 	app.performActionsOnce()

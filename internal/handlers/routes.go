@@ -242,6 +242,7 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Library.GET("/local-files/dump", h.HandleDumpLocalFilesToFile)
 	v1Library.POST("/local-files/import", h.HandleImportLocalFiles)
 	v1Library.PATCH("/local-file", h.HandleUpdateLocalFileData)
+	v1Library.GET("/media-availability/:id", h.HandleGetMediaAvailability)
 
 	v1Library.GET("/collection", h.HandleGetLibraryCollection)
 	v1Library.GET("/schedule", h.HandleGetAnimeCollectionSchedule)
@@ -261,6 +262,31 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Library.POST("/anime-entry/silence", h.HandleToggleAnimeEntrySilenceStatus)
 
 	v1Library.POST("/unknown-media", h.HandleAddUnknownMedia)
+
+	//
+	// Sync System
+	//
+	
+	v1Sync := v1.Group("/sync")
+	
+	// Progress tracking
+	v1Sync.GET("/progress/:mediaId", h.HandleGetUserProgress)
+	v1Sync.GET("/progress/:mediaId/:episode/resume", h.HandleGetResumePoint)
+	v1Sync.POST("/progress/start", h.HandleStartWatching)
+	v1Sync.PUT("/progress/update", h.HandleUpdateProgress)
+	v1Sync.POST("/progress/pause", h.HandlePauseWatching)
+	v1Sync.POST("/progress/stop", h.HandleStopWatching)
+	
+	// Library synchronization
+	v1Sync.POST("/library/sync", h.HandleSyncUserLibrary)
+	v1Sync.POST("/library/changed", h.HandleLibraryChanged)
+	
+	// WebSocket session management
+	v1Sync.POST("/websocket/register", h.HandleRegisterWebSocketSession)
+	v1Sync.POST("/websocket/unregister", h.HandleUnregisterWebSocketSession)
+	
+	// System statistics
+	v1Sync.GET("/stats", h.HandleGetSyncStats)
 
 	//
 	// Anime
