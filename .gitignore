@@ -92,6 +92,7 @@ internal/extension_repo/goja_plugin_test
 
 .serena/
 CLAUDE.md
+MULTI_USER_IMPLEMENTATION_PLAN.md
 
 # Compiled binaries
 seanime
