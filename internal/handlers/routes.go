@@ -24,7 +24,7 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Cookie", "Authorization",
-			"X-Seanime-Token", "X-Seanime-Nakama-Token", "X-Seanime-Nakama-Username", "X-Seanime-Nakama-Server-Version", "X-Seanime-Nakama-Peer-Id"},
+			"X-Seanime-Nakama-Token", "X-Seanime-Nakama-Username", "X-Seanime-Nakama-Server-Version", "X-Seanime-Nakama-Peer-Id"},
 		AllowCredentials: true,
 	}))
 
@@ -153,10 +153,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Admin.DELETE("/users/:id", h.HandleDeleteUser)
 	v1Admin.POST("/users/:id/reset-password", h.HandleResetUserPassword)
 
-	// Legacy Auth (AniList) - now requires user authentication
-	v1.POST("/auth/login", h.HandleLogin)
-	v1.POST("/auth/logout", h.HandleLogout)
-
 	// Settings
 	v1.GET("/settings", h.HandleGetSettings)
 	v1.PATCH("/settings", h.HandleSaveSettings)
@@ -189,6 +185,11 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	//
 
 	v1Anilist := v1.Group("/anilist")
+
+	// AniList Connection - Connect user's personal AniList account
+	v1Anilist.POST("/connect", h.HandleAnilistConnect)
+	v1Anilist.POST("/disconnect", h.HandleAnilistDisconnect)
+	v1Anilist.GET("/status", h.HandleAnilistConnectionStatus)
 
 	v1Anilist.GET("/collection", h.HandleGetAnimeCollection)
 	v1Anilist.POST("/collection", h.HandleGetAnimeCollection)

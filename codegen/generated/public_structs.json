@@ -28587,6 +28587,17 @@
     "package": "models",
     "fields": [
       {
+        "name": "UserID",
+        "jsonName": "userId",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " Foreign key to User"
+        ]
+      },
+      {
         "name": "Username",
         "jsonName": "username",
         "goType": "string",
@@ -28648,6 +28659,17 @@
     "formattedName": "Models_Settings",
     "package": "models",
     "fields": [
+      {
+        "name": "UserID",
+        "jsonName": "userId",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " Foreign key to User"
+        ]
+      },
       {
         "name": "Library",
         "jsonName": "library",
@@ -29853,6 +29875,17 @@
     "package": "models",
     "fields": [
       {
+        "name": "UserID",
+        "jsonName": "userId",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " Foreign key to User"
+        ]
+      },
+      {
         "name": "EnableColorSettings",
         "jsonName": "enableColorSettings",
         "goType": "bool",
@@ -30189,6 +30222,17 @@
     "package": "models",
     "fields": [
       {
+        "name": "UserID",
+        "jsonName": "userId",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " Foreign key to User"
+        ]
+      },
+      {
         "name": "Name",
         "jsonName": "name",
         "goType": "string",
@@ -30219,6 +30263,17 @@
     "formattedName": "Models_ChapterDownloadQueueItem",
     "package": "models",
     "fields": [
+      {
+        "name": "UserID",
+        "jsonName": "userId",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " Foreign key to User"
+        ]
+      },
       {
         "name": "Provider",
         "jsonName": "provider",
@@ -30906,6 +30961,124 @@
       "declaredValues": null
     },
     "comments": null
+  },
+  {
+    "filepath": "../internal/database/models/user.go",
+    "filename": "user.go",
+    "name": "User",
+    "formattedName": "Models_User",
+    "package": "models",
+    "fields": [
+      {
+        "name": "Username",
+        "jsonName": "username",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "PasswordHash",
+        "jsonName": "",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": [
+          " Never return in JSON responses"
+        ]
+      },
+      {
+        "name": "Role",
+        "jsonName": "role",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": [
+          " \"admin\", \"user\""
+        ]
+      },
+      {
+        "name": "IsActive",
+        "jsonName": "isActive",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "DisplayName",
+        "jsonName": "displayName",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " User represents a user account in the multi-user system"
+    ],
+    "embeddedStructNames": [
+      "models.BaseModel"
+    ]
+  },
+  {
+    "filepath": "../internal/database/models/user.go",
+    "filename": "user.go",
+    "name": "UserSession",
+    "formattedName": "Models_UserSession",
+    "package": "models",
+    "fields": [
+      {
+        "name": "UserID",
+        "jsonName": "userId",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Token",
+        "jsonName": "token",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "ExpiresAt",
+        "jsonName": "expiresAt",
+        "goType": "time.Time",
+        "typescriptType": "string",
+        "usedStructName": "time.Time",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "User",
+        "jsonName": "user",
+        "goType": "User",
+        "typescriptType": "Models_User",
+        "usedTypescriptType": "Models_User",
+        "usedStructName": "models.User",
+        "required": false,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " UserSession represents an active user session"
+    ],
+    "embeddedStructNames": [
+      "models.BaseModel"
+    ]
   },
   {
     "filepath": "../internal/debrid/client/hook_events.go",
@@ -40729,6 +40902,215 @@
       }
     ],
     "comments": []
+  },
+  {
+    "filepath": "../internal/handlers/users.go",
+    "filename": "users.go",
+    "name": "LoginRequest",
+    "formattedName": "LoginRequest",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "Username",
+        "jsonName": "username",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Password",
+        "jsonName": "password",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " LoginRequest represents the login request payload"
+    ]
+  },
+  {
+    "filepath": "../internal/handlers/users.go",
+    "filename": "users.go",
+    "name": "LoginResponse",
+    "formattedName": "LoginResponse",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "User",
+        "jsonName": "user",
+        "goType": "models.User",
+        "typescriptType": "Models_User",
+        "usedTypescriptType": "Models_User",
+        "usedStructName": "models.User",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Token",
+        "jsonName": "token",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Message",
+        "jsonName": "message",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " LoginResponse represents the login response"
+    ]
+  },
+  {
+    "filepath": "../internal/handlers/users.go",
+    "filename": "users.go",
+    "name": "CreateUserRequest",
+    "formattedName": "CreateUserRequest",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "Username",
+        "jsonName": "username",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Password",
+        "jsonName": "password",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "DisplayName",
+        "jsonName": "displayName",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Role",
+        "jsonName": "role",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " CreateUserRequest represents the create user request payload"
+    ]
+  },
+  {
+    "filepath": "../internal/handlers/users.go",
+    "filename": "users.go",
+    "name": "UpdateUserRequest",
+    "formattedName": "UpdateUserRequest",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "DisplayName",
+        "jsonName": "displayName",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Role",
+        "jsonName": "role",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "IsActive",
+        "jsonName": "isActive",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": false,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " UpdateUserRequest represents the update user request payload"
+    ]
+  },
+  {
+    "filepath": "../internal/handlers/users.go",
+    "filename": "users.go",
+    "name": "ChangePasswordRequest",
+    "formattedName": "ChangePasswordRequest",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "CurrentPassword",
+        "jsonName": "currentPassword",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "NewPassword",
+        "jsonName": "newPassword",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " ChangePasswordRequest represents the change password request payload"
+    ]
+  },
+  {
+    "filepath": "../internal/handlers/users.go",
+    "filename": "users.go",
+    "name": "ResetPasswordRequest",
+    "formattedName": "ResetPasswordRequest",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "NewPassword",
+        "jsonName": "newPassword",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " ResetPasswordRequest represents the reset password request payload (admin only)"
+    ]
   },
   {
     "filepath": "../internal/hook/hook.go",

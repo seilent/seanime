@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"runtime"
 	"seanime/internal/database/models"
 	"seanime/internal/torrents/torrent"
 	"seanime/internal/util"
@@ -20,28 +19,14 @@ import (
 //	@route /api/v1/settings [GET]
 //	@returns models.Settings
 func (h *Handler) HandleGetSettings(c echo.Context) error {
-	// Check if multi-user is enabled
-	if h.App.Database.IsMultiUserEnabled() {
-		user := h.getCurrentUser(c)
-		if user == nil {
-			return c.JSON(401, map[string]string{"error": "Authentication required"})
-		}
-
-		settings, err := h.App.Database.GetSettingsForUser(user.ID)
-		if err != nil {
-			return h.RespondWithError(c, err)
-		}
-
-		return h.RespondWithData(c, settings)
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(401, map[string]string{"error": "Authentication required"})
 	}
 
-	// Legacy single-user mode
-	settings, err := h.App.Database.GetSettings()
+	settings, err := h.App.Database.GetSettingsForUser(user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
-	}
-	if settings.ID == 0 {
-		return h.RespondWithError(c, errors.New(runtime.GOOS))
 	}
 
 	return h.RespondWithData(c, settings)
@@ -236,65 +221,19 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		}
 	}
 
-	// Check if multi-user is enabled
-	if h.App.Database.IsMultiUserEnabled() {
-		user := h.getCurrentUser(c)
-		if user == nil {
-			return c.JSON(401, map[string]string{"error": "Authentication required"})
-		}
-
-		// Get existing settings for the user
-		prevSettings, err := h.App.Database.GetSettingsForUser(user.ID)
-		if err != nil {
-			return h.RespondWithError(c, err)
-		}
-
-		autoDownloaderSettings := models.AutoDownloaderSettings{}
-		if prevSettings.AutoDownloader != nil {
-			autoDownloaderSettings = *prevSettings.AutoDownloader
-		}
-		// Disable auto-downloader if the torrent provider is set to none
-		if b.Library.TorrentProvider == torrent.ProviderNone && autoDownloaderSettings.Enabled {
-			h.App.Logger.Debug().Msg("app: Disabling auto-downloader because the torrent provider is set to none")
-			autoDownloaderSettings.Enabled = false
-		}
-
-		settings := &models.Settings{
-			BaseModel: models.BaseModel{
-				ID:        prevSettings.ID,
-				UpdatedAt: time.Now(),
-			},
-			UserID:         user.ID,
-			Library:        &b.Library,
-			MediaPlayer:    &b.MediaPlayer,
-			Torrent:        &b.Torrent,
-			Anilist:        &b.Anilist,
-			Manga:          &b.Manga,
-			Discord:        &b.Discord,
-			Notifications:  &b.Notifications,
-			Nakama:         &b.Nakama,
-			AutoDownloader: &autoDownloaderSettings,
-		}
-
-		err = h.App.Database.SaveSettingsForUser(user.ID, settings)
-		if err != nil {
-			return h.RespondWithError(c, err)
-		}
-
-		h.App.WSEventManager.SendEvent("settings", settings)
-
-		status := h.NewStatus(c)
-
-		// Refresh modules that depend on the settings
-		h.App.InitOrRefreshModules()
-
-		return h.RespondWithData(c, status)
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(401, map[string]string{"error": "Authentication required"})
 	}
 
-	// Legacy single-user mode
+	// Get existing settings for the user
+	prevSettings, err := h.App.Database.GetSettingsForUser(user.ID)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
 	autoDownloaderSettings := models.AutoDownloaderSettings{}
-	prevSettings, err := h.App.Database.GetSettings()
-	if err == nil && prevSettings.AutoDownloader != nil {
+	if prevSettings.AutoDownloader != nil {
 		autoDownloaderSettings = *prevSettings.AutoDownloader
 	}
 	// Disable auto-downloader if the torrent provider is set to none
@@ -303,11 +242,12 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		autoDownloaderSettings.Enabled = false
 	}
 
-	settings, err := h.App.Database.UpsertSettings(&models.Settings{
+	settings := &models.Settings{
 		BaseModel: models.BaseModel{
-			ID:        1,
+			ID:        prevSettings.ID,
 			UpdatedAt: time.Now(),
 		},
+		UserID:         user.ID,
 		Library:        &b.Library,
 		MediaPlayer:    &b.MediaPlayer,
 		Torrent:        &b.Torrent,
@@ -317,8 +257,9 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		Notifications:  &b.Notifications,
 		Nakama:         &b.Nakama,
 		AutoDownloader: &autoDownloaderSettings,
-	})
+	}
 
+	err = h.App.Database.SaveSettingsForUser(user.ID, settings)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

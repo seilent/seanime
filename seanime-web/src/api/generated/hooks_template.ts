@@ -123,6 +123,41 @@
 // }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// anilist_connection
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// export function useAnilistConnect() {
+//     return useServerMutation<Status, AnilistConnect_Variables>({
+//         endpoint: API_ENDPOINTS.ANILIST_CONNECTION.AnilistConnect.endpoint,
+//         method: API_ENDPOINTS.ANILIST_CONNECTION.AnilistConnect.methods[0],
+//         mutationKey: [API_ENDPOINTS.ANILIST_CONNECTION.AnilistConnect.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useAnilistDisconnect() {
+//     return useServerMutation<Status>({
+//         endpoint: API_ENDPOINTS.ANILIST_CONNECTION.AnilistDisconnect.endpoint,
+//         method: API_ENDPOINTS.ANILIST_CONNECTION.AnilistDisconnect.methods[0],
+//         mutationKey: [API_ENDPOINTS.ANILIST_CONNECTION.AnilistDisconnect.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useAnilistConnectionStatus() {
+//     return useServerQuery<object with connection status and user info>({
+//         endpoint: API_ENDPOINTS.ANILIST_CONNECTION.AnilistConnectionStatus.endpoint,
+//         method: API_ENDPOINTS.ANILIST_CONNECTION.AnilistConnectionStatus.methods[0],
+//         queryKey: [API_ENDPOINTS.ANILIST_CONNECTION.AnilistConnectionStatus.key],
+//         enabled: true,
+//     })
+// }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // anime
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -281,32 +316,6 @@
 //         endpoint: API_ENDPOINTS.ANIME_ENTRIES.UpdateAnimeEntryRepeat.endpoint,
 //         method: API_ENDPOINTS.ANIME_ENTRIES.UpdateAnimeEntryRepeat.methods[0],
 //         mutationKey: [API_ENDPOINTS.ANIME_ENTRIES.UpdateAnimeEntryRepeat.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// auth
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// export function useLogin() {
-//     return useServerMutation<Status, Login_Variables>({
-//         endpoint: API_ENDPOINTS.AUTH.Login.endpoint,
-//         method: API_ENDPOINTS.AUTH.Login.methods[0],
-//         mutationKey: [API_ENDPOINTS.AUTH.Login.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useLogout() {
-//     return useServerMutation<Status>({
-//         endpoint: API_ENDPOINTS.AUTH.Logout.endpoint,
-//         method: API_ENDPOINTS.AUTH.Logout.methods[0],
-//         mutationKey: [API_ENDPOINTS.AUTH.Logout.key],
 //         onSuccess: async () => {
 // 
 //         },
@@ -2396,6 +2405,125 @@
 //         onSuccess: async () => {
 // 
 //         },
+//     })
+// }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// users
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// export function useUserLogin() {
+//     return useServerMutation<LoginResponse>({
+//         endpoint: API_ENDPOINTS.USERS.UserLogin.endpoint,
+//         method: API_ENDPOINTS.USERS.UserLogin.methods[0],
+//         mutationKey: [API_ENDPOINTS.USERS.UserLogin.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useUserLogout() {
+//     return useServerMutation<Record<string, string>>({
+//         endpoint: API_ENDPOINTS.USERS.UserLogout.endpoint,
+//         method: API_ENDPOINTS.USERS.UserLogout.methods[0],
+//         mutationKey: [API_ENDPOINTS.USERS.UserLogout.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useGetUserProfile() {
+//     return useServerQuery<Models_User>({
+//         endpoint: API_ENDPOINTS.USERS.GetUserProfile.endpoint,
+//         method: API_ENDPOINTS.USERS.GetUserProfile.methods[0],
+//         queryKey: [API_ENDPOINTS.USERS.GetUserProfile.key],
+//         enabled: true,
+//     })
+// }
+
+// export function useUpdateUserProfile() {
+//     return useServerMutation<Models_User>({
+//         endpoint: API_ENDPOINTS.USERS.UpdateUserProfile.endpoint,
+//         method: API_ENDPOINTS.USERS.UpdateUserProfile.methods[0],
+//         mutationKey: [API_ENDPOINTS.USERS.UpdateUserProfile.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useChangePassword() {
+//     return useServerMutation<Record<string, string>>({
+//         endpoint: API_ENDPOINTS.USERS.ChangePassword.endpoint,
+//         method: API_ENDPOINTS.USERS.ChangePassword.methods[0],
+//         mutationKey: [API_ENDPOINTS.USERS.ChangePassword.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useGetAllUsers() {
+//     return useServerQuery<Array<Models_User>>({
+//         endpoint: API_ENDPOINTS.USERS.GetAllUsers.endpoint,
+//         method: API_ENDPOINTS.USERS.GetAllUsers.methods[0],
+//         queryKey: [API_ENDPOINTS.USERS.GetAllUsers.key],
+//         enabled: true,
+//     })
+// }
+
+// export function useCreateUser() {
+//     return useServerMutation<Models_User>({
+//         endpoint: API_ENDPOINTS.USERS.CreateUser.endpoint,
+//         method: API_ENDPOINTS.USERS.CreateUser.methods[0],
+//         mutationKey: [API_ENDPOINTS.USERS.CreateUser.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useUpdateUser() {
+//     return useServerMutation<Models_User>({
+//         endpoint: API_ENDPOINTS.USERS.UpdateUser.endpoint,
+//         method: API_ENDPOINTS.USERS.UpdateUser.methods[0],
+//         mutationKey: [API_ENDPOINTS.USERS.UpdateUser.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useDeleteUser() {
+//     return useServerMutation<Record<string, string>>({
+//         endpoint: API_ENDPOINTS.USERS.DeleteUser.endpoint,
+//         method: API_ENDPOINTS.USERS.DeleteUser.methods[0],
+//         mutationKey: [API_ENDPOINTS.USERS.DeleteUser.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useResetUserPassword() {
+//     return useServerMutation<Record<string, string>>({
+//         endpoint: API_ENDPOINTS.USERS.ResetUserPassword.endpoint,
+//         method: API_ENDPOINTS.USERS.ResetUserPassword.methods[0],
+//         mutationKey: [API_ENDPOINTS.USERS.ResetUserPassword.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useSetupRequired() {
+//     return useServerQuery<Record<string, boolean>>({
+//         endpoint: API_ENDPOINTS.USERS.SetupRequired.endpoint,
+//         method: API_ENDPOINTS.USERS.SetupRequired.methods[0],
+//         queryKey: [API_ENDPOINTS.USERS.SetupRequired.key],
+//         enabled: true,
 //     })
 // }
 

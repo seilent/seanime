@@ -82,7 +82,7 @@ export const ThemeMediaPageInfoBoxSizeOptions = [
     },
 ]
 
-export type ThemeSettings = Omit<Models_Theme, "id">
+export type ThemeSettings = Omit<Models_Theme, "id" | "userId">
 export const THEME_DEFAULT_VALUES: ThemeSettings = {
     enableColorSettings: false,
     animeEntryScreenLayout: "stacked",

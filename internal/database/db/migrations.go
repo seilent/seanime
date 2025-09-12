@@ -34,14 +34,6 @@ func (db *Database) startSessionCleanup() {
 	}()
 }
 
-// IsMultiUserEnabled checks if multi-user mode is enabled (i.e., any users exist)
-func (db *Database) IsMultiUserEnabled() bool {
-	var userCount int64
-	if err := db.gormdb.Model(&models.User{}).Count(&userCount).Error; err != nil {
-		return false
-	}
-	return userCount > 0
-}
 
 // MigrateSharedDataTables removes UserID from tables that should be shared across users
 func (db *Database) MigrateSharedDataTables() error {

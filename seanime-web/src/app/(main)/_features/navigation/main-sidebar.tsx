@@ -417,7 +417,7 @@ export function MainSidebar() {
                                 ...(ctx.isBelowBreakpoint ? [
                                     {
                                         iconType: user?.isSimulated ? FiLogIn : BiLogOut,
-                                        name: user?.isSimulated ? "Sign in" : "Sign out",
+                                        name: user?.isSimulated ? "Connect AniList" : "Disconnect AniList",
                                         onClick: user?.isSimulated ? () => setLoginModal(true) : confirmSignOut.open,
                                     },
                                 ] : []),
@@ -460,9 +460,9 @@ export function MainSidebar() {
                             onOpenChange={setDropdownOpen}
                         >
                             {!user.isSimulated ? <DropdownMenuItem onClick={confirmSignOut.open}>
-                                <BiLogOut /> Sign out from AniList
+                                <BiLogOut /> Disconnect AniList
                             </DropdownMenuItem> : <DropdownMenuItem onClick={() => setLoginModal(true)}>
-                                <BiLogIn /> Log in with AniList
+                                <BiLogIn /> Connect AniList
                             </DropdownMenuItem>}
                             <SiteLogoutMenuItem />
                         </DropdownMenu>
@@ -471,7 +471,7 @@ export function MainSidebar() {
             </AppSidebar>
 
             <Modal
-                title="Log in with AniList"
+                title="Connect AniList Account"
                 description="Using an AniList account is recommended."
                 open={loginModal && user?.isSimulated}
                 onOpenChange={(v) => setLoginModal(v)}

@@ -1,6 +1,5 @@
 import { getServerBaseUrl } from "@/api/client/server-url"
 import { useImportLocalFiles } from "@/api/hooks/localfiles.hooks"
-import { useServerHMACAuth } from "@/app/(main)/_hooks/use-server-status"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
 import { TextInput } from "@/components/ui/text-input"
@@ -34,18 +33,15 @@ export function DataSettings(props: DataSettingsProps) {
         })
     }
 
-    const { getHMACTokenQueryParam } = useServerHMACAuth()
-
     const handleExportLocalFiles = React.useCallback(async () => {
         try {
             const endpoint = "/api/v1/library/local-files/dump"
-            const tokenQuery = await getHMACTokenQueryParam(endpoint)
-            openTab(`${getServerBaseUrl()}${endpoint}${tokenQuery}`)
+            openTab(`${getServerBaseUrl()}${endpoint}`)
         }
         catch (error) {
-            toast.error("Failed to generate export token")
+            toast.error("Failed to export local files")
         }
-    }, [getHMACTokenQueryParam])
+    }, [])
 
     return (
         <div className="space-y-4">

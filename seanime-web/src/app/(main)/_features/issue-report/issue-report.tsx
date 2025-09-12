@@ -1,7 +1,6 @@
 import { getServerBaseUrl } from "@/api/client/server-url"
 import { Report_ClickLog, Report_ConsoleLog, Report_NetworkLog, Report_ReactQueryLog } from "@/api/generated/types"
 import { useSaveIssueReport } from "@/api/hooks/report.hooks"
-import { useServerHMACAuth } from "@/app/(main)/_hooks/use-server-status"
 import { IconButton } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/components/ui/core/styling"
@@ -219,8 +218,6 @@ export function IssueReport() {
         setRecording(true)
     }
 
-    const { getHMACTokenQueryParam } = useServerHMACAuth()
-
     async function handleStopRecording() {
         const logsToSave = {
             clickLogs,
@@ -241,11 +238,10 @@ export function IssueReport() {
                 setTimeout(async () => {
                     try {
                         const endpoint = "/api/v1/report/issue/download"
-                        const tokenQuery = await getHMACTokenQueryParam(endpoint)
-                        openTab(`${getServerBaseUrl()}${endpoint}${tokenQuery}`)
+                        openTab(`${getServerBaseUrl()}${endpoint}`)
                     }
                     catch (error) {
-                        toast.error("Failed to generate download token")
+                        toast.error("Failed to download report")
                     }
                 }, 1000)
             },

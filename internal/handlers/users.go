@@ -453,7 +453,12 @@ func (h *Handler) HandleResetUserPassword(c echo.Context) error {
 //	@route /api/v1/setup/required [GET]
 //	@returns map[string]bool
 func (h *Handler) HandleSetupRequired(c echo.Context) error {
-	isRequired := !h.App.Database.IsMultiUserEnabled()
+	// Check if any users exist - setup is required if no users exist
+	users, err := h.App.Database.GetAllUsers()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+	isRequired := len(users) == 0
 	
 	return h.RespondWithData(c, map[string]bool{
 		"required": isRequired,

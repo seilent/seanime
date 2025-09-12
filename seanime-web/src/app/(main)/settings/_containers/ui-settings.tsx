@@ -210,6 +210,7 @@ export function UISettings() {
                 mutate({
                     theme: {
                         id: 0,
+                        userId: 0, // Will be set by the server
                         ...themeSettings,
                         ...data,
                         libraryScreenCustomBackgroundBlur: data.libraryScreenCustomBackgroundBlur === "-"
@@ -349,6 +350,7 @@ export function UISettings() {
                                                         mutate({
                                                             theme: {
                                                                 id: 0,
+                                                                userId: 0, // Will be set by the server
                                                                 ...themeSettings,
                                                                 enableColorSettings: true,
                                                                 backgroundColor: opt.backgroundColor,

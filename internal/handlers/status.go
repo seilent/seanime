@@ -102,7 +102,7 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 		IsDesktopSidecar:      h.App.IsDesktopSidecar,
 		FeatureFlags:          h.App.FeatureFlags,
 		ServerReady:           h.App.ServerReady,
-		ServerHasPassword:     h.App.Config.Server.Password != "",
+		ServerHasPassword:     false, // Always false since server password is removed
 	}
 
 	if c.Get("unauthenticated") != nil && c.Get("unauthenticated").(bool) {

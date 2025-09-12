@@ -1,7 +1,6 @@
 import { buildSeaQuery } from "@/api/client/requests"
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
 import { AL_ListAnime, AL_ListManga } from "@/api/generated/types"
-import { serverAuthTokenAtom } from "@/app/(main)/_atoms/server-status.atoms"
 import { __advancedSearch_getValue, __advancedSearch_paramsAtom } from "@/app/(main)/search/_lib/advanced-search.atoms"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useAtomValue } from "jotai/react"
@@ -10,7 +9,6 @@ import React from "react"
 export function useAnilistAdvancedSearch() {
 
     const params = useAtomValue(__advancedSearch_paramsAtom)
-    const password = useAtomValue(serverAuthTokenAtom)
 
     const { isLoading: isLoading1, data: data1, fetchNextPage: fetchNextPage1, hasNextPage: hasNextPage1 } = useInfiniteQuery({
         queryKey: ["advanced-search-anime", params],
@@ -38,7 +36,6 @@ export function useAnilistAdvancedSearch() {
                 endpoint: API_ENDPOINTS.ANILIST.AnilistListAnime.endpoint,
                 method: "POST",
                 data: variables,
-                password: password,
             })
         },
         getNextPageParam: (lastPage, pages) => {
@@ -78,7 +75,6 @@ export function useAnilistAdvancedSearch() {
                 endpoint: API_ENDPOINTS.MANGA.AnilistListManga.endpoint,
                 method: "POST",
                 data: variables,
-                password: password,
             })
         },
         getNextPageParam: (lastPage, pages) => {

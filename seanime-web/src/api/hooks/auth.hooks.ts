@@ -1,5 +1,4 @@
 import { useServerMutation } from "@/api/client/requests"
-import { Login_Variables } from "@/api/generated/endpoint.types"
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
 import { Status } from "@/api/generated/types"
 import { useSetServerStatus } from "@/app/(main)/_hooks/use-server-status"
@@ -7,15 +6,20 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
+type LoginVariables = {
+    username: string
+    password: string
+}
+
 export function useLogin() {
     const queryClient = useQueryClient()
     const router = useRouter()
     const setServerStatus = useSetServerStatus()
 
-    return useServerMutation<Status, Login_Variables>({
-        endpoint: API_ENDPOINTS.AUTH.Login.endpoint,
-        method: API_ENDPOINTS.AUTH.Login.methods[0],
-        mutationKey: [API_ENDPOINTS.AUTH.Login.key],
+    return useServerMutation<Status, LoginVariables>({
+        endpoint: API_ENDPOINTS.USERS.UserLogin.endpoint,
+        method: API_ENDPOINTS.USERS.UserLogin.methods[0],
+        mutationKey: [API_ENDPOINTS.USERS.UserLogin.key],
         onSuccess: async data => {
             if (data) {
                 toast.success("Successfully authenticated")
@@ -43,9 +47,9 @@ export function useLogout() {
     const setServerStatus = useSetServerStatus()
 
     return useServerMutation<Status>({
-        endpoint: API_ENDPOINTS.AUTH.Logout.endpoint,
-        method: API_ENDPOINTS.AUTH.Logout.methods[0],
-        mutationKey: [API_ENDPOINTS.AUTH.Logout.key],
+        endpoint: API_ENDPOINTS.USERS.UserLogout.endpoint,
+        method: API_ENDPOINTS.USERS.UserLogout.methods[0],
+        mutationKey: [API_ENDPOINTS.USERS.UserLogout.key],
         onSuccess: async () => {
             toast.success("Successfully logged out")
             await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetLibraryCollection.key] })

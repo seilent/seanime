@@ -3371,6 +3371,10 @@ export type Models_AutoDownloaderSettings = {
  * - Package: models
  */
 export type Models_ChapterDownloadQueueItem = {
+    /**
+     * Foreign key to User
+     */
+    userId: number
     provider: string
     mediaId: number
     chapterId: string
@@ -3563,6 +3567,10 @@ export type Models_NotificationSettings = {
  * - Package: models
  */
 export type Models_Settings = {
+    /**
+     * Foreign key to User
+     */
+    userId: number
     library?: Models_LibrarySettings
     mediaPlayer?: Models_MediaPlayerSettings
     torrent?: Models_TorrentSettings
@@ -3602,6 +3610,10 @@ export type Models_StringSlice = Array<string>
  * - Package: models
  */
 export type Models_Theme = {
+    /**
+     * Foreign key to User
+     */
+    userId: number
     enableColorSettings: boolean
     backgroundColor: string
     accentColor: string
@@ -3692,6 +3704,26 @@ export type Models_TorrentstreamSettings = {
     includeInLibrary: boolean
     streamUrlAddress: string
     slowSeeding: boolean
+    id: number
+    createdAt?: string
+    updatedAt?: string
+}
+
+/**
+ * - Filepath: internal/database/models/user.go
+ * - Filename: user.go
+ * - Package: models
+ * @description
+ *  User represents a user account in the multi-user system
+ */
+export type Models_User = {
+    username: string
+    /**
+     * "admin", "user"
+     */
+    role: string
+    isActive: boolean
+    displayName: string
     id: number
     createdAt?: string
     updatedAt?: string

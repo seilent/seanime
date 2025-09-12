@@ -115,6 +115,41 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/anilist/stats",
         },
     },
+    ANILIST_CONNECTION: {
+        /**
+         *  @description
+         *  Route connects the user's personal AniList account by saving the JWT token in the database.
+         *  This is called when the JWT token is obtained from AniList after logging in with redirection on the client.
+         *  It also fetches the Viewer data from AniList and saves it in the database for the current user.
+         *  It creates a new handlers.Status and refreshes App modules.
+         */
+        AnilistConnect: {
+            key: "ANILIST-CONNECTION-anilist-connect",
+            methods: ["POST"],
+            endpoint: "/api/v1/anilist/connect",
+        },
+        /**
+         *  @description
+         *  Route disconnects the user's personal AniList account by removing JWT token from the database.
+         *  It removes JWT token and Viewer data from the database for the current user.
+         *  It creates a new handlers.Status and refreshes App modules.
+         */
+        AnilistDisconnect: {
+            key: "ANILIST-CONNECTION-anilist-disconnect",
+            methods: ["POST"],
+            endpoint: "/api/v1/anilist/disconnect",
+        },
+        /**
+         *  @description
+         *  Route returns the AniList connection status for the current user.
+         *  This checks if the current user has an active AniList connection.
+         */
+        AnilistConnectionStatus: {
+            key: "ANILIST-CONNECTION-anilist-connection-status",
+            methods: ["GET"],
+            endpoint: "/api/v1/anilist/status",
+        },
+    },
     ANIME: {
         /**
          *  @description
@@ -269,31 +304,6 @@ export const API_ENDPOINTS = {
             key: "ANIME-ENTRIES-update-anime-entry-repeat",
             methods: ["POST"],
             endpoint: "/api/v1/library/anime-entry/update-repeat",
-        },
-    },
-    AUTH: {
-        /**
-         *  @description
-         *  Route logs in the user by saving the JWT token in the database.
-         *  This is called when the JWT token is obtained from AniList after logging in with redirection on the client.
-         *  It also fetches the Viewer data from AniList and saves it in the database.
-         *  It creates a new handlers.Status and refreshes App modules.
-         */
-        Login: {
-            key: "AUTH-login",
-            methods: ["POST"],
-            endpoint: "/api/v1/auth/login",
-        },
-        /**
-         *  @description
-         *  Route logs out the user by removing JWT token from the database.
-         *  It removes JWT token and Viewer data from the database.
-         *  It creates a new handlers.Status and refreshes App modules.
-         */
-        Logout: {
-            key: "AUTH-logout",
-            methods: ["POST"],
-            endpoint: "/api/v1/auth/logout",
         },
     },
     AUTO_DOWNLOADER: {
@@ -1990,6 +2000,118 @@ export const API_ENDPOINTS = {
             key: "TORRENTSTREAM-get-torrentstream-batch-history",
             methods: ["POST"],
             endpoint: "/api/v1/torrentstream/batch-history",
+        },
+    },
+    USERS: {
+        /**
+         *  @description
+         *  Route User login
+         *  Authenticates a user and creates a session
+         */
+        UserLogin: {
+            key: "USERS-user-login",
+            methods: ["POST"],
+            endpoint: "/api/v1/users/login",
+        },
+        /**
+         *  @description
+         *  Route User logout
+         *  Logs out the current user and destroys the session
+         */
+        UserLogout: {
+            key: "USERS-user-logout",
+            methods: ["POST"],
+            endpoint: "/api/v1/users/logout",
+        },
+        /**
+         *  @description
+         *  Route Get user profile
+         *  Gets the current authenticated user's profile
+         */
+        GetUserProfile: {
+            key: "USERS-get-user-profile",
+            methods: ["GET"],
+            endpoint: "/api/v1/users/profile",
+        },
+        /**
+         *  @description
+         *  Route Update user profile
+         *  Updates the current authenticated user's profile
+         */
+        UpdateUserProfile: {
+            key: "USERS-update-user-profile",
+            methods: ["PATCH"],
+            endpoint: "/api/v1/users/profile",
+        },
+        /**
+         *  @description
+         *  Route Change password
+         *  Changes the current authenticated user's password
+         */
+        ChangePassword: {
+            key: "USERS-change-password",
+            methods: ["POST"],
+            endpoint: "/api/v1/users/change-password",
+        },
+        /**
+         *  @description
+         *  Route Get all users
+         *  Gets all users in the system (admin only)
+         */
+        GetAllUsers: {
+            key: "USERS-get-all-users",
+            methods: ["GET"],
+            endpoint: "/api/v1/admin/users",
+        },
+        /**
+         *  @description
+         *  Route Create user
+         *  Creates a new user (admin only)
+         */
+        CreateUser: {
+            key: "USERS-create-user",
+            methods: ["POST"],
+            endpoint: "/api/v1/admin/users",
+        },
+        /**
+         *  @description
+         *  Route Update user
+         *  Updates a user (admin only)
+         */
+        UpdateUser: {
+            key: "USERS-update-user",
+            methods: ["PATCH"],
+            endpoint: "/api/v1/admin/users/:id",
+        },
+        /**
+         *  @description
+         *  Route Delete user
+         *  Deletes a user (admin only)
+         */
+        DeleteUser: {
+            key: "USERS-delete-user",
+            methods: ["DELETE"],
+            endpoint: "/api/v1/admin/users/:id",
+        },
+        /**
+         *  @description
+         *  Route Reset user password
+         *  Resets a user's password (admin only)
+         */
+        ResetUserPassword: {
+            key: "USERS-reset-user-password",
+            methods: ["POST"],
+            endpoint: "/api/v1/admin/users/:id/reset-password",
+        },
+        /**
+         *  @description
+         *  Route Check if setup is required
+         *  Checks if any users exist in the system
+         */
+        SetupRequired: {
+            key: "USERS-setup-required",
+            methods: ["GET"],
+            endpoint: "/api/v1/setup/required",
         },
     },
 } satisfies ApiEndpoints

@@ -118,7 +118,6 @@ type (
 		ServerReady        bool // Whether the Anilist data from the first request has been fetched
 		isOffline          *bool
 		NakamaManager      *nakama.Manager
-		ServerPasswordHash string // SHA-256 hash of the server password
 	}
 )
 
@@ -155,11 +154,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		logger.Fatal().Err(err).Msgf("app: Failed to initialize config")
 	}
 
-	// Compute SHA-256 hash of the server password
-	serverPasswordHash := ""
-	if cfg.Server.Password != "" {
-		serverPasswordHash = util.HashSHA256Hex(cfg.Server.Password)
-	}
 
 	// Create logs directory if it doesn't exist
 	_ = os.MkdirAll(cfg.Logs.Dir, 0755)
@@ -364,7 +358,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		OnRefreshAnilistCollectionFuncs: result.NewResultMap[string, func()](),
 		HookManager:                     hookManager,
 		isOffline:                       &isOffline,
-		ServerPasswordHash:              serverPasswordHash,
 	}
 
 	// Run database migrations if version has changed

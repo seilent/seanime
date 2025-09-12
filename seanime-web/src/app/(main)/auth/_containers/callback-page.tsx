@@ -1,4 +1,4 @@
-import { useLogin } from "@/api/hooks/auth.hooks"
+import { useConnectAnilist } from "@/api/hooks/anilist.hooks"
 import { websocketConnectedAtom } from "@/app/websocket-provider"
 import { LoadingOverlay } from "@/components/ui/loading-spinner"
 import { useAtomValue } from "jotai/react"
@@ -18,7 +18,7 @@ export function CallbackPage(props: CallbackPageProps) {
 
     const websocketConnected = useAtomValue(websocketConnectedAtom)
 
-    const { mutate: login } = useLogin()
+    const { mutate: connectAnilist } = useConnectAnilist()
 
     const called = React.useRef(false)
 
@@ -29,7 +29,7 @@ export function CallbackPage(props: CallbackPageProps) {
              */
             const _token = window?.location?.hash?.replace("#access_token=", "")?.replace(/&.*/, "")
             if (!!_token && !called.current) {
-                login({ token: _token })
+                connectAnilist({ token: _token })
                 called.current = true
             } else {
                 toast.error("Invalid token")

@@ -160,3 +160,22 @@ export function useAnilistListMissedSequels(enabled: boolean) {
         enabled: enabled,
     })
 }
+
+export function useConnectAnilist() {
+    const queryClient = useQueryClient()
+
+    return useServerMutation<any, { token: string }>({
+        endpoint: API_ENDPOINTS.ANILIST_CONNECTION.AnilistConnect.endpoint,
+        method: API_ENDPOINTS.ANILIST_CONNECTION.AnilistConnect.methods[0],
+        mutationKey: [API_ENDPOINTS.ANILIST_CONNECTION.AnilistConnect.key],
+        onSuccess: async () => {
+            toast.success("Connected to AniList")
+            // Invalidate relevant queries after connecting
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.STATUS.GetStatus.key] })
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANILIST.GetAnimeCollection.key] })
+        },
+        onError: () => {
+            toast.error("Failed to connect to AniList")
+        },
+    })
+}

@@ -1,5 +1,4 @@
 import { useGetStatus } from "@/api/hooks/status.hooks"
-import { serverAuthTokenAtom } from "@/app/(main)/_atoms/server-status.atoms"
 import { GettingStartedPage } from "@/app/(main)/_features/getting-started/getting-started-page"
 import { useServerStatus, useSetServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { LoadingOverlayWithLogo } from "@/components/shared/loading-overlay-with-logo"
@@ -12,7 +11,6 @@ import { logger } from "@/lib/helpers/debug"
 import { ANILIST_OAUTH_URL, ANILIST_PIN_URL } from "@/lib/server/config"
 import { WSEvents } from "@/lib/server/ws-events"
 import { __isDesktop__ } from "@/types/constants"
-import { useAtomValue } from "jotai"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import React from "react"
@@ -35,7 +33,6 @@ export function ServerDataWrapper(props: ServerDataWrapperProps) {
     const router = useRouter()
     const serverStatus = useServerStatus()
     const setServerStatus = useSetServerStatus()
-    const password = useAtomValue(serverAuthTokenAtom)
     const { data: _serverStatus, isLoading, refetch } = useGetStatus()
 
     React.useEffect(() => {
@@ -53,19 +50,6 @@ export function ServerDataWrapper(props: ServerDataWrapperProps) {
         },
     })
 
-    const [authenticated, setAuthenticated] = React.useState(false)
-
-    React.useEffect(() => {
-        if (serverStatus) {
-            if (serverStatus?.serverHasPassword && !password && pathname !== "/public/auth") {
-                window.location.href = "/public/auth"
-                setAuthenticated(false)
-                console.warn("Redirecting to auth")
-            } else {
-                setAuthenticated(true)
-            }
-        }
-    }, [serverStatus?.serverHasPassword, password, pathname])
 
     // Refetch the server status every 2 seconds if serverReady is false
     // This is a fallback to the websocket
@@ -89,7 +73,7 @@ export function ServerDataWrapper(props: ServerDataWrapperProps) {
     /**
      * If the server status is loading or doesn't exist, show the loading overlay
      */
-    if (isLoading || !serverStatus || !authenticated) return <LoadingOverlayWithLogo />
+    if (isLoading || !serverStatus) return <LoadingOverlayWithLogo />
     if (!serverStatus?.serverReady) return <LoadingOverlayWithLogo title="L o a d i n g" />
 
     /**
@@ -152,7 +136,7 @@ export function ServerDataWrapper(props: ServerDataWrapperProps) {
                             </svg>}
                             intent="primary"
                             size="xl"
-                        >Log in with AniList</Button>
+                        >Connect AniList Account</Button>
                     </div>
                 </AppLayoutStack>
             </Card>

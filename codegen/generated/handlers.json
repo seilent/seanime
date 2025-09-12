@@ -587,6 +587,112 @@
     }
   },
   {
+    "name": "HandleAnilistConnect",
+    "trimmedName": "AnilistConnect",
+    "comments": [
+      "HandleAnilistConnect",
+      "",
+      "\t@summary connects the user's personal AniList account by saving the JWT token in the database.",
+      "\t@desc This is called when the JWT token is obtained from AniList after logging in with redirection on the client.",
+      "\t@desc It also fetches the Viewer data from AniList and saves it in the database for the current user.",
+      "\t@desc It creates a new handlers.Status and refreshes App modules.",
+      "\t@route /api/v1/anilist/connect [POST]",
+      "\t@returns handlers.Status",
+      ""
+    ],
+    "filepath": "internal/handlers/anilist_connection.go",
+    "filename": "anilist_connection.go",
+    "api": {
+      "summary": "connects the user's personal AniList account by saving the JWT token in the database.",
+      "descriptions": [
+        "This is called when the JWT token is obtained from AniList after logging in with redirection on the client.",
+        "It also fetches the Viewer data from AniList and saves it in the database for the current user.",
+        "It creates a new handlers.Status and refreshes App modules."
+      ],
+      "endpoint": "/api/v1/anilist/connect",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [
+        {
+          "name": "Token",
+          "jsonName": "token",
+          "goType": "string",
+          "usedStructType": "",
+          "typescriptType": "string",
+          "required": true,
+          "descriptions": []
+        }
+      ],
+      "returns": "handlers.Status",
+      "returnGoType": "handlers.Status",
+      "returnTypescriptType": "Status"
+    }
+  },
+  {
+    "name": "HandleAnilistDisconnect",
+    "trimmedName": "AnilistDisconnect",
+    "comments": [
+      "HandleAnilistDisconnect",
+      "",
+      "\t@summary disconnects the user's personal AniList account by removing JWT token from the database.",
+      "\t@desc It removes JWT token and Viewer data from the database for the current user.",
+      "\t@desc It creates a new handlers.Status and refreshes App modules.",
+      "\t@route /api/v1/anilist/disconnect [POST]",
+      "\t@returns handlers.Status",
+      ""
+    ],
+    "filepath": "internal/handlers/anilist_connection.go",
+    "filename": "anilist_connection.go",
+    "api": {
+      "summary": "disconnects the user's personal AniList account by removing JWT token from the database.",
+      "descriptions": [
+        "It removes JWT token and Viewer data from the database for the current user.",
+        "It creates a new handlers.Status and refreshes App modules."
+      ],
+      "endpoint": "/api/v1/anilist/disconnect",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "handlers.Status",
+      "returnGoType": "handlers.Status",
+      "returnTypescriptType": "Status"
+    }
+  },
+  {
+    "name": "HandleAnilistConnectionStatus",
+    "trimmedName": "AnilistConnectionStatus",
+    "comments": [
+      "HandleAnilistConnectionStatus",
+      "",
+      "\t@summary returns the AniList connection status for the current user.",
+      "\t@desc This checks if the current user has an active AniList connection.",
+      "\t@route /api/v1/anilist/status [GET]",
+      "\t@returns object with connection status and user info",
+      ""
+    ],
+    "filepath": "internal/handlers/anilist_connection.go",
+    "filename": "anilist_connection.go",
+    "api": {
+      "summary": "returns the AniList connection status for the current user.",
+      "descriptions": [
+        "This checks if the current user has an active AniList connection."
+      ],
+      "endpoint": "/api/v1/anilist/status",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "object with connection status and user info",
+      "returnGoType": "object with connection status and user info",
+      "returnTypescriptType": "object with connection status and user info"
+    }
+  },
+  {
     "name": "HandleGetAnimeEpisodeCollection",
     "trimmedName": "GetAnimeEpisodeCollection",
     "comments": [
@@ -1208,79 +1314,129 @@
     }
   },
   {
-    "name": "HandleLogin",
-    "trimmedName": "Login",
+    "name": "UserAuthMiddleware",
+    "trimmedName": "UserAuthMiddleware",
     "comments": [
-      "HandleLogin",
-      "",
-      "\t@summary logs in the user by saving the JWT token in the database.",
-      "\t@desc This is called when the JWT token is obtained from AniList after logging in with redirection on the client.",
-      "\t@desc It also fetches the Viewer data from AniList and saves it in the database.",
-      "\t@desc It creates a new handlers.Status and refreshes App modules.",
-      "\t@route /api/v1/auth/login [POST]",
-      "\t@returns handlers.Status",
+      "UserAuthMiddleware handles user authentication for the multi-user system",
       ""
     ],
-    "filepath": "internal/handlers/auth.go",
-    "filename": "auth.go",
+    "filepath": "internal/handlers/auth_middleware.go",
+    "filename": "auth_middleware.go",
     "api": {
-      "summary": "logs in the user by saving the JWT token in the database.",
-      "descriptions": [
-        "This is called when the JWT token is obtained from AniList after logging in with redirection on the client.",
-        "It also fetches the Viewer data from AniList and saves it in the database.",
-        "It creates a new handlers.Status and refreshes App modules."
-      ],
-      "endpoint": "/api/v1/auth/login",
-      "methods": [
-        "POST"
-      ],
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
       "params": [],
-      "bodyFields": [
-        {
-          "name": "Token",
-          "jsonName": "token",
-          "goType": "string",
-          "usedStructType": "",
-          "typescriptType": "string",
-          "required": true,
-          "descriptions": []
-        }
-      ],
-      "returns": "handlers.Status",
-      "returnGoType": "handlers.Status",
-      "returnTypescriptType": "Status"
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
     }
   },
   {
-    "name": "HandleLogout",
-    "trimmedName": "Logout",
+    "name": "isPublicPath",
+    "trimmedName": "isPublicPath",
     "comments": [
-      "HandleLogout",
-      "",
-      "\t@summary logs out the user by removing JWT token from the database.",
-      "\t@desc It removes JWT token and Viewer data from the database.",
-      "\t@desc It creates a new handlers.Status and refreshes App modules.",
-      "\t@route /api/v1/auth/logout [POST]",
-      "\t@returns handlers.Status",
+      "isPublicPath checks if a path should be accessible without user authentication",
       ""
     ],
-    "filepath": "internal/handlers/auth.go",
-    "filename": "auth.go",
+    "filepath": "internal/handlers/auth_middleware.go",
+    "filename": "auth_middleware.go",
     "api": {
-      "summary": "logs out the user by removing JWT token from the database.",
-      "descriptions": [
-        "It removes JWT token and Viewer data from the database.",
-        "It creates a new handlers.Status and refreshes App modules."
-      ],
-      "endpoint": "/api/v1/auth/logout",
-      "methods": [
-        "POST"
-      ],
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
       "params": [],
       "bodyFields": [],
-      "returns": "handlers.Status",
-      "returnGoType": "handlers.Status",
-      "returnTypescriptType": "Status"
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "legacyServerPasswordAuth",
+    "trimmedName": "legacyServerPasswordAuth",
+    "comments": [
+      "legacyServerPasswordAuth provides backward compatibility for single-user mode",
+      ""
+    ],
+    "filepath": "internal/handlers/auth_middleware.go",
+    "filename": "auth_middleware.go",
+    "api": {
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
+      "params": [],
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "RequireAdmin",
+    "trimmedName": "RequireAdmin",
+    "comments": [
+      "RequireAdmin middleware ensures the current user is an admin",
+      ""
+    ],
+    "filepath": "internal/handlers/auth_middleware.go",
+    "filename": "auth_middleware.go",
+    "api": {
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
+      "params": [],
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "OptionalAuth",
+    "trimmedName": "OptionalAuth",
+    "comments": [
+      "OptionalAuth middleware allows both authenticated and unauthenticated access",
+      ""
+    ],
+    "filepath": "internal/handlers/auth_middleware.go",
+    "filename": "auth_middleware.go",
+    "api": {
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
+      "params": [],
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "getCurrentUser",
+    "trimmedName": "getCurrentUser",
+    "comments": [
+      "getCurrentUser extracts the current user from the Echo context",
+      ""
+    ],
+    "filepath": "internal/handlers/auth_middleware.go",
+    "filename": "auth_middleware.go",
+    "api": {
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
+      "params": [],
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
     }
   },
   {
@@ -7661,7 +7817,7 @@
     "comments": [
       "HandleGetPlaylists",
       "",
-      "\t@summary returns all playlists.",
+      "\t@summary returns all playlists for the current user.",
       "\t@route /api/v1/playlists [GET]",
       "\t@returns []anime.Playlist",
       ""
@@ -7669,7 +7825,7 @@
     "filepath": "internal/handlers/playlist.go",
     "filename": "playlist.go",
     "api": {
-      "summary": "returns all playlists.",
+      "summary": "returns all playlists for the current user.",
       "descriptions": [],
       "endpoint": "/api/v1/playlists",
       "methods": [
@@ -8290,6 +8446,37 @@
           "usedStructType": "",
           "typescriptType": "string",
           "required": true,
+          "descriptions": []
+        },
+        {
+          "name": "AdminUsername",
+          "jsonName": "adminUsername",
+          "goType": "string",
+          "usedStructType": "",
+          "typescriptType": "string",
+          "required": false,
+          "descriptions": [
+            "Admin user creation fields",
+            "",
+            "Admin user creation fields"
+          ]
+        },
+        {
+          "name": "AdminPassword",
+          "jsonName": "adminPassword",
+          "goType": "string",
+          "usedStructType": "",
+          "typescriptType": "string",
+          "required": false,
+          "descriptions": []
+        },
+        {
+          "name": "AdminDisplayName",
+          "jsonName": "adminDisplayName",
+          "goType": "string",
+          "usedStructType": "",
+          "typescriptType": "string",
+          "required": false,
           "descriptions": []
         }
       ],
@@ -9589,6 +9776,378 @@
     ],
     "filepath": "internal/handlers/torrentstream.go",
     "filename": "torrentstream.go",
+    "api": {
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
+      "params": [],
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "HandleUserLogin",
+    "trimmedName": "UserLogin",
+    "comments": [
+      "HandleUserLogin handles user login",
+      "",
+      "\t@summary User login",
+      "\t@desc Authenticates a user and creates a session",
+      "\t@route /api/v1/users/login [POST]",
+      "\t@returns LoginResponse",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "User login",
+      "descriptions": [
+        "Authenticates a user and creates a session"
+      ],
+      "endpoint": "/api/v1/users/login",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "LoginResponse",
+      "returnGoType": "LoginResponse",
+      "returnTypescriptType": "LoginResponse"
+    }
+  },
+  {
+    "name": "HandleUserLogout",
+    "trimmedName": "UserLogout",
+    "comments": [
+      "HandleUserLogout handles user logout",
+      "",
+      "\t@summary User logout",
+      "\t@desc Logs out the current user and destroys the session",
+      "\t@route /api/v1/users/logout [POST]",
+      "\t@returns map[string]string",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "User logout",
+      "descriptions": [
+        "Logs out the current user and destroys the session"
+      ],
+      "endpoint": "/api/v1/users/logout",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "map[string]string",
+      "returnGoType": "string",
+      "returnTypescriptType": "Record\u003cstring, string\u003e"
+    }
+  },
+  {
+    "name": "HandleGetUserProfile",
+    "trimmedName": "GetUserProfile",
+    "comments": [
+      "HandleGetUserProfile gets the current user's profile",
+      "",
+      "\t@summary Get user profile",
+      "\t@desc Gets the current authenticated user's profile",
+      "\t@route /api/v1/users/profile [GET]",
+      "\t@returns models.User",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Get user profile",
+      "descriptions": [
+        "Gets the current authenticated user's profile"
+      ],
+      "endpoint": "/api/v1/users/profile",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "models.User",
+      "returnGoType": "models.User",
+      "returnTypescriptType": "Models_User"
+    }
+  },
+  {
+    "name": "HandleUpdateUserProfile",
+    "trimmedName": "UpdateUserProfile",
+    "comments": [
+      "HandleUpdateUserProfile updates the current user's profile",
+      "",
+      "\t@summary Update user profile",
+      "\t@desc Updates the current authenticated user's profile",
+      "\t@route /api/v1/users/profile [PATCH]",
+      "\t@returns models.User",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Update user profile",
+      "descriptions": [
+        "Updates the current authenticated user's profile"
+      ],
+      "endpoint": "/api/v1/users/profile",
+      "methods": [
+        "PATCH"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "models.User",
+      "returnGoType": "models.User",
+      "returnTypescriptType": "Models_User"
+    }
+  },
+  {
+    "name": "HandleChangePassword",
+    "trimmedName": "ChangePassword",
+    "comments": [
+      "HandleChangePassword changes the current user's password",
+      "",
+      "\t@summary Change password",
+      "\t@desc Changes the current authenticated user's password",
+      "\t@route /api/v1/users/change-password [POST]",
+      "\t@returns map[string]string",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Change password",
+      "descriptions": [
+        "Changes the current authenticated user's password"
+      ],
+      "endpoint": "/api/v1/users/change-password",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "map[string]string",
+      "returnGoType": "string",
+      "returnTypescriptType": "Record\u003cstring, string\u003e"
+    }
+  },
+  {
+    "name": "HandleGetAllUsers",
+    "trimmedName": "GetAllUsers",
+    "comments": [
+      "HandleGetAllUsers gets all users (admin only)",
+      "",
+      "\t@summary Get all users",
+      "\t@desc Gets all users in the system (admin only)",
+      "\t@route /api/v1/admin/users [GET]",
+      "\t@returns []models.User",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Get all users",
+      "descriptions": [
+        "Gets all users in the system (admin only)"
+      ],
+      "endpoint": "/api/v1/admin/users",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "[]models.User",
+      "returnGoType": "models.User",
+      "returnTypescriptType": "Array\u003cModels_User\u003e"
+    }
+  },
+  {
+    "name": "HandleCreateUser",
+    "trimmedName": "CreateUser",
+    "comments": [
+      "HandleCreateUser creates a new user (admin only)",
+      "",
+      "\t@summary Create user",
+      "\t@desc Creates a new user (admin only)",
+      "\t@route /api/v1/admin/users [POST]",
+      "\t@returns models.User",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Create user",
+      "descriptions": [
+        "Creates a new user (admin only)"
+      ],
+      "endpoint": "/api/v1/admin/users",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "models.User",
+      "returnGoType": "models.User",
+      "returnTypescriptType": "Models_User"
+    }
+  },
+  {
+    "name": "HandleUpdateUser",
+    "trimmedName": "UpdateUser",
+    "comments": [
+      "HandleUpdateUser updates a user (admin only)",
+      "",
+      "\t@summary Update user",
+      "\t@desc Updates a user (admin only)",
+      "\t@route /api/v1/admin/users/:id [PATCH]",
+      "\t@returns models.User",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Update user",
+      "descriptions": [
+        "Updates a user (admin only)"
+      ],
+      "endpoint": "/api/v1/admin/users/:id",
+      "methods": [
+        "PATCH"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "models.User",
+      "returnGoType": "models.User",
+      "returnTypescriptType": "Models_User"
+    }
+  },
+  {
+    "name": "HandleDeleteUser",
+    "trimmedName": "DeleteUser",
+    "comments": [
+      "HandleDeleteUser deletes a user (admin only)",
+      "",
+      "\t@summary Delete user",
+      "\t@desc Deletes a user (admin only)",
+      "\t@route /api/v1/admin/users/:id [DELETE]",
+      "\t@returns map[string]string",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Delete user",
+      "descriptions": [
+        "Deletes a user (admin only)"
+      ],
+      "endpoint": "/api/v1/admin/users/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "map[string]string",
+      "returnGoType": "string",
+      "returnTypescriptType": "Record\u003cstring, string\u003e"
+    }
+  },
+  {
+    "name": "HandleResetUserPassword",
+    "trimmedName": "ResetUserPassword",
+    "comments": [
+      "HandleResetUserPassword resets a user's password (admin only)",
+      "",
+      "\t@summary Reset user password",
+      "\t@desc Resets a user's password (admin only)",
+      "\t@route /api/v1/admin/users/:id/reset-password [POST]",
+      "\t@returns map[string]string",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Reset user password",
+      "descriptions": [
+        "Resets a user's password (admin only)"
+      ],
+      "endpoint": "/api/v1/admin/users/:id/reset-password",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "map[string]string",
+      "returnGoType": "string",
+      "returnTypescriptType": "Record\u003cstring, string\u003e"
+    }
+  },
+  {
+    "name": "HandleSetupRequired",
+    "trimmedName": "SetupRequired",
+    "comments": [
+      "HandleSetupRequired checks if first-time setup is required",
+      "",
+      "\t@summary Check if setup is required",
+      "\t@desc Checks if any users exist in the system",
+      "\t@route /api/v1/setup/required [GET]",
+      "\t@returns map[string]bool",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Check if setup is required",
+      "descriptions": [
+        "Checks if any users exist in the system"
+      ],
+      "endpoint": "/api/v1/setup/required",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "map[string]bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "Record\u003cstring, boolean\u003e"
+    }
+  },
+  {
+    "name": "getSessionToken",
+    "trimmedName": "getSessionToken",
+    "comments": [
+      "getSessionToken gets the session token from cookie or Authorization header",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
+      "params": [],
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "validateUserSession",
+    "trimmedName": "validateUserSession",
+    "comments": [
+      "validateUserSession validates a session token and returns the user",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
     "api": {
       "summary": "",
       "descriptions": [],

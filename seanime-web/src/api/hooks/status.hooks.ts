@@ -3,11 +3,9 @@ import { getServerBaseUrl } from "@/api/client/server-url"
 import { DeleteLogs_Variables, GetAnnouncements_Variables } from "@/api/generated/endpoint.types"
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
 import { MemoryStatsResponse, Status, Updater_Announcement } from "@/api/generated/types"
-import { serverAuthTokenAtom } from "@/app/(main)/_atoms/server-status.atoms"
 import { copyToClipboard, openTab } from "@/lib/helpers/browser"
 import { __isDesktop__ } from "@/types/constants"
 import { useQueryClient } from "@tanstack/react-query"
-import { useAtomValue } from "jotai"
 import { toast } from "sonner"
 
 export function useGetStatus() {
@@ -101,8 +99,6 @@ export function useForceGC() {
 }
 
 export function useDownloadMemoryProfile() {
-    const password = useAtomValue(serverAuthTokenAtom)
-
     return useServerMutation<string, { profileType: "heap" | "allocs" }>({
         endpoint: API_ENDPOINTS.STATUS.GetMemoryProfile.endpoint,
         method: API_ENDPOINTS.STATUS.GetMemoryProfile.methods[0],
@@ -119,14 +115,9 @@ export function useDownloadMemoryProfile() {
             }
 
             try {
-                const headers: Record<string, string> = {}
-                if (password) {
-                    headers["X-Seanime-Token"] = password
-                }
-
                 const response = await fetch(downloadUrl, {
                     method: "GET",
-                    headers,
+                    credentials: "include", // Use cookies for authentication
                 })
 
                 if (!response.ok) {
@@ -166,8 +157,6 @@ export function useDownloadMemoryProfile() {
 }
 
 export function useDownloadGoRoutineProfile() {
-    const password = useAtomValue(serverAuthTokenAtom)
-
     return useServerMutation<string>({
         endpoint: API_ENDPOINTS.STATUS.GetGoRoutineProfile.endpoint,
         method: API_ENDPOINTS.STATUS.GetGoRoutineProfile.methods[0],
@@ -178,14 +167,9 @@ export function useDownloadGoRoutineProfile() {
             const downloadUrl = getServerBaseUrl() + API_ENDPOINTS.STATUS.GetGoRoutineProfile.endpoint
 
             try {
-                const headers: Record<string, string> = {}
-                if (password) {
-                    headers["X-Seanime-Token"] = password
-                }
-
                 const response = await fetch(downloadUrl, {
                     method: "GET",
-                    headers,
+                    credentials: "include", // Use cookies for authentication
                 })
 
                 if (!response.ok) {
@@ -218,8 +202,6 @@ export function useDownloadGoRoutineProfile() {
 }
 
 export function useDownloadCPUProfile() {
-    const password = useAtomValue(serverAuthTokenAtom)
-
     return useServerMutation<string, { duration?: number }>({
         endpoint: API_ENDPOINTS.STATUS.GetCPUProfile.endpoint,
         method: API_ENDPOINTS.STATUS.GetCPUProfile.methods[0],
@@ -231,14 +213,9 @@ export function useDownloadCPUProfile() {
             const downloadUrl = `${getServerBaseUrl()}${API_ENDPOINTS.STATUS.GetCPUProfile.endpoint}?duration=${duration}`
 
             try {
-                const headers: Record<string, string> = {}
-                if (password) {
-                    headers["X-Seanime-Token"] = password
-                }
-
                 const response = await fetch(downloadUrl, {
                     method: "GET",
-                    headers,
+                    credentials: "include", // Use cookies for authentication
                 })
 
                 if (!response.ok) {

@@ -22,7 +22,6 @@ import React from "react"
 import { AiOutlineArrowLeft } from "react-icons/ai"
 import { toast } from "sonner"
 import { PluginEpisodeGridItemMenuItems } from "../_features/plugin/actions/plugin-actions"
-import { useServerHMACAuth } from "../_hooks/use-server-status"
 
 export default function Page() {
 
@@ -32,7 +31,6 @@ export default function Page() {
     const mediaId = searchParams.get("id")
     const { data: animeEntry, isLoading: animeEntryLoading } = useGetAnimeEntry(mediaId)
     const { filePath, setFilePath } = useMediastreamCurrentFile()
-    const { getHMACTokenQueryParam } = useServerHMACAuth()
 
     const { mutate: startManualTracking, isPending: isStarting } = usePlaybackStartManualTracking()
 
@@ -74,7 +72,6 @@ export default function Page() {
                 link.setMediaTitle(animeEntry.media?.title?.userPreferred)
                 await link.to({
                     endpoint: "/api/v1/mediastream/file?path=" + encodeFilePath(filePath),
-                    onTokenQueryParam: () => getHMACTokenQueryParam("/api/v1/mediastream/file", "&"),
                 })
                 openTab(link.getFullUrl())
 
@@ -98,7 +95,7 @@ export default function Page() {
 
             handleMediaPlay()
         }
-    }, [animeEntry, filePath, externalPlayerLink, getHMACTokenQueryParam])
+    }, [animeEntry, filePath, externalPlayerLink])
 
     const mainEpisodes = React.useMemo(() => {
         return animeEntry?.episodes?.filter(ep => ep.type === "main") ?? []

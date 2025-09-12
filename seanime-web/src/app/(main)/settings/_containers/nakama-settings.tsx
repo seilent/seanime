@@ -111,14 +111,10 @@ export function NakamaSettings(props: Props) {
                           preferred method.</span>
                 </div>
 
-                {!serverStatus?.serverHasPassword &&
-                    <Alert intent="warning" description="Your server is not password protected. Add a password to your config file." />}
-
                 <Field.Switch
                     side="right"
                     name="nakamaIsHost"
                     label="Enable host mode"
-                    // moreHelp="Password must be set in the config file"
                     help="If enabled, this server will act as a host for other clients. This requires a host password to be set."
                 />
 
@@ -126,7 +122,7 @@ export function NakamaSettings(props: Props) {
                     label="Host Passcode"
                     name="nakamaHostPassword"
                     placeholder="Passcode"
-                    help="Set a passcode to secure your host mode. This passcode should be different than your server password."
+                    help="Set a passcode to secure your host mode."
                 />
 
                 {/*<Field.Switch*/}
