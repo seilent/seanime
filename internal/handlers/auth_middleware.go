@@ -19,8 +19,8 @@ func (h *Handler) UserAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// Allow setup-related APIs during initial setup (when whitelist is empty)
 		if h.isSetupPath(path) {
-			settings, err := h.App.Database.GetSettings()
-			if err != nil || len(settings.AnilistWhitelist) == 0 {
+			globalSettings, err := h.App.Database.GetGlobalSettings()
+			if err != nil || globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0 {
 				// No whitelist configured, allow setup APIs
 				return next(c)
 			}

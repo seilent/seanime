@@ -279,7 +279,7 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
             // episode number greater than progress
             progress.currentEpisodeNumber > (currentProgress ?? 0)
         ) {
-            if (serverStatus?.settings?.library?.autoUpdateProgress) {
+            if (serverStatus?.settings?.autoUpdateProgress) {
                 if (!isUpdatingProgress) {
                     updateProgress({
                         episodeNumber: progress.currentEpisodeNumber,

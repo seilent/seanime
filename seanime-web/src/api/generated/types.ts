@@ -2433,6 +2433,7 @@ export type Status = {
     serverReady: boolean
     serverHasPassword: boolean
     hasUsers: boolean
+    setupCompleted: boolean
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3214,7 +3215,6 @@ export type Models_LibraryPaths = Array<string>
  */
 export type Models_LibrarySettings = {
     libraryPath: string
-    autoUpdateProgress: boolean
     disableUpdateCheck: boolean
     torrentProvider: string
     autoScan: boolean
@@ -3226,7 +3226,6 @@ export type Models_LibrarySettings = {
     openTorrentClientOnStart: boolean
     openWebURLOnStart: boolean
     refreshLibraryOnStart: boolean
-    autoPlayNextEpisode: boolean
     enableWatchContinuity: boolean
     libraryPaths: Models_LibraryPaths
     autoSyncOfflineLocalData: boolean
@@ -3337,30 +3336,35 @@ export type Models_NotificationSettings = {
  * - Filepath: internal/database/models/models.go
  * - Filename: models.go
  * - Package: models
+ * @description
+ *  Settings - per-user settings
  */
 export type Models_Settings = {
     /**
      * Foreign key to User
      */
     userId: number
-    /**
-     * Tracks if initial setup is complete
-     */
-    setupCompleted: boolean
-    /**
-     * Whitelisted AniList usernames
-     */
-    anilistWhitelist: Models_StringSlice
-    library?: Models_LibrarySettings
+    autoPlayNextEpisode: boolean
+    autoUpdateProgress: boolean
     mediaPlayer?: Models_MediaPlayerSettings
-    torrent?: Models_TorrentSettings
-    manga?: Models_MangaSettings
     anilist?: Models_AnilistSettings
     listSync?: Models_ListSyncSettings
-    autoDownloader?: Models_AutoDownloaderSettings
     discord?: Models_DiscordSettings
     notifications?: Models_NotificationSettings
+    manga?: Models_MangaSettings
     nakama?: Models_NakamaSettings
+    /**
+     * Populated from GlobalSettings
+     */
+    library?: Models_LibrarySettings
+    /**
+     * Populated from GlobalSettings
+     */
+    torrent?: Models_TorrentSettings
+    /**
+     * Populated from GlobalSettings
+     */
+    autoDownloader?: Models_AutoDownloaderSettings
     id: number
     createdAt?: string
     updatedAt?: string
@@ -3745,6 +3749,20 @@ export type Report_UnlockedLocalFile = {
  * - Filename: system_scanner.go
  * - Package: scanner
  * @description
+ *  MappedAnimeInfo contains information about a newly mapped anime
+ */
+export type Scanner_MappedAnimeInfo = {
+    anilistId: number
+    title: string
+    episodeCount: number
+    episodes?: Array<number>
+}
+
+/**
+ * - Filepath: internal/library/scanner/system_scanner.go
+ * - Filename: system_scanner.go
+ * - Package: scanner
+ * @description
  *  SystemScanResult contains the results of a system scan
  */
 export type Scanner_SystemScanResult = {
@@ -3757,6 +3775,10 @@ export type Scanner_SystemScanResult = {
      * For admin queue
      */
     unmappedFilePaths?: Array<string>
+    /**
+     * Detailed info about newly mapped anime
+     */
+    mappedAnime?: Array<Scanner_MappedAnimeInfo>
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

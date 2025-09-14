@@ -92,6 +92,7 @@ type (
 	OnFlushLogs                     func()
 	FeatureFlags                    FeatureFlags
 	Settings                        *models.Settings
+	GlobalSettings                  *models.GlobalSettings
 	SecondarySettings               struct {
 		Mediastream   *models.MediastreamSettings
 		Torrentstream *models.TorrentstreamSettings

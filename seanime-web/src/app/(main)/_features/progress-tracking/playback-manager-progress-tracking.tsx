@@ -325,7 +325,7 @@ export function PlaybackManagerProgressTracking() {
                             <span className="text-[--muted]">{" / "}{state?.mediaTotalEpisodes || "-"}</span>
                         </p>
                     </div>
-                    {(serverStatus?.settings?.library?.autoUpdateProgress && !state?.progressUpdated) && (
+                    {(serverStatus?.settings?.autoUpdateProgress && !state?.progressUpdated) && (
                         <p data-progress-tracking-auto-update-progress className="text-[--muted] text-center text-sm">
                             Your progress will be automatically updated
                         </p>

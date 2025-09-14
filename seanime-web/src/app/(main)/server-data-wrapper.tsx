@@ -85,7 +85,7 @@ export function ServerDataWrapper(props: ServerDataWrapperProps) {
     /**
      * Show getting started page if setup is not completed
      */
-    if (!serverStatus?.settings?.setupCompleted) {
+    if (!serverStatus?.setupCompleted) {
         return <GettingStartedPage status={serverStatus} />
     }
 

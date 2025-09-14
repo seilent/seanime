@@ -9,7 +9,6 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Modal } from '@/components/ui/modal'
 import { Checkbox } from '@/components/ui/checkbox'
 import { PageWrapper } from '@/components/shared/page-wrapper'
-import { useServerStatus } from '@/app/(main)/_hooks/use-server-status'
 import { useSaveSettings } from '@/api/hooks/settings.hooks'
 
 interface User {
@@ -35,7 +34,6 @@ export default function UsersManagementPage() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [isAdding, setIsAdding] = useState(false)
     const [newUsername, setNewUsername] = useState('')
-    const serverStatus = useServerStatus()
     const { mutate: saveSettings, isPending: isSavingSettings } = useSaveSettings()
 
     // Fetch users
@@ -58,16 +56,29 @@ export default function UsersManagementPage() {
         }
     }
 
-    // Load whitelist from server status
-    useEffect(() => {
-        if (serverStatus?.settings?.anilistWhitelist) {
-            const whitelist = serverStatus.settings.anilistWhitelist.map((username, index) => ({
-                username,
-                isAdmin: index === 0 // First user in whitelist is admin
-            }))
-            setWhitelistUsers(whitelist)
+    // Fetch whitelist from API
+    const fetchWhitelist = async () => {
+        try {
+            const response = await fetch('/api/v1/admin/whitelist', {
+                credentials: 'include'
+            })
+
+            if (response.ok) {
+                const data = await response.json() as { data?: string[] }
+                const whitelist = (data.data || []).map((username, index) => ({
+                    username,
+                    isAdmin: index === 0 // First user in whitelist is admin
+                }))
+                setWhitelistUsers(whitelist)
+            }
+        } catch (err) {
+            console.error('Failed to fetch whitelist:', err)
         }
-    }, [serverStatus])
+    }
+
+    useEffect(() => {
+        fetchWhitelist()
+    }, [])
 
     // Add user to whitelist
     const handleAddToWhitelist = async (e: React.FormEvent) => {
@@ -89,11 +100,26 @@ export default function UsersManagementPage() {
         }
 
         try {
-            // For now, show a message that this functionality needs backend support
-            setError('AniList whitelist management requires backend endpoint implementation. This feature is not yet fully connected.')
-            setIsAdding(false)
+            const response = await fetch('/api/v1/admin/whitelist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ username: newUsername.trim() })
+            })
+
+            if (response.ok) {
+                setNewUsername('')
+                setIsAddModalOpen(false)
+                await fetchWhitelist() // Refresh whitelist
+            } else {
+                const errorData = await response.json() as { error?: string }
+                setError(errorData.error || 'Failed to add user to whitelist')
+            }
         } catch (err) {
-            setError('Failed to update whitelist')
+            setError('Network error')
+        } finally {
             setIsAdding(false)
         }
     }
@@ -109,10 +135,19 @@ export default function UsersManagementPage() {
         }
 
         try {
-            // For now, show a message that this functionality needs backend support
-            setError('AniList whitelist management requires backend endpoint implementation. This feature is not yet fully connected.')
+            const response = await fetch(`/api/v1/admin/whitelist/${encodeURIComponent(username)}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+
+            if (response.ok) {
+                await fetchWhitelist() // Refresh whitelist
+            } else {
+                const errorData = await response.json() as { error?: string }
+                setError(errorData.error || 'Failed to remove user from whitelist')
+            }
         } catch (err) {
-            setError('Failed to update whitelist')
+            setError('Network error')
         }
     }
 

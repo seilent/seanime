@@ -110,6 +110,7 @@ func (db *Database) startSessionCleanup() {
 func migrateTables(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		&models.LocalFiles{},
+		&models.GlobalSettings{},
 		&models.Settings{},
 		&models.Account{},
 		&models.Mal{},

@@ -41,21 +41,33 @@ type LocalFiles struct {
 // |       Settings      |
 // +---------------------+
 
+// GlobalSettings - server-wide settings stored in separate table
+type GlobalSettings struct {
+	BaseModel
+	SetupCompleted   bool                    `gorm:"column:setup_completed" json:"setupCompleted"`
+	AnilistWhitelist StringSlice             `gorm:"column:anilist_whitelist;type:text" json:"anilistWhitelist"`
+	Library          *LibrarySettings        `gorm:"embedded" json:"library"`
+	Torrent          *TorrentSettings        `gorm:"embedded" json:"torrent"`
+	AutoDownloader   *AutoDownloaderSettings `gorm:"embedded" json:"autoDownloader"`
+}
+
+// Settings - per-user settings
 type Settings struct {
 	BaseModel
-	UserID            uint                    `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
-	SetupCompleted    bool                    `gorm:"column:setup_completed;default:false" json:"setupCompleted"` // Tracks if initial setup is complete
-	AnilistWhitelist  StringSlice             `gorm:"column:anilist_whitelist;type:text" json:"anilistWhitelist"` // Whitelisted AniList usernames
-	Library           *LibrarySettings        `gorm:"embedded" json:"library"`
-	MediaPlayer       *MediaPlayerSettings    `gorm:"embedded" json:"mediaPlayer"`
-	Torrent           *TorrentSettings        `gorm:"embedded" json:"torrent"`
-	Manga             *MangaSettings          `gorm:"embedded" json:"manga"`
-	Anilist           *AnilistSettings        `gorm:"embedded" json:"anilist"`
-	ListSync          *ListSyncSettings       `gorm:"embedded" json:"listSync"`
-	AutoDownloader    *AutoDownloaderSettings `gorm:"embedded" json:"autoDownloader"`
-	Discord           *DiscordSettings        `gorm:"embedded" json:"discord"`
-	Notifications     *NotificationSettings   `gorm:"embedded" json:"notifications"`
-	Nakama            *NakamaSettings         `gorm:"embedded;embeddedPrefix:nakama_" json:"nakama"`
+	UserID                  uint                   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
+	AutoPlayNextEpisode     bool                   `gorm:"column:auto_play_next_episode" json:"autoPlayNextEpisode"`
+	AutoUpdateProgress      bool                   `gorm:"column:auto_update_progress" json:"autoUpdateProgress"`
+	MediaPlayer             *MediaPlayerSettings   `gorm:"embedded" json:"mediaPlayer"`
+	Anilist                 *AnilistSettings       `gorm:"embedded" json:"anilist"`
+	ListSync                *ListSyncSettings      `gorm:"embedded" json:"listSync"`
+	Discord                 *DiscordSettings       `gorm:"embedded" json:"discord"`
+	Notifications           *NotificationSettings  `gorm:"embedded" json:"notifications"`
+	Manga                   *MangaSettings         `gorm:"embedded" json:"manga"`
+	Nakama                  *NakamaSettings        `gorm:"embedded;embeddedPrefix:nakama_" json:"nakama"`
+	// Virtual fields populated from GlobalSettings for frontend compatibility
+	Library        *LibrarySettings        `gorm:"-" json:"library"`        // Populated from GlobalSettings
+	Torrent        *TorrentSettings        `gorm:"-" json:"torrent"`        // Populated from GlobalSettings
+	AutoDownloader *AutoDownloaderSettings `gorm:"-" json:"autoDownloader"` // Populated from GlobalSettings
 }
 
 type AnilistSettings struct {
@@ -67,7 +79,6 @@ type AnilistSettings struct {
 
 type LibrarySettings struct {
 	LibraryPath                     string `gorm:"column:library_path" json:"libraryPath"`
-	AutoUpdateProgress              bool   `gorm:"column:auto_update_progress" json:"autoUpdateProgress"`
 	DisableUpdateCheck              bool   `gorm:"column:disable_update_check" json:"disableUpdateCheck"`
 	TorrentProvider                 string `gorm:"column:torrent_provider" json:"torrentProvider"`
 	AutoScan                        bool   `gorm:"column:auto_scan" json:"autoScan"`
@@ -79,8 +90,6 @@ type LibrarySettings struct {
 	OpenTorrentClientOnStart        bool   `gorm:"column:open_torrent_client_on_start" json:"openTorrentClientOnStart"`
 	OpenWebURLOnStart               bool   `gorm:"column:open_web_url_on_start" json:"openWebURLOnStart"`
 	RefreshLibraryOnStart           bool   `gorm:"column:refresh_library_on_start" json:"refreshLibraryOnStart"`
-	// v2.1+
-	AutoPlayNextEpisode bool `gorm:"column:auto_play_next_episode" json:"autoPlayNextEpisode"`
 	// v2.2+
 	EnableWatchContinuity    bool         `gorm:"column:enable_watch_continuity" json:"enableWatchContinuity"`
 	LibraryPaths             LibraryPaths `gorm:"column:library_paths;type:text" json:"libraryPaths"`

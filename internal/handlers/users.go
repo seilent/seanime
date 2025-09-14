@@ -75,34 +75,49 @@ func (h *Handler) HandleUserLogin(c echo.Context) error {
 	}
 
 	// Check if user is in whitelist or if this is first setup
-	settings, err := h.App.Database.GetSettings()
+	globalSettings, err := h.App.Database.GetGlobalSettings()
 	if err != nil {
-		return h.RespondWithError(c, err)
+		// If global settings don't exist, this is first setup
+		globalSettings = nil
 	}
 
 	isWhitelisted := false
-	isFirstSetup := settings == nil || len(settings.AnilistWhitelist) == 0
+	// Check if this is truly first setup - only allow if setup is not completed
+	setupCompleted, _ := h.App.Database.GetGlobalSettingsSetupStatus()
+	isFirstSetup := globalSettings == nil || (!setupCompleted && len(globalSettings.AnilistWhitelist) == 0)
 
 	if isFirstSetup {
-		// First setup: create whitelist with this user as admin
-		anilistWhitelist := models.StringSlice{getViewer.Viewer.Name}
-		_, err = h.App.Database.UpsertSettings(&models.Settings{
-			BaseModel: models.BaseModel{
-				ID:        1,
-				UpdatedAt: time.Now(),
-			},
-			SetupCompleted:   false,
-			AnilistWhitelist: anilistWhitelist,
-		})
-		if err != nil {
-			h.App.Logger.Error().Err(err).Msg("Failed to create whitelist during first setup")
+		// Only create GlobalSettings if they truly don't exist
+		if globalSettings == nil {
+			// Absolute first setup: create new GlobalSettings
+			anilistWhitelist := models.StringSlice{getViewer.Viewer.Name}
+			_, err = h.App.Database.UpsertGlobalSettings(&models.GlobalSettings{
+				BaseModel: models.BaseModel{
+					ID:        1,
+					UpdatedAt: time.Now(),
+				},
+				AnilistWhitelist: anilistWhitelist,
+			})
+			if err != nil {
+				h.App.Logger.Error().Err(err).Msg("Failed to create whitelist during first setup")
+			} else {
+				h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Created admin whitelist during first setup")
+			}
 		} else {
-			h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Created admin whitelist during first setup")
+			// GlobalSettings exist but whitelist is empty - update only the whitelist
+			globalSettings.AnilistWhitelist = models.StringSlice{getViewer.Viewer.Name}
+			globalSettings.UpdatedAt = time.Now()
+			_, err = h.App.Database.UpsertGlobalSettings(globalSettings)
+			if err != nil {
+				h.App.Logger.Error().Err(err).Msg("Failed to update whitelist during first setup")
+			} else {
+				h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Updated admin whitelist during first setup")
+			}
 		}
 		isWhitelisted = true
 	} else {
 		// Check existing whitelist
-		for _, whitelistedUsername := range settings.AnilistWhitelist {
+		for _, whitelistedUsername := range globalSettings.AnilistWhitelist {
 			if whitelistedUsername == getViewer.Viewer.Name {
 				isWhitelisted = true
 				break
@@ -123,7 +138,7 @@ func (h *Handler) HandleUserLogin(c echo.Context) error {
 		// User doesn't exist, create new one
 		// First user during setup becomes admin, or first user in whitelist
 		role := "user"
-		if isFirstSetup || (len(settings.AnilistWhitelist) > 0 && settings.AnilistWhitelist[0] == getViewer.Viewer.Name) {
+		if isFirstSetup || (globalSettings != nil && len(globalSettings.AnilistWhitelist) > 0 && globalSettings.AnilistWhitelist[0] == getViewer.Viewer.Name) {
 			role = "admin"
 		}
 
@@ -552,16 +567,16 @@ func (h *Handler) HandleGetWhitelist(c echo.Context) error {
 		})
 	}
 
-	settings, err := h.App.Database.GetSettings()
+	globalSettings, err := h.App.Database.GetGlobalSettings()
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	if settings == nil || settings.AnilistWhitelist == nil {
+	if globalSettings == nil || globalSettings.AnilistWhitelist == nil {
 		return h.RespondWithData(c, []string{})
 	}
 
-	return h.RespondWithData(c, settings.AnilistWhitelist)
+	return h.RespondWithData(c, globalSettings.AnilistWhitelist)
 }
 
 // HandleAddToWhitelist adds a user to the AniList whitelist (admin only)
@@ -591,13 +606,13 @@ func (h *Handler) HandleAddToWhitelist(c echo.Context) error {
 		})
 	}
 
-	settings, err := h.App.Database.GetSettings()
+	globalSettings, err := h.App.Database.GetGlobalSettings()
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	if settings == nil {
-		settings = &models.Settings{
+	if globalSettings == nil {
+		globalSettings = &models.GlobalSettings{
 			BaseModel: models.BaseModel{
 				ID:        1,
 				UpdatedAt: time.Now(),
@@ -606,7 +621,7 @@ func (h *Handler) HandleAddToWhitelist(c echo.Context) error {
 	}
 
 	// Check if user is already in whitelist
-	for _, whitelistedUser := range settings.AnilistWhitelist {
+	for _, whitelistedUser := range globalSettings.AnilistWhitelist {
 		if whitelistedUser == req.Username {
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "User already in whitelist",
@@ -615,10 +630,10 @@ func (h *Handler) HandleAddToWhitelist(c echo.Context) error {
 	}
 
 	// Add user to whitelist
-	settings.AnilistWhitelist = append(settings.AnilistWhitelist, req.Username)
-	settings.UpdatedAt = time.Now()
+	globalSettings.AnilistWhitelist = append(globalSettings.AnilistWhitelist, req.Username)
+	globalSettings.UpdatedAt = time.Now()
 
-	_, err = h.App.Database.UpsertSettings(settings)
+	_, err = h.App.Database.UpsertGlobalSettings(globalSettings)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -651,12 +666,12 @@ func (h *Handler) HandleRemoveFromWhitelist(c echo.Context) error {
 		})
 	}
 
-	settings, err := h.App.Database.GetSettings()
+	globalSettings, err := h.App.Database.GetGlobalSettings()
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	if settings == nil || len(settings.AnilistWhitelist) == 0 {
+	if globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0 {
 		return c.JSON(http.StatusNotFound, map[string]string{
 			"error": "Whitelist is empty",
 		})
@@ -664,8 +679,8 @@ func (h *Handler) HandleRemoveFromWhitelist(c echo.Context) error {
 
 	// Find and remove user from whitelist
 	found := false
-	newWhitelist := make([]string, 0, len(settings.AnilistWhitelist))
-	for _, whitelistedUser := range settings.AnilistWhitelist {
+	newWhitelist := make([]string, 0, len(globalSettings.AnilistWhitelist))
+	for _, whitelistedUser := range globalSettings.AnilistWhitelist {
 		if whitelistedUser != username {
 			newWhitelist = append(newWhitelist, whitelistedUser)
 		} else {
@@ -680,7 +695,7 @@ func (h *Handler) HandleRemoveFromWhitelist(c echo.Context) error {
 	}
 
 	// Prevent removing the last admin (first user in whitelist)
-	if len(settings.AnilistWhitelist) > 0 && settings.AnilistWhitelist[0] == username && len(newWhitelist) > 0 {
+	if len(globalSettings.AnilistWhitelist) > 0 && globalSettings.AnilistWhitelist[0] == username && len(newWhitelist) > 0 {
 		// If removing the first user, make the next user admin by ensuring they're first
 		// This maintains the "first user is admin" rule
 		h.App.Logger.Warn().Str("removedAdmin", username).Str("newAdmin", newWhitelist[0]).Msg("Admin user removed from whitelist, promoting next user")
@@ -692,10 +707,10 @@ func (h *Handler) HandleRemoveFromWhitelist(c echo.Context) error {
 		})
 	}
 
-	settings.AnilistWhitelist = newWhitelist
-	settings.UpdatedAt = time.Now()
+	globalSettings.AnilistWhitelist = newWhitelist
+	globalSettings.UpdatedAt = time.Now()
 
-	_, err = h.App.Database.UpsertSettings(settings)
+	_, err = h.App.Database.UpsertGlobalSettings(globalSettings)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -717,15 +732,15 @@ func (h *Handler) HandleRemoveFromWhitelist(c echo.Context) error {
 //	@returns map[string]bool
 func (h *Handler) HandleSetupRequired(c echo.Context) error {
 	// Check if AniList whitelist is configured - setup is required if whitelist is empty
-	settings, err := h.App.Database.GetSettings()
+	globalSettings, err := h.App.Database.GetGlobalSettings()
 	if err != nil {
 		// If settings don't exist or error occurred, setup is required
 		return h.RespondWithData(c, map[string]bool{
 			"required": true,
 		})
 	}
-	
-	isRequired := len(settings.AnilistWhitelist) == 0
+
+	isRequired := globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0
 	
 	return h.RespondWithData(c, map[string]bool{
 		"required": isRequired,

@@ -55,7 +55,7 @@ export function PlaylistsModal(props: PlaylistsModalProps) {
                         </div>
                     </div>
 
-                    {!serverStatus?.settings?.library?.autoUpdateProgress && <Alert
+                    {!serverStatus?.settings?.autoUpdateProgress && <Alert
                         className="max-w-2xl mx-auto"
                         intent="warning"
                         description={<>

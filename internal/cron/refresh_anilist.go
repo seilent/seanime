@@ -9,7 +9,7 @@ func RefreshAnilistDataJob(c *JobCtx) {
 		}
 	}()
 
-	if c.App.Settings == nil || c.App.Settings.Library == nil {
+	if c.App.GlobalSettings == nil || c.App.GlobalSettings.Library == nil {
 		return
 	}
 
@@ -24,7 +24,7 @@ func SyncLocalDataJob(c *JobCtx) {
 		}
 	}()
 
-	if c.App.Settings == nil || c.App.Settings.Library == nil {
+	if c.App.GlobalSettings == nil || c.App.GlobalSettings.Library == nil {
 		return
 	}
 

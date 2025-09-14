@@ -72,7 +72,7 @@ export function useAutoplay() {
         nextEp?: Anime_Episode,
         type: "local" | "torrent" | "debrid" = "local",
     ) => {
-        if (!serverStatus?.settings?.library?.autoPlayNextEpisode) {
+        if (!serverStatus?.settings?.autoPlayNextEpisode) {
             logger("Autoplay").info("Autoplay disabled in settings")
             return
         }

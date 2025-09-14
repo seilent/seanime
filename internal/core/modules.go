@@ -229,16 +229,23 @@ func (a *App) InitOrRefreshModules() {
 		a.DiscordPresence.Close()
 	}
 
-	// Get settings from database
-	settings, err := a.Database.GetSettings()
-	if err != nil || settings == nil {
-		a.Logger.Warn().Msg("app: Did not initialize modules, no settings found")
+	// Get global settings from database
+	globalSettings, err := a.Database.GetGlobalSettings()
+	if err != nil || globalSettings == nil {
+		a.Logger.Warn().Msg("app: Did not initialize modules, no global settings found")
 		return
 	}
 
-	a.Settings = settings // Store settings instance in app
-	if settings.Library != nil {
-		a.LibraryDir = settings.GetLibrary().LibraryPath
+	// Get user settings (for first user or admin)
+	userSettings, err := a.Database.GetSettings()
+	if err != nil {
+		userSettings = nil // User settings are optional
+	}
+
+	a.Settings = userSettings // Store user settings instance in app
+	a.GlobalSettings = globalSettings // Store global settings instance in app
+	if globalSettings.Library != nil {
+		a.LibraryDir = globalSettings.GetLibrary().LibraryPath
 	}
 
 	// +---------------------+
@@ -249,47 +256,47 @@ func (a *App) InitOrRefreshModules() {
 	notifier.GlobalNotifier.SetSettings(a.Config.Data.AppDataDir, a.Settings.GetNotifications(), a.Logger)
 
 	// Refresh updater settings
-	if settings.Library != nil {
+	if globalSettings.Library != nil {
 		plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
-			AnimeLibraryPaths: a.Database.AllLibraryPathsFromSettings(settings),
+			AnimeLibraryPaths: a.Database.AllLibraryPathsFromSettings(globalSettings),
 		})
 
 		if a.Updater != nil {
-			a.Updater.SetEnabled(!settings.Library.DisableUpdateCheck)
+			a.Updater.SetEnabled(!globalSettings.Library.DisableUpdateCheck)
 		}
 
 		// Refresh auto scanner settings
 		if a.AutoScanner != nil {
-			a.AutoScanner.SetSettings(*settings.Library)
+			a.AutoScanner.SetSettings(*globalSettings.Library)
 		}
 
 		// Torrent Repository
 		a.TorrentRepository.SetSettings(&torrent.RepositorySettings{
-			DefaultAnimeProvider: settings.Library.TorrentProvider,
+			DefaultAnimeProvider: globalSettings.Library.TorrentProvider,
 		})
 	}
 
-	if settings.MediaPlayer != nil {
+	if userSettings != nil && userSettings.MediaPlayer != nil {
 		a.MediaPlayer.VLC = &vlc.VLC{
-			Host:     settings.MediaPlayer.Host,
-			Port:     settings.MediaPlayer.VlcPort,
-			Password: settings.MediaPlayer.VlcPassword,
-			Path:     settings.MediaPlayer.VlcPath,
+			Host:     userSettings.MediaPlayer.Host,
+			Port:     userSettings.MediaPlayer.VlcPort,
+			Password: userSettings.MediaPlayer.VlcPassword,
+			Path:     userSettings.MediaPlayer.VlcPath,
 			Logger:   a.Logger,
 		}
 		a.MediaPlayer.MpcHc = &mpchc.MpcHc{
-			Host:   settings.MediaPlayer.Host,
-			Port:   settings.MediaPlayer.MpcPort,
-			Path:   settings.MediaPlayer.MpcPath,
+			Host:   userSettings.MediaPlayer.Host,
+			Port:   userSettings.MediaPlayer.MpcPort,
+			Path:   userSettings.MediaPlayer.MpcPath,
 			Logger: a.Logger,
 		}
-		a.MediaPlayer.Mpv = mpv.New(a.Logger, settings.MediaPlayer.MpvSocket, settings.MediaPlayer.MpvPath, settings.MediaPlayer.MpvArgs)
-		a.MediaPlayer.Iina = iina.New(a.Logger, settings.MediaPlayer.IinaSocket, settings.MediaPlayer.IinaPath, settings.MediaPlayer.IinaArgs)
+		a.MediaPlayer.Mpv = mpv.New(a.Logger, userSettings.MediaPlayer.MpvSocket, userSettings.MediaPlayer.MpvPath, userSettings.MediaPlayer.MpvArgs)
+		a.MediaPlayer.Iina = iina.New(a.Logger, userSettings.MediaPlayer.IinaSocket, userSettings.MediaPlayer.IinaPath, userSettings.MediaPlayer.IinaArgs)
 
 		// Set media player repository
 		a.MediaPlayerRepository = mediaplayer.NewRepository(&mediaplayer.NewRepositoryOptions{
 			Logger:            a.Logger,
-			Default:           settings.MediaPlayer.Default,
+			Default:           userSettings.MediaPlayer.Default,
 			VLC:               a.MediaPlayer.VLC,
 			MpcHc:             a.MediaPlayer.MpcHc,
 			Mpv:               a.MediaPlayer.Mpv, // Socket
@@ -299,13 +306,21 @@ func (a *App) InitOrRefreshModules() {
 		})
 
 		a.PlaybackManager.SetMediaPlayerRepository(a.MediaPlayerRepository)
+		// Use user-specific playback preferences or defaults
+		autoPlayNext := false
+		autoUpdateProgress := true
+		if userSettings != nil {
+			autoPlayNext = userSettings.AutoPlayNextEpisode
+			autoUpdateProgress = userSettings.AutoUpdateProgress
+		}
+
 		a.PlaybackManager.SetSettings(&playbackmanager.Settings{
-			AutoPlayNextEpisode: a.Settings.GetLibrary().AutoPlayNextEpisode,
+			AutoPlayNextEpisode: autoPlayNext,
 		})
 
 		a.DirectStreamManager.SetSettings(&directstream.Settings{
-			AutoPlayNextEpisode: a.Settings.GetLibrary().AutoPlayNextEpisode,
-			AutoUpdateProgress:  a.Settings.GetLibrary().AutoUpdateProgress,
+			AutoPlayNextEpisode: autoPlayNext,
+			AutoUpdateProgress:  autoUpdateProgress,
 		})
 
 
@@ -320,20 +335,20 @@ func (a *App) InitOrRefreshModules() {
 	// |       Torrents      |
 	// +---------------------+
 
-	if settings.Torrent != nil {
+	if globalSettings.Torrent != nil {
 		// Init qBittorrent
 		qbit := qbittorrent.NewClient(&qbittorrent.NewClientOptions{
 			Logger:   a.Logger,
-			Username: settings.Torrent.QBittorrentUsername,
-			Password: settings.Torrent.QBittorrentPassword,
-			Port:     settings.Torrent.QBittorrentPort,
-			Host:     settings.Torrent.QBittorrentHost,
-			Path:     settings.Torrent.QBittorrentPath,
-			Tags:     settings.Torrent.QBittorrentTags,
+			Username: globalSettings.Torrent.QBittorrentUsername,
+			Password: globalSettings.Torrent.QBittorrentPassword,
+			Port:     globalSettings.Torrent.QBittorrentPort,
+			Host:     globalSettings.Torrent.QBittorrentHost,
+			Path:     globalSettings.Torrent.QBittorrentPath,
+			Tags:     globalSettings.Torrent.QBittorrentTags,
 		})
 		// Login to qBittorrent
 		go func() {
-			if settings.Torrent.Default == "qbittorrent" {
+			if globalSettings.Torrent.Default == "qbittorrent" {
 				err = qbit.Login()
 				if err != nil {
 					a.Logger.Error().Err(err).Msg("app: Failed to login to qBittorrent")
@@ -345,13 +360,13 @@ func (a *App) InitOrRefreshModules() {
 		// Init Transmission
 		trans, err := transmission.New(&transmission.NewTransmissionOptions{
 			Logger:   a.Logger,
-			Username: settings.Torrent.TransmissionUsername,
-			Password: settings.Torrent.TransmissionPassword,
-			Port:     settings.Torrent.TransmissionPort,
-			Host:     settings.Torrent.TransmissionHost,
-			Path:     settings.Torrent.TransmissionPath,
+			Username: globalSettings.Torrent.TransmissionUsername,
+			Password: globalSettings.Torrent.TransmissionPassword,
+			Port:     globalSettings.Torrent.TransmissionPort,
+			Host:     globalSettings.Torrent.TransmissionHost,
+			Path:     globalSettings.Torrent.TransmissionPath,
 		})
-		if err != nil && settings.Torrent.TransmissionUsername != "" && settings.Torrent.TransmissionPassword != "" { // Only log error if username and password are set
+		if err != nil && globalSettings.Torrent.TransmissionUsername != "" && globalSettings.Torrent.TransmissionPassword != "" { // Only log error if username and password are set
 			a.Logger.Error().Err(err).Msg("app: Failed to initialize transmission client")
 		}
 
@@ -366,11 +381,11 @@ func (a *App) InitOrRefreshModules() {
 			QbittorrentClient: qbit,
 			Transmission:      trans,
 			TorrentRepository: a.TorrentRepository,
-			Provider:          settings.Torrent.Default,
+			Provider:          globalSettings.Torrent.Default,
 			MetadataProvider:  a.MetadataProvider,
 		})
 
-		a.TorrentClientRepository.InitActiveTorrentCount(settings.Torrent.ShowActiveTorrentCount, a.WSEventManager)
+		a.TorrentClientRepository.InitActiveTorrentCount(globalSettings.Torrent.ShowActiveTorrentCount, a.WSEventManager)
 
 		// Set AutoDownloader qBittorrent client
 		a.AutoDownloader.SetTorrentClientRepository(a.TorrentClientRepository)
@@ -388,8 +403,8 @@ func (a *App) InitOrRefreshModules() {
 	// +---------------------+
 
 	// Update Auto Downloader - This runs in a goroutine
-	if settings.AutoDownloader != nil {
-		a.AutoDownloader.SetSettings(settings.AutoDownloader, settings.Library.TorrentProvider)
+	if globalSettings.AutoDownloader != nil {
+		a.AutoDownloader.SetSettings(globalSettings.AutoDownloader, globalSettings.Library.TorrentProvider)
 	}
 
 	// +---------------------+
@@ -397,9 +412,9 @@ func (a *App) InitOrRefreshModules() {
 	// +---------------------+
 
 	// Initialize library watcher
-	if settings.Library != nil && len(settings.Library.LibraryPath) > 0 {
+	if globalSettings.Library != nil && len(globalSettings.Library.LibraryPath) > 0 {
 		go func() {
-			a.initLibraryWatcher(settings.Library.GetLibraryPaths())
+			a.initLibraryWatcher(globalSettings.Library.GetLibraryPaths())
 		}()
 	}
 
@@ -407,23 +422,31 @@ func (a *App) InitOrRefreshModules() {
 	// |       Discord       |
 	// +---------------------+
 
-	if settings.Discord != nil && a.DiscordPresence != nil {
-		a.DiscordPresence.SetSettings(settings.Discord)
+	if userSettings != nil && userSettings.Discord != nil && a.DiscordPresence != nil {
+		a.DiscordPresence.SetSettings(userSettings.Discord)
 	}
 
 	// +---------------------+
 	// |     Continuity      |
 	// +---------------------+
 
-	if settings.Library != nil {
+	if globalSettings.Library != nil {
 		a.ContinuityManager.SetSettings(&continuity.Settings{
-			WatchContinuityEnabled: settings.Library.EnableWatchContinuity,
+			WatchContinuityEnabled: globalSettings.Library.EnableWatchContinuity,
 		})
 	}
 
-	if settings.Manga != nil {
-		a.MangaRepository.SetSettings(settings)
+	if userSettings != nil && userSettings.Manga != nil {
+		a.MangaRepository.SetSettings(userSettings)
 	}
+
+	// +---------------------+
+	// | Secondary Settings  |
+	// +---------------------+
+	// Load settings that are sent to the client via status endpoint
+
+	mediastreamSettings, _ := a.Database.GetMediastreamSettings()
+	a.SecondarySettings.Mediastream = mediastreamSettings
 
 
 	runtime.GC()
@@ -450,11 +473,11 @@ func (a *App) InitOrRefreshAnilistData() {
 func (a *App) performActionsOnce() {
 
 	go func() {
-		if a.Settings == nil || a.Settings.Library == nil {
+		if a.GlobalSettings == nil || a.GlobalSettings.Library == nil {
 			return
 		}
 
-		if a.Settings.GetLibrary().OpenWebURLOnStart {
+		if a.GlobalSettings.GetLibrary().OpenWebURLOnStart {
 			// Open the web URL
 			err := browser.OpenURL(a.Config.GetServerURI("127.0.0.1"))
 			if err != nil {
@@ -464,7 +487,7 @@ func (a *App) performActionsOnce() {
 			}
 		}
 
-		if a.Settings.GetLibrary().RefreshLibraryOnStart {
+		if a.GlobalSettings.GetLibrary().RefreshLibraryOnStart {
 			go func() {
 				a.Logger.Debug().Msg("app: Refreshing library")
 				a.AutoScanner.RunNow()
@@ -472,7 +495,7 @@ func (a *App) performActionsOnce() {
 			}()
 		}
 
-		if a.Settings.GetLibrary().OpenTorrentClientOnStart && a.TorrentClientRepository != nil {
+		if a.GlobalSettings.GetLibrary().OpenTorrentClientOnStart && a.TorrentClientRepository != nil {
 			// Start the torrent client
 			ok := a.TorrentClientRepository.Start()
 			if !ok {

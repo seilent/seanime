@@ -100,8 +100,8 @@ func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 		ScanSummaryLogger:  scanSummaryLogger,
 		ScanLogger:         scanLogger,
 		MetadataProvider:   h.App.MetadataProvider,
-		MatchingAlgorithm:  h.App.Settings.GetLibrary().ScannerMatchingAlgorithm,
-		MatchingThreshold:  h.App.Settings.GetLibrary().ScannerMatchingThreshold,
+		MatchingAlgorithm:  h.App.GlobalSettings.GetLibrary().ScannerMatchingAlgorithm,
+		MatchingThreshold:  h.App.GlobalSettings.GetLibrary().ScannerMatchingThreshold,
 		Database:           databaseAdapter, // For global media pool access
 		UserID:             user.ID,         // For user subscription tracking
 	}

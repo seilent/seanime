@@ -24,15 +24,11 @@ import { AnimatePresence, motion } from "motion/react"
 import { useRouter } from "next/navigation"
 import React from "react"
 import { useFormContext, useWatch } from "react-hook-form"
-import { BiChevronLeft, BiChevronRight, BiCloud, BiCog, BiDownload, BiFolder, BiPlay, BiRocket } from "react-icons/bi"
-import { FaBook, FaDiscord } from "react-icons/fa"
-import { HiOutlineDesktopComputer } from "react-icons/hi"
-import { HiEye, HiGlobeAlt } from "react-icons/hi2"
-import { ImDownload } from "react-icons/im"
-import { IoPlayForwardCircleSharp } from "react-icons/io5"
+import { BiChevronLeft, BiChevronRight, BiCog, BiDownload, BiFolder, BiRocket } from "react-icons/bi"
+import { FaBook } from "react-icons/fa"
+import { HiEye } from "react-icons/hi2"
 import { MdOutlineBroadcastOnHome } from "react-icons/md"
-import { RiFolderDownloadFill } from "react-icons/ri"
-import { SiMpv, SiQbittorrent, SiTransmission, SiVlcmediaplayer } from "react-icons/si"
+import { SiQbittorrent, SiTransmission } from "react-icons/si"
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -100,25 +96,11 @@ const STEPS = [
         gradient: "from-blue-500 to-cyan-500",
     },
     {
-        id: "player",
-        title: "Media Player",
-        description: "Configure your video player",
-        icon: BiPlay,
-        gradient: "from-green-500 to-emerald-500",
-    },
-    {
         id: "torrents",
         title: "Torrent Setup",
         description: "Set up downloading and providers",
         icon: BiDownload,
         gradient: "from-orange-500 to-red-500",
-    },
-    {
-        id: "debrid",
-        title: "Debrid Service",
-        description: "Optional premium streaming",
-        icon: BiCloud,
-        gradient: "from-indigo-500 to-purple-500",
     },
     {
         id: "features",
@@ -350,148 +332,6 @@ function LibraryStep({ form }: { form: any }) {
     )
 }
 
-function PlayerStep({ form, status }: { form: any, status: Status }) {
-    const { watch } = useFormContext()
-    const defaultPlayer = useWatch({ name: "defaultPlayer" })
-
-    return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="space-y-8"
-        >
-            <motion.div variants={itemVariants} className="text-center space-y-4">
-                <h2 className="text-3xl font-bold">Media Player</h2>
-                <p className="text-[--muted] text-sm max-w-lg mx-auto">
-                    Configure your preferred media player for watching anime and tracking progress automatically.
-                </p>
-            </motion.div>
-
-            <StepCard className="max-w-2xl mx-auto">
-                <motion.div variants={itemVariants} className="space-y-6">
-                    <Field.Select
-                        name="defaultPlayer"
-                        label="Media Player"
-                        help={status?.os !== "darwin"
-                            ? "MPV is recommended for better subtitle rendering, torrent streaming."
-                            : "Both MPV and IINA are recommended for macOS."}
-                        required
-                        leftIcon={<BiPlay className="text-green-500" />}
-                        options={[
-                            { label: "MPV (Recommended)", value: "mpv" },
-                            { label: "VLC", value: "vlc" },
-                            ...(status?.os === "windows" ? [{ label: "MPC-HC", value: "mpc-hc" }] : []),
-                            ...(status?.os === "darwin" ? [{ label: "IINA", value: "iina" }] : []),
-                        ]}
-                    />
-
-                    <AnimatePresence mode="wait">
-                        {defaultPlayer === "mpv" && (
-                            <>
-                                <p>
-                                    On Windows, install MPV easily using Scoop or Chocolatey. On macOS, install MPV using Homebrew.
-                                </p>
-                                <motion.div
-                                    key="mpv"
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="space-y-4 p-4 rounded-lg bg-gray-800/30"
-                                >
-                                    <div className="flex items-center space-x-3">
-                                        <SiMpv className="w-6 h-6 text-purple-400" />
-                                        <h4 className="font-semibold">MPV Configuration</h4>
-                                    </div>
-                                    <Field.Text
-                                        name="mpvSocket"
-                                        label="Socket / Pipe Path"
-                                        help="Path for MPV IPC communication"
-                                    />
-                                </motion.div>
-                            </>
-                        )}
-
-                        {defaultPlayer === "iina" && (
-                            <motion.div
-                                key="iina"
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="space-y-4 p-4 rounded-lg bg-gray-800/30"
-                            >
-                                <div className="flex items-center space-x-3">
-                                    <IoPlayForwardCircleSharp className="w-6 h-6 text-blue-400" />
-                                    <h4 className="font-semibold">IINA Configuration</h4>
-                                </div>
-                                <Field.Text
-                                    name="iinaSocket"
-                                    label="Socket / Pipe Path"
-                                    help="Path for IINA IPC communication"
-                                />
-
-                                <Alert
-                                    intent="info-basic"
-                                    description={<p>For IINA to work correctly with Seanime, make sure <strong>Quit after all windows are
-                                                                                                               closed</strong> is <span
-                                        className="underline"
-                                    >checked</span> and <strong>Keep window open after playback
-                                                                finishes</strong> is <span className="underline">unchecked</span> in
-                                                    your IINA general settings.</p>}
-                                />
-                            </motion.div>
-                        )}
-
-                        {defaultPlayer === "vlc" && (
-                            <motion.div
-                                key="vlc"
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="space-y-4 p-4 rounded-lg bg-gray-800/30"
-                            >
-                                <div className="flex items-center space-x-3">
-                                    <SiVlcmediaplayer className="w-6 h-6 text-orange-500" />
-                                    <h4 className="font-semibold">VLC Configuration</h4>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Field.Text name="mediaPlayerHost" label="Host" />
-                                    <Field.Number name="vlcPort" label="Port" formatOptions={{ useGrouping: false }} />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Field.Text name="vlcUsername" label="Username" />
-                                    <Field.Text name="vlcPassword" label="Password" />
-                                </div>
-                                <Field.Text name="vlcPath" label="VLC Executable Path" />
-                            </motion.div>
-                        )}
-
-                        {defaultPlayer === "mpc-hc" && (
-                            <motion.div
-                                key="mpc-hc"
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="space-y-4 p-4 rounded-lg bg-gray-800/30"
-                            >
-                                <div className="flex items-center space-x-3">
-                                    <HiOutlineDesktopComputer className="w-6 h-6 text-blue-500" />
-                                    <h4 className="font-semibold">MPC-HC Configuration</h4>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Field.Text name="mediaPlayerHost" label="Host" />
-                                    <Field.Number name="mpcPort" label="Port" formatOptions={{ useGrouping: false }} />
-                                </div>
-                                <Field.Text name="mpcPath" label="MPC-HC Executable Path" />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            </StepCard>
-        </motion.div>
-    )
-}
 
 function TorrentStep({ form }: { form: any }) {
     const { watch } = useFormContext()
@@ -512,51 +352,34 @@ function TorrentStep({ form }: { form: any }) {
                 </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
-                <StepCard>
-                    <motion.div variants={itemVariants} className="space-y-4">
-                        <div className="flex items-center space-x-3 mb-4">
-                            <RiFolderDownloadFill className="w-6 h-6 text-orange-500" />
-                            <h3 className="text-xl font-semibold">Torrent Provider</h3>
-                        </div>
-                        <p className="text-sm text-[--muted]">
-                            Extension for finding anime torrents
-                        </p>
-                        <Field.Select
-                            name="torrentProvider"
-                            label="Provider"
-                            required
-                            options={[
-                                { label: "AnimeTosho (Recommended)", value: TORRENT_PROVIDER.ANIMETOSHO },
-                                { label: "Nyaa", value: TORRENT_PROVIDER.NYAA },
-                                { label: "Nyaa (Non-English)", value: TORRENT_PROVIDER.NYAA_NON_ENG },
-                            ]}
-                            help="AnimeTosho search results are more precise in most cases."
-                        />
-                    </motion.div>
-                </StepCard>
+            <StepCard className="max-w-2xl mx-auto">
+                <motion.div variants={itemVariants} className="space-y-6">
+                    <Field.Select
+                        name="torrentProvider"
+                        label="Torrent Provider"
+                        required
+                        leftIcon={<BiDownload className="text-orange-500" />}
+                        options={[
+                            { label: "AnimeTosho (Recommended)", value: TORRENT_PROVIDER.ANIMETOSHO },
+                            { label: "Nyaa", value: TORRENT_PROVIDER.NYAA },
+                            { label: "Nyaa (Non-English)", value: TORRENT_PROVIDER.NYAA_NON_ENG },
+                        ]}
+                        help="AnimeTosho search results are more precise in most cases."
+                    />
 
-                <StepCard>
-                    <motion.div variants={itemVariants} className="space-y-4">
-                        <div className="flex items-center space-x-3 mb-4">
-                            <ImDownload className="w-6 h-6 text-blue-500" />
-                            <h3 className="text-xl font-semibold">Torrent Client</h3>
-                        </div>
-                        <p className="text-sm text-[--muted]">
-                            Client used to download anime torrents
-                        </p>
-                        <Field.Select
-                            name="defaultTorrentClient"
-                            label="Client"
-                            options={[
-                                { label: "qBittorrent", value: "qbittorrent" },
-                                { label: "Transmission", value: "transmission" },
-                                { label: "None", value: "none" },
-                            ]}
-                        />
-                    </motion.div>
-                </StepCard>
-            </div>
+                    <Field.Select
+                        name="defaultTorrentClient"
+                        label="Torrent Client"
+                        leftIcon={<BiDownload className="text-blue-500" />}
+                        options={[
+                            { label: "qBittorrent", value: "qbittorrent" },
+                            { label: "Transmission", value: "transmission" },
+                            { label: "None", value: "none" },
+                        ]}
+                        help="Client used to download anime torrents"
+                    />
+                </motion.div>
+            </StepCard>
 
             <AnimatePresence mode="wait">
                 {(defaultTorrentClient === "qbittorrent" || defaultTorrentClient === "transmission") && (
@@ -611,58 +434,6 @@ function TorrentStep({ form }: { form: any }) {
     )
 }
 
-function DebridStep({ form }: { form: any }) {
-    const debridProvider = useWatch({ name: "debridProvider" })
-
-    return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="space-y-8"
-        >
-            <motion.div variants={itemVariants} className="text-center space-y-4">
-                <h2 className="text-3xl font-bold">Debrid Service</h2>
-                <p className="text-[--muted] text-sm max-w-lg mx-auto">
-                    Debrid services offer faster downloads and instant streaming from the cloud.
-                </p>
-            </motion.div>
-
-            <StepCard className="max-w-2xl mx-auto">
-                <motion.div variants={itemVariants} className="space-y-6">
-                    <Field.Select
-                        name="debridProvider"
-                        label="Debrid Service"
-                        leftIcon={<BiCloud className="text-[--purple]" />}
-                        options={[
-                            { label: "None", value: "none" },
-                            { label: "TorBox", value: "torbox" },
-                            { label: "Real-Debrid", value: "realdebrid" },
-                        ]}
-                    />
-
-                    <AnimatePresence>
-                        {debridProvider !== "none" && debridProvider !== "" && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="space-y-4 p-4 rounded-lg bg-gray-800/30"
-                            >
-                                <Field.Text
-                                    name="debridApiKey"
-                                    label="API Key"
-                                    help="The API key provided by the debrid service."
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            </StepCard>
-        </motion.div>
-    )
-}
 
 function FeaturesStep({ form }: { form: any }) {
     const features = [
@@ -674,32 +445,11 @@ function FeaturesStep({ form }: { form: any }) {
             gradient: "from-orange-500 to-yellow-700",
         },
         {
-            name: "enableTorrentStreaming",
-            icon: BiDownload,
-            title: "Torrent Streaming",
-            description: "Stream torrents without waiting for download",
-            gradient: "from-cyan-500 to-teal-500",
-        },
-        {
             name: "enableAdultContent",
             icon: HiEye,
             title: "NSFW Content",
             description: "Show adult content in library and search",
             gradient: "from-red-500 to-pink-500",
-        },
-        {
-            name: "enableOnlinestream",
-            icon: HiGlobeAlt,
-            title: "Online Streaming",
-            description: "Watch anime from online sources",
-            gradient: "from-purple-500 to-violet-500",
-        },
-        {
-            name: "enableRichPresence",
-            icon: FaDiscord,
-            title: "Discord Rich Presence",
-            description: "Show what you're watching on Discord",
-            gradient: "from-indigo-500 to-blue-500",
         },
         {
             name: "enableTranscode",
@@ -846,30 +596,17 @@ export function GettingStartedPage({ status }: { status: Status }) {
                         }
                     }}
                     defaultValues={{
-                        mediaPlayerHost: "127.0.0.1",
-                        vlcPort: 8080,
-                        mpcPort: 13579,
-                        defaultPlayer: "mpv",
-                        vlcPath: vlcDefaultPath,
                         qbittorrentPath: qbittorrentDefaultPath,
                         qbittorrentHost: "127.0.0.1",
                         qbittorrentPort: 8081,
                         transmissionPath: transmissionDefaultPath,
                         transmissionHost: "127.0.0.1",
                         transmissionPort: 9091,
-                        mpcPath: "C:/Program Files/MPC-HC/mpc-hc64.exe",
                         torrentProvider: DEFAULT_TORRENT_PROVIDER,
-                        mpvSocket: mpvSocketPath,
-                        iinaSocket: iinaSocketPath,
-                        enableRichPresence: false,
                         autoScan: false,
                         enableManga: true,
-                        enableOnlinestream: false,
-                        enableAdultContent: true,
-                        enableTorrentStreaming: true,
-                        enableTranscode: false,
-                        debridProvider: "none",
-                        debridApiKey: "",
+                        enableAdultContent: false,
+                        enableTranscode: true,
                         nakamaUsername: "",
                         enableWatchContinuity: true,
                     }}
@@ -894,10 +631,8 @@ export function GettingStartedPage({ status }: { status: Status }) {
                                 >
                                     {currentStep === 0 && <AdminStep form={f} />}
                                     {currentStep === 1 && <LibraryStep form={f} />}
-                                    {currentStep === 2 && <PlayerStep form={f} status={status} />}
-                                    {currentStep === 3 && <TorrentStep form={f} />}
-                                    {currentStep === 4 && <DebridStep form={f} />}
-                                    {currentStep === 5 && <FeaturesStep form={f} />}
+                                    {currentStep === 2 && <TorrentStep form={f} />}
+                                    {currentStep === 3 && <FeaturesStep form={f} />}
                                 </motion.div>
                             </AnimatePresence>
 

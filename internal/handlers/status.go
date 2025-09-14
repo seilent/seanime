@@ -43,6 +43,7 @@ type Status struct {
 	ServerReady           bool                          `json:"serverReady"`
 	ServerHasPassword     bool                          `json:"serverHasPassword"`
 	HasUsers              bool                          `json:"hasUsers"`
+	SetupCompleted        bool                          `json:"setupCompleted"`
 }
 
 var clientInfoCache = result.NewResultMap[string, util.ClientInfo]()
@@ -73,40 +74,38 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 		currentUser = user.NewSimulatedUser()
 	}
 
-	// Get settings - merge global and user settings
-	// Always get global settings first for setup detection
-	globalSettings, _ := h.App.Database.GetSettings()
-	
+	// Get setup status from global settings separately
+	setupCompleted, _ := h.App.Database.GetGlobalSettingsSetupStatus()
+
+	// Get global settings for library, torrent, auto-downloader
+	globalSettings, _ := h.App.Database.GetGlobalSettings()
+
 	if contextUser := h.getCurrentUser(c); contextUser != nil {
 		// Get user-specific settings
 		userSettings, _ := h.App.Database.GetSettingsForUser(contextUser.ID)
-		
+
 		// Merge settings: global for shared resources, user for personal preferences
 		if userSettings != nil && userSettings.ID != 0 {
 			settings = userSettings
-			
-			// Override with global settings for shared resources (admin-controlled)
-			if globalSettings != nil {
-				if globalSettings.Library != nil {
-					settings.Library = globalSettings.Library
-				}
-				if globalSettings.Torrent != nil {
-					settings.Torrent = globalSettings.Torrent
-				}
-				if globalSettings.AutoDownloader != nil {
-					settings.AutoDownloader = globalSettings.AutoDownloader
-				}
-				// Always include whitelist and setup completion from global settings
-				settings.AnilistWhitelist = globalSettings.AnilistWhitelist
-				settings.SetupCompleted = globalSettings.SetupCompleted
-			}
-		} else if globalSettings != nil {
-			// If no user settings exist, fall back to global settings
-			settings = globalSettings
+		} else {
+			// If no user settings exist, create empty user settings
+			settings = &models.Settings{}
+		}
+
+		// Populate virtual fields from GlobalSettings for frontend compatibility
+		if globalSettings != nil {
+			settings.Library = globalSettings.Library
+			settings.Torrent = globalSettings.Torrent
+			settings.AutoDownloader = globalSettings.AutoDownloader
 		}
 	} else {
-		// If no user is authenticated, still return global settings for setup detection
-		settings = globalSettings
+		// If no user is authenticated, create empty settings with global data
+		settings = &models.Settings{}
+		if globalSettings != nil {
+			settings.Library = globalSettings.Library
+			settings.Torrent = globalSettings.Torrent
+			settings.AutoDownloader = globalSettings.AutoDownloader
+		}
 	}
 
 	clientInfo, found := clientInfoCache.Get(c.Request().UserAgent())
@@ -117,6 +116,9 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 
 	theme, _ = h.App.Database.GetTheme()
 
+	// Use settings as-is for status (SetupCompleted will be handled separately)
+	statusSettings := settings
+
 	status := &Status{
 		OS:                    runtime.GOOS,
 		ClientDevice:          clientInfo.Device,
@@ -124,7 +126,7 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 		DataDir:               h.App.Config.Data.AppDataDir,
 		ClientUserAgent:       c.Request().UserAgent(),
 		User:                  currentUser,
-		Settings:              settings,
+		Settings:              statusSettings,
 		Version:               h.App.Version,
 		VersionName:           constants.VersionName,
 		ThemeSettings:         theme,
@@ -133,6 +135,7 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 		AnilistClientID:       h.App.Config.Anilist.ClientID,
 		ServerReady:           h.App.ServerReady,
 		Updating:              false, // Set to false for now
+		SetupCompleted:        setupCompleted,
 	}
 
 	return status
@@ -348,6 +351,7 @@ func (h *Handler) HandleGetAnnouncements(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	// Legacy: GetAnnouncements still expects Settings type, not GlobalSettings
 	settings, _ := h.App.Database.GetSettings()
 
 	announcements := h.App.Updater.GetAnnouncements(h.App.Version, b.Platform, settings)

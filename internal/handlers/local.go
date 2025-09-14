@@ -135,7 +135,7 @@ func (h *Handler) HandleLocalSyncData(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	if h.App.Settings.GetLibrary().AutoSaveCurrentMediaOffline {
+	if h.App.GlobalSettings.GetLibrary().AutoSaveCurrentMediaOffline {
 		go func() {
 			added, _ := h.App.LocalManager.AutoTrackCurrentMedia()
 			if added {

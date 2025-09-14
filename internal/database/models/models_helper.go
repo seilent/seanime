@@ -7,12 +7,6 @@ func (s *Settings) GetMediaPlayer() *MediaPlayerSettings {
 	return s.MediaPlayer
 }
 
-func (s *Settings) GetTorrent() *TorrentSettings {
-	if s == nil || s.Torrent == nil {
-		return &TorrentSettings{}
-	}
-	return s.Torrent
-}
 
 func (s *Settings) GetAnilist() *AnilistSettings {
 	if s == nil || s.Anilist == nil {
@@ -28,12 +22,6 @@ func (s *Settings) GetManga() *MangaSettings {
 	return s.Manga
 }
 
-func (s *Settings) GetLibrary() *LibrarySettings {
-	if s == nil || s.Library == nil {
-		return &LibrarySettings{}
-	}
-	return s.Library
-}
 
 func (s *Settings) GetListSync() *ListSyncSettings {
 	if s == nil || s.ListSync == nil {
@@ -42,12 +30,6 @@ func (s *Settings) GetListSync() *ListSyncSettings {
 	return s.ListSync
 }
 
-func (s *Settings) GetAutoDownloader() *AutoDownloaderSettings {
-	if s == nil || s.AutoDownloader == nil {
-		return &AutoDownloaderSettings{}
-	}
-	return s.AutoDownloader
-}
 
 func (s *Settings) GetDiscord() *DiscordSettings {
 	if s == nil || s.Discord == nil {
@@ -78,8 +60,38 @@ func (s *Settings) GetSensitiveValues() []string {
 	}
 	return []string{
 		s.GetMediaPlayer().VlcPassword,
-		s.GetTorrent().QBittorrentPassword,
-		s.GetTorrent().TransmissionPassword,
+	}
+}
+
+// GlobalSettings helper methods
+func (g *GlobalSettings) GetTorrent() *TorrentSettings {
+	if g == nil || g.Torrent == nil {
+		return &TorrentSettings{}
+	}
+	return g.Torrent
+}
+
+func (g *GlobalSettings) GetLibrary() *LibrarySettings {
+	if g == nil || g.Library == nil {
+		return &LibrarySettings{}
+	}
+	return g.Library
+}
+
+func (g *GlobalSettings) GetAutoDownloader() *AutoDownloaderSettings {
+	if g == nil || g.AutoDownloader == nil {
+		return &AutoDownloaderSettings{}
+	}
+	return g.AutoDownloader
+}
+
+func (g *GlobalSettings) GetSensitiveValues() []string {
+	if g == nil {
+		return []string{}
+	}
+	return []string{
+		g.GetTorrent().QBittorrentPassword,
+		g.GetTorrent().TransmissionPassword,
 	}
 }
 

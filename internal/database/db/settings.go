@@ -6,103 +6,125 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-var CurrSettings *models.Settings
+// Global Settings (server-wide)
+var CurrGlobalSettings *models.GlobalSettings
 
-func (db *Database) UpsertSettings(settings *models.Settings) (*models.Settings, error) {
-
+func (db *Database) UpsertGlobalSettings(settings *models.GlobalSettings) (*models.GlobalSettings, error) {
 	err := db.gormdb.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
 		UpdateAll: true,
 	}).Create(settings).Error
 
 	if err != nil {
-		db.Logger.Error().Err(err).Msg("db: Failed to save settings in the database")
+		db.Logger.Error().Err(err).Msg("db: Failed to save global settings in the database")
 		return nil, err
 	}
 
-	CurrSettings = settings
-
-	db.Logger.Debug().Msg("db: Settings saved")
+	CurrGlobalSettings = settings
+	db.Logger.Debug().Msg("db: Global settings saved")
 	return settings, nil
-
 }
 
-func (db *Database) GetSettings() (*models.Settings, error) {
-
-	if CurrSettings != nil {
-		return CurrSettings, nil
+func (db *Database) GetGlobalSettings() (*models.GlobalSettings, error) {
+	if CurrGlobalSettings != nil {
+		return CurrGlobalSettings, nil
 	}
 
-	var settings models.Settings
-	err := db.gormdb.Where("id = ?", 1).Find(&settings).Error
-
+	var settings models.GlobalSettings
+	err := db.gormdb.Where("id = ?", 1).First(&settings).Error
 	if err != nil {
 		return nil, err
 	}
 	return &settings, nil
 }
 
+// User Settings (per-user)
+func (db *Database) UpsertSettings(settings *models.Settings) (*models.Settings, error) {
+	err := db.gormdb.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		UpdateAll: true,
+	}).Create(settings).Error
+
+	if err != nil {
+		db.Logger.Error().Err(err).Msg("db: Failed to save user settings in the database")
+		return nil, err
+	}
+
+	db.Logger.Debug().Msg("db: User settings saved")
+	return settings, nil
+}
+
+func (db *Database) GetSettings() (*models.Settings, error) {
+	var settings models.Settings
+	err := db.gormdb.Where("id = ?", 1).First(&settings).Error
+	if err != nil {
+		return nil, err
+	}
+	return &settings, nil
+}
+
+// Legacy compatibility methods
+func (db *Database) GetGlobalSettingsSetupStatus() (bool, error) {
+	settings, err := db.GetGlobalSettings()
+	if err != nil {
+		return false, err
+	}
+	return settings.SetupCompleted, nil
+}
+
+func (db *Database) SetGlobalSettingsSetupCompleted(completed bool) error {
+	return db.gormdb.Table("global_settings").Where("id = ?", 1).Update("setup_completed", completed).Error
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (db *Database) GetLibraryPathFromSettings() (string, error) {
-	// Library path should be global - try to get from system settings first (user_id = 0)
-	var settings models.Settings
-	err := db.gormdb.Where("user_id = ?", 0).First(&settings).Error
-	if err == nil && settings.Library.LibraryPath != "" {
-		return settings.Library.LibraryPath, nil
-	}
-	
-	// Fallback to the first non-empty library path from any user
-	err = db.gormdb.Where("library_path != '' AND library_path IS NOT NULL").First(&settings).Error
+	globalSettings, err := db.GetGlobalSettings()
 	if err != nil {
 		return "", err
 	}
-	
-	return settings.Library.LibraryPath, nil
+
+	if globalSettings.Library != nil && globalSettings.Library.LibraryPath != "" {
+		return globalSettings.Library.LibraryPath, nil
+	}
+
+	return "", nil
 }
 
 func (db *Database) GetAdditionalLibraryPathsFromSettings() ([]string, error) {
-	// Library paths should be global - try to get from system settings first (user_id = 0)
-	var settings models.Settings
-	err := db.gormdb.Where("user_id = ?", 0).First(&settings).Error
-	if err == nil && len(settings.Library.LibraryPaths) > 0 {
-		return settings.Library.LibraryPaths, nil
-	}
-	
-	// Fallback to the first non-empty library paths from any user
-	err = db.gormdb.Where("library_paths != '' AND library_paths IS NOT NULL").First(&settings).Error
+	globalSettings, err := db.GetGlobalSettings()
 	if err != nil {
-		return []string{}, nil // Return empty slice instead of error
+		return []string{}, nil
 	}
-	
-	return settings.Library.LibraryPaths, nil
+
+	if globalSettings.Library != nil && len(globalSettings.Library.LibraryPaths) > 0 {
+		return globalSettings.Library.LibraryPaths, nil
+	}
+
+	return []string{}, nil
 }
 
 func (db *Database) GetAllLibraryPathsFromSettings() ([]string, error) {
-	settings, err := db.GetSettings()
+	globalSettings, err := db.GetGlobalSettings()
 	if err != nil {
 		return []string{}, err
 	}
-	if settings.Library == nil {
+	if globalSettings.Library == nil {
 		return []string{}, nil
 	}
-	return append([]string{settings.Library.LibraryPath}, settings.Library.LibraryPaths...), nil
+	return append([]string{globalSettings.Library.LibraryPath}, globalSettings.Library.LibraryPaths...), nil
 }
 
-func (db *Database) AllLibraryPathsFromSettings(settings *models.Settings) *[]string {
-	if settings.Library == nil {
+func (db *Database) AllLibraryPathsFromSettings(globalSettings *models.GlobalSettings) *[]string {
+	if globalSettings == nil || globalSettings.Library == nil {
 		return &[]string{}
 	}
-	r := append([]string{settings.Library.LibraryPath}, settings.Library.LibraryPaths...)
+	r := append([]string{globalSettings.Library.LibraryPath}, globalSettings.Library.LibraryPaths...)
 	return &r
 }
 
 func (db *Database) AutoUpdateProgressIsEnabled() (bool, error) {
-	settings, err := db.GetSettings()
-	if err != nil {
-		return false, err
-	}
-	return settings.Library.AutoUpdateProgress, nil
+	return true, nil
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

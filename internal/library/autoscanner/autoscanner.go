@@ -186,13 +186,13 @@ func (as *AutoScanner) scan() {
 	as.wsEventManager.SendEvent(events.AutoScanStarted, nil)
 	defer as.wsEventManager.SendEvent(events.AutoScanCompleted, nil)
 
-	settings, err := as.db.GetSettings()
-	if err != nil || settings == nil {
-		as.logger.Error().Err(err).Msg("autoscanner: Failed to get settings")
+	globalSettings, err := as.db.GetGlobalSettings()
+	if err != nil || globalSettings == nil {
+		as.logger.Error().Err(err).Msg("autoscanner: Failed to get global settings")
 		return
 	}
 
-	if settings.Library.LibraryPath == "" {
+	if globalSettings.Library == nil || globalSettings.Library.LibraryPath == "" {
 		as.logger.Error().Msg("autoscanner: Library path is not set")
 		return
 	}
@@ -217,8 +217,8 @@ func (as *AutoScanner) scan() {
 
 	// Create a new scanner
 	sc := scanner.Scanner{
-		DirPath:            settings.Library.LibraryPath,
-		OtherDirPaths:      settings.Library.LibraryPaths,
+		DirPath:            globalSettings.Library.LibraryPath,
+		OtherDirPaths:      globalSettings.Library.LibraryPaths,
 		Platform:           as.platform,
 		Logger:             as.logger,
 		WSEventManager:     as.wsEventManager,

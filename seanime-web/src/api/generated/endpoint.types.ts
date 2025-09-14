@@ -1305,16 +1305,11 @@ export type ScanLocalFiles_Variables = {
  */
 export type GettingStarted_Variables = {
     library: Models_LibrarySettings
-    mediaPlayer: Models_MediaPlayerSettings
     torrent: Models_TorrentSettings
     anilist: Models_AnilistSettings
-    discord: Models_DiscordSettings
     manga: Models_MangaSettings
     notifications: Models_NotificationSettings
     enableTranscode: boolean
-    enableTorrentStreaming: boolean
-    debridProvider: string
-    debridApiKey: string
     /**
      *  Admin AniList token for authentication
      *  
@@ -1338,6 +1333,8 @@ export type SaveSettings_Variables = {
     discord: Models_DiscordSettings
     manga: Models_MangaSettings
     notifications: Models_NotificationSettings
+    autoUpdateProgress: boolean
+    autoPlayNextEpisode: boolean
 }
 
 /**
@@ -1355,6 +1352,10 @@ export type SaveAutoDownloaderSettings_Variables = {
     enableSeasonCheck: boolean
     useDebrid: boolean
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// sse
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // status

@@ -7216,15 +7216,6 @@
           "descriptions": []
         },
         {
-          "name": "MediaPlayer",
-          "jsonName": "mediaPlayer",
-          "goType": "models.MediaPlayerSettings",
-          "usedStructType": "models.MediaPlayerSettings",
-          "typescriptType": "Models_MediaPlayerSettings",
-          "required": true,
-          "descriptions": []
-        },
-        {
           "name": "Torrent",
           "jsonName": "torrent",
           "goType": "models.TorrentSettings",
@@ -7239,15 +7230,6 @@
           "goType": "models.AnilistSettings",
           "usedStructType": "models.AnilistSettings",
           "typescriptType": "Models_AnilistSettings",
-          "required": true,
-          "descriptions": []
-        },
-        {
-          "name": "Discord",
-          "jsonName": "discord",
-          "goType": "models.DiscordSettings",
-          "usedStructType": "models.DiscordSettings",
-          "typescriptType": "Models_DiscordSettings",
           "required": true,
           "descriptions": []
         },
@@ -7275,33 +7257,6 @@
           "goType": "bool",
           "usedStructType": "",
           "typescriptType": "boolean",
-          "required": true,
-          "descriptions": []
-        },
-        {
-          "name": "EnableTorrentStreaming",
-          "jsonName": "enableTorrentStreaming",
-          "goType": "bool",
-          "usedStructType": "",
-          "typescriptType": "boolean",
-          "required": true,
-          "descriptions": []
-        },
-        {
-          "name": "DebridProvider",
-          "jsonName": "debridProvider",
-          "goType": "string",
-          "usedStructType": "",
-          "typescriptType": "string",
-          "required": true,
-          "descriptions": []
-        },
-        {
-          "name": "DebridApiKey",
-          "jsonName": "debridApiKey",
-          "goType": "string",
-          "usedStructType": "",
-          "typescriptType": "string",
           "required": true,
           "descriptions": []
         },
@@ -7413,6 +7368,24 @@
           "typescriptType": "Models_NotificationSettings",
           "required": true,
           "descriptions": []
+        },
+        {
+          "name": "AutoUpdateProgress",
+          "jsonName": "autoUpdateProgress",
+          "goType": "bool",
+          "usedStructType": "",
+          "typescriptType": "boolean",
+          "required": true,
+          "descriptions": []
+        },
+        {
+          "name": "AutoPlayNextEpisode",
+          "jsonName": "autoPlayNextEpisode",
+          "goType": "bool",
+          "usedStructType": "",
+          "typescriptType": "boolean",
+          "required": true,
+          "descriptions": []
         }
       ],
       "returns": "handlers.Status",
@@ -7497,6 +7470,27 @@
           "descriptions": []
         }
       ],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "HandleSSEEvents",
+    "trimmedName": "SSEEvents",
+    "comments": [
+      "HandleSSEEvents handles SSE connection requests",
+      ""
+    ],
+    "filepath": "internal/handlers/sse.go",
+    "filename": "sse.go",
+    "api": {
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
+      "params": [],
+      "bodyFields": [],
       "returns": "bool",
       "returnGoType": "bool",
       "returnTypescriptType": "boolean"

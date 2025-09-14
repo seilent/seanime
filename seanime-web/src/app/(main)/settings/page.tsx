@@ -302,7 +302,6 @@ export default function Page() {
                                 mutate({
                                     library: {
                                         libraryPath: data.libraryPath,
-                                        autoUpdateProgress: data.autoUpdateProgress,
                                         disableUpdateCheck: data.disableUpdateCheck,
                                         torrentProvider: data.torrentProvider,
                                         autoScan: data.autoScan,
@@ -314,7 +313,6 @@ export default function Page() {
                                         openTorrentClientOnStart: data.openTorrentClientOnStart,
                                         openWebURLOnStart: data.openWebURLOnStart,
                                         refreshLibraryOnStart: data.refreshLibraryOnStart,
-                                        autoPlayNextEpisode: data.autoPlayNextEpisode ?? false,
                                         enableWatchContinuity: data.enableWatchContinuity ?? false,
                                         libraryPaths: data.libraryPaths ?? [],
                                         autoSyncOfflineLocalData: data.autoSyncOfflineLocalData ?? false,
@@ -323,6 +321,8 @@ export default function Page() {
                                         autoSyncToLocalAccount: data.autoSyncToLocalAccount ?? false,
                                         autoSaveCurrentMediaOffline: data.autoSaveCurrentMediaOffline ?? false,
                                     },
+                                    autoUpdateProgress: data.autoUpdateProgress,
+                                    autoPlayNextEpisode: data.autoPlayNextEpisode ?? false,
                                     manga: {
                                         defaultMangaProvider: data.defaultMangaProvider === "-" ? "" : data.defaultMangaProvider,
                                         mangaAutoUpdateProgress: data.mangaAutoUpdateProgress ?? false,
@@ -418,7 +418,7 @@ export default function Page() {
                                 transmissionUsername: status?.settings?.torrent?.transmissionUsername,
                                 transmissionPassword: status?.settings?.torrent?.transmissionPassword,
                                 hideAudienceScore: status?.settings?.anilist?.hideAudienceScore ?? false,
-                                autoUpdateProgress: status?.settings?.library?.autoUpdateProgress ?? false,
+                                autoUpdateProgress: status?.settings?.autoUpdateProgress ?? false,
                                 disableUpdateCheck: status?.settings?.library?.disableUpdateCheck ?? false,
                                 enableOnlinestream: status?.settings?.library?.enableOnlinestream ?? false,
                                 includeOnlineStreamingInLibrary: status?.settings?.library?.includeOnlineStreamingInLibrary ?? false,
@@ -443,7 +443,7 @@ export default function Page() {
                                 defaultMangaProvider: status?.settings?.manga?.defaultMangaProvider || "-",
                                 mangaAutoUpdateProgress: status?.settings?.manga?.mangaAutoUpdateProgress ?? false,
                                 showActiveTorrentCount: status?.settings?.torrent?.showActiveTorrentCount ?? false,
-                                autoPlayNextEpisode: status?.settings?.library?.autoPlayNextEpisode ?? false,
+                                autoPlayNextEpisode: status?.settings?.autoPlayNextEpisode ?? false,
                                 enableWatchContinuity: status?.settings?.library?.enableWatchContinuity ?? false,
                                 libraryPaths: status?.settings?.library?.libraryPaths ?? [],
                                 autoSyncOfflineLocalData: status?.settings?.library?.autoSyncOfflineLocalData ?? false,

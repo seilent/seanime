@@ -84,7 +84,7 @@ export function PlaylistsList(props: PlaylistsListProps) {
                                 <div className="absolute inset-0 z-[2] bg-gray-900 opacity-50 hover:opacity-70 transition-opacity flex items-center justify-center" />
                                 <div className="absolute inset-0 z-[6] flex items-center justify-center">
                                     <StartPlaylistModal
-                                        canStart={serverStatus?.settings?.library?.autoUpdateProgress}
+                                        canStart={serverStatus?.settings?.autoUpdateProgress}
                                         playlist={p}
                                         onPlaylistLoaded={handlePlaylistLoaded}
                                         trigger={

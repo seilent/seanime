@@ -27249,6 +27249,17 @@
         "comments": []
       },
       {
+        "name": "SSEManager",
+        "jsonName": "SSEManager",
+        "goType": "events.SSEManager",
+        "typescriptType": "Events_SSEManager",
+        "usedTypescriptType": "Events_SSEManager",
+        "usedStructName": "events.SSEManager",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
         "name": "AutoDownloader",
         "jsonName": "AutoDownloader",
         "goType": "autodownloader.AutoDownloader",
@@ -27479,6 +27490,17 @@
         "typescriptType": "Models_Settings",
         "usedTypescriptType": "Models_Settings",
         "usedStructName": "models.Settings",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "GlobalSettings",
+        "jsonName": "GlobalSettings",
+        "goType": "models.GlobalSettings",
+        "typescriptType": "Models_GlobalSettings",
+        "usedTypescriptType": "Models_GlobalSettings",
+        "usedStructName": "models.GlobalSettings",
         "required": false,
         "public": true,
         "comments": []
@@ -28366,12 +28388,49 @@
         "comments": []
       },
       {
+        "name": "platform",
+        "jsonName": "platform",
+        "goType": "platform.Platform",
+        "typescriptType": "Platform",
+        "usedTypescriptType": "Platform",
+        "usedStructName": "platform.Platform",
+        "required": false,
+        "public": false,
+        "comments": [
+          " For AniList API access"
+        ]
+      },
+      {
+        "name": "metadataProvider",
+        "jsonName": "metadataProvider",
+        "goType": "metadata.Provider",
+        "typescriptType": "Metadata_Provider",
+        "usedTypescriptType": "Metadata_Provider",
+        "usedStructName": "metadata.Provider",
+        "required": false,
+        "public": false,
+        "comments": [
+          " For metadata operations"
+        ]
+      },
+      {
         "name": "wsEventManager",
         "jsonName": "wsEventManager",
         "goType": "events.WSEventManagerInterface",
         "typescriptType": "Events_WSEventManagerInterface",
         "usedTypescriptType": "Events_WSEventManagerInterface",
         "usedStructName": "events.WSEventManagerInterface",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "sseManager",
+        "jsonName": "sseManager",
+        "goType": "events.SSEManager",
+        "typescriptType": "Events_SSEManager",
+        "usedTypescriptType": "Events_SSEManager",
+        "usedStructName": "events.SSEManager",
         "required": false,
         "public": false,
         "comments": []
@@ -28446,6 +28505,27 @@
         "required": false,
         "public": false,
         "comments": []
+      },
+      {
+        "name": "cooldownDuration",
+        "jsonName": "cooldownDuration",
+        "goType": "time.Duration",
+        "typescriptType": "Duration",
+        "usedTypescriptType": "Duration",
+        "usedStructName": "time.Duration",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "lastScanCompleted",
+        "jsonName": "lastScanCompleted",
+        "goType": "time.Time",
+        "typescriptType": "string",
+        "usedStructName": "time.Time",
+        "required": false,
+        "public": false,
+        "comments": []
       }
     ],
     "comments": []
@@ -28480,12 +28560,49 @@
         "comments": []
       },
       {
+        "name": "Platform",
+        "jsonName": "Platform",
+        "goType": "platform.Platform",
+        "typescriptType": "Platform",
+        "usedTypescriptType": "Platform",
+        "usedStructName": "platform.Platform",
+        "required": false,
+        "public": true,
+        "comments": [
+          " For AniList API access"
+        ]
+      },
+      {
+        "name": "MetadataProvider",
+        "jsonName": "MetadataProvider",
+        "goType": "metadata.Provider",
+        "typescriptType": "Metadata_Provider",
+        "usedTypescriptType": "Metadata_Provider",
+        "usedStructName": "metadata.Provider",
+        "required": false,
+        "public": true,
+        "comments": [
+          " For metadata operations"
+        ]
+      },
+      {
         "name": "WSEventManager",
         "jsonName": "WSEventManager",
         "goType": "events.WSEventManagerInterface",
         "typescriptType": "Events_WSEventManagerInterface",
         "usedTypescriptType": "Events_WSEventManagerInterface",
         "usedStructName": "events.WSEventManagerInterface",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "SSEManager",
+        "jsonName": "SSEManager",
+        "goType": "events.SSEManager",
+        "typescriptType": "Events_SSEManager",
+        "usedTypescriptType": "Events_SSEManager",
+        "usedStructName": "events.SSEManager",
         "required": false,
         "public": true,
         "comments": []
@@ -28522,7 +28639,20 @@
         "required": false,
         "public": true,
         "comments": [
-          " Optional, defaults to 30 seconds"
+          " Optional, defaults to 5 seconds"
+        ]
+      },
+      {
+        "name": "CooldownDuration",
+        "jsonName": "CooldownDuration",
+        "goType": "time.Duration",
+        "typescriptType": "Duration",
+        "usedTypescriptType": "Duration",
+        "usedStructName": "time.Duration",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Optional, defaults to 1 minute"
         ]
       }
     ],
@@ -28803,21 +28933,10 @@
   {
     "filepath": "../internal/database/models/models.go",
     "filename": "models.go",
-    "name": "Settings",
-    "formattedName": "Models_Settings",
+    "name": "GlobalSettings",
+    "formattedName": "Models_GlobalSettings",
     "package": "models",
     "fields": [
-      {
-        "name": "UserID",
-        "jsonName": "userId",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " Foreign key to User"
-        ]
-      },
       {
         "name": "SetupCompleted",
         "jsonName": "setupCompleted",
@@ -28825,9 +28944,7 @@
         "typescriptType": "boolean",
         "required": true,
         "public": true,
-        "comments": [
-          " Tracks if initial setup is complete"
-        ]
+        "comments": []
       },
       {
         "name": "AnilistWhitelist",
@@ -28838,9 +28955,7 @@
         "usedStructName": "models.StringSlice",
         "required": true,
         "public": true,
-        "comments": [
-          " Whitelisted AniList usernames"
-        ]
+        "comments": []
       },
       {
         "name": "Library",
@@ -28849,17 +28964,6 @@
         "typescriptType": "Models_LibrarySettings",
         "usedTypescriptType": "Models_LibrarySettings",
         "usedStructName": "models.LibrarySettings",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MediaPlayer",
-        "jsonName": "mediaPlayer",
-        "goType": "MediaPlayerSettings",
-        "typescriptType": "Models_MediaPlayerSettings",
-        "usedTypescriptType": "Models_MediaPlayerSettings",
-        "usedStructName": "models.MediaPlayerSettings",
         "required": false,
         "public": true,
         "comments": []
@@ -28876,12 +28980,67 @@
         "comments": []
       },
       {
-        "name": "Manga",
-        "jsonName": "manga",
-        "goType": "MangaSettings",
-        "typescriptType": "Models_MangaSettings",
-        "usedTypescriptType": "Models_MangaSettings",
-        "usedStructName": "models.MangaSettings",
+        "name": "AutoDownloader",
+        "jsonName": "autoDownloader",
+        "goType": "AutoDownloaderSettings",
+        "typescriptType": "Models_AutoDownloaderSettings",
+        "usedTypescriptType": "Models_AutoDownloaderSettings",
+        "usedStructName": "models.AutoDownloaderSettings",
+        "required": false,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " GlobalSettings - server-wide settings stored in separate table"
+    ],
+    "embeddedStructNames": [
+      "models.BaseModel"
+    ]
+  },
+  {
+    "filepath": "../internal/database/models/models.go",
+    "filename": "models.go",
+    "name": "Settings",
+    "formattedName": "Models_Settings",
+    "package": "models",
+    "fields": [
+      {
+        "name": "UserID",
+        "jsonName": "userId",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " Foreign key to User"
+        ]
+      },
+      {
+        "name": "AutoPlayNextEpisode",
+        "jsonName": "autoPlayNextEpisode",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "AutoUpdateProgress",
+        "jsonName": "autoUpdateProgress",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "MediaPlayer",
+        "jsonName": "mediaPlayer",
+        "goType": "MediaPlayerSettings",
+        "typescriptType": "Models_MediaPlayerSettings",
+        "usedTypescriptType": "Models_MediaPlayerSettings",
+        "usedStructName": "models.MediaPlayerSettings",
         "required": false,
         "public": true,
         "comments": []
@@ -28909,17 +29068,6 @@
         "comments": []
       },
       {
-        "name": "AutoDownloader",
-        "jsonName": "autoDownloader",
-        "goType": "AutoDownloaderSettings",
-        "typescriptType": "Models_AutoDownloaderSettings",
-        "usedTypescriptType": "Models_AutoDownloaderSettings",
-        "usedStructName": "models.AutoDownloaderSettings",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "Discord",
         "jsonName": "discord",
         "goType": "DiscordSettings",
@@ -28942,6 +29090,17 @@
         "comments": []
       },
       {
+        "name": "Manga",
+        "jsonName": "manga",
+        "goType": "MangaSettings",
+        "typescriptType": "Models_MangaSettings",
+        "usedTypescriptType": "Models_MangaSettings",
+        "usedStructName": "models.MangaSettings",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
         "name": "Nakama",
         "jsonName": "nakama",
         "goType": "NakamaSettings",
@@ -28951,9 +29110,50 @@
         "required": false,
         "public": true,
         "comments": []
+      },
+      {
+        "name": "Library",
+        "jsonName": "library",
+        "goType": "LibrarySettings",
+        "typescriptType": "Models_LibrarySettings",
+        "usedTypescriptType": "Models_LibrarySettings",
+        "usedStructName": "models.LibrarySettings",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Populated from GlobalSettings"
+        ]
+      },
+      {
+        "name": "Torrent",
+        "jsonName": "torrent",
+        "goType": "TorrentSettings",
+        "typescriptType": "Models_TorrentSettings",
+        "usedTypescriptType": "Models_TorrentSettings",
+        "usedStructName": "models.TorrentSettings",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Populated from GlobalSettings"
+        ]
+      },
+      {
+        "name": "AutoDownloader",
+        "jsonName": "autoDownloader",
+        "goType": "AutoDownloaderSettings",
+        "typescriptType": "Models_AutoDownloaderSettings",
+        "usedTypescriptType": "Models_AutoDownloaderSettings",
+        "usedStructName": "models.AutoDownloaderSettings",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Populated from GlobalSettings"
+        ]
       }
     ],
-    "comments": [],
+    "comments": [
+      " Settings - per-user settings"
+    ],
     "embeddedStructNames": [
       "models.BaseModel"
     ]
@@ -29007,15 +29207,6 @@
         "jsonName": "libraryPath",
         "goType": "string",
         "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AutoUpdateProgress",
-        "jsonName": "autoUpdateProgress",
-        "goType": "bool",
-        "typescriptType": "boolean",
         "required": true,
         "public": true,
         "comments": []
@@ -29113,15 +29304,6 @@
       {
         "name": "RefreshLibraryOnStart",
         "jsonName": "refreshLibraryOnStart",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AutoPlayNextEpisode",
-        "jsonName": "autoPlayNextEpisode",
         "goType": "bool",
         "typescriptType": "boolean",
         "required": true,
@@ -34379,6 +34561,125 @@
     "comments": []
   },
   {
+    "filepath": "../internal/events/sse.go",
+    "filename": "sse.go",
+    "name": "SSEConnection",
+    "formattedName": "Events_SSEConnection",
+    "package": "events",
+    "fields": [
+      {
+        "name": "ID",
+        "jsonName": "ID",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Writer",
+        "jsonName": "Writer",
+        "goType": "http.ResponseWriter",
+        "typescriptType": "ResponseWriter",
+        "usedTypescriptType": "ResponseWriter",
+        "usedStructName": "http.ResponseWriter",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Flusher",
+        "jsonName": "Flusher",
+        "goType": "http.Flusher",
+        "typescriptType": "Flusher",
+        "usedTypescriptType": "Flusher",
+        "usedStructName": "http.Flusher",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Request",
+        "jsonName": "Request",
+        "goType": "http.Request",
+        "typescriptType": "Request",
+        "usedTypescriptType": "Request",
+        "usedStructName": "http.Request",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Done",
+        "jsonName": "Done",
+        "goType": "",
+        "typescriptType": "any",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Logger",
+        "jsonName": "Logger",
+        "goType": "zerolog.Logger",
+        "typescriptType": "Logger",
+        "usedTypescriptType": "Logger",
+        "usedStructName": "zerolog.Logger",
+        "required": false,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " SSEConnection represents an active SSE connection"
+    ]
+  },
+  {
+    "filepath": "../internal/events/sse.go",
+    "filename": "sse.go",
+    "name": "SSEManager",
+    "formattedName": "Events_SSEManager",
+    "package": "events",
+    "fields": [
+      {
+        "name": "connections",
+        "jsonName": "connections",
+        "goType": "map[string]SSEConnection",
+        "typescriptType": "Record\u003cstring, Events_SSEConnection\u003e",
+        "usedTypescriptType": "Events_SSEConnection",
+        "usedStructName": "events.SSEConnection",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "mutex",
+        "jsonName": "mutex",
+        "goType": "sync.RWMutex",
+        "typescriptType": "RWMutex",
+        "usedTypescriptType": "RWMutex",
+        "usedStructName": "sync.RWMutex",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "logger",
+        "jsonName": "logger",
+        "goType": "zerolog.Logger",
+        "typescriptType": "Logger",
+        "usedTypescriptType": "Logger",
+        "usedStructName": "zerolog.Logger",
+        "required": false,
+        "public": false,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " SSEManager manages active SSE connections"
+    ]
+  },
+  {
     "filepath": "../internal/events/websocket.go",
     "filename": "websocket.go",
     "name": "GlobalWSEventManagerWrapper",
@@ -39454,6 +39755,15 @@
       {
         "name": "HasUsers",
         "jsonName": "hasUsers",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "SetupCompleted",
+        "jsonName": "setupCompleted",
         "goType": "bool",
         "typescriptType": "boolean",
         "required": true,
@@ -48472,6 +48782,67 @@
   {
     "filepath": "../internal/library/scanner/multi_token_api.go",
     "filename": "multi_token_api.go",
+    "name": "AggregatedCollectionResult",
+    "formattedName": "Scanner_AggregatedCollectionResult",
+    "package": "scanner",
+    "fields": [
+      {
+        "name": "AllAnime",
+        "jsonName": "AllAnime",
+        "goType": "[]anilist.CompleteAnime",
+        "typescriptType": "Array\u003cAL_CompleteAnime\u003e",
+        "usedTypescriptType": "AL_CompleteAnime",
+        "usedStructName": "anilist.CompleteAnime",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "UserCollections",
+        "jsonName": "UserCollections",
+        "goType": "map[uint]anilist.AnimeCollectionWithRelations",
+        "typescriptType": "Record\u003cnumber, AL_AnimeCollectionWithRelations\u003e",
+        "usedTypescriptType": "AL_AnimeCollectionWithRelations",
+        "usedStructName": "anilist.AnimeCollectionWithRelations",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "TotalUsersAccessed",
+        "jsonName": "TotalUsersAccessed",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "SuccessfulFetches",
+        "jsonName": "SuccessfulFetches",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "FailedFetches",
+        "jsonName": "FailedFetches",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " AggregatedCollectionResult contains collections from multiple users"
+    ]
+  },
+  {
+    "filepath": "../internal/library/scanner/multi_token_api.go",
+    "filename": "multi_token_api.go",
     "name": "MatchFileResult",
     "formattedName": "Scanner_MatchFileResult",
     "package": "scanner",
@@ -48766,13 +49137,41 @@
       {
         "name": "Database",
         "jsonName": "Database",
-        "goType": "DatabaseInterface",
-        "typescriptType": "Scanner_DatabaseInterface",
-        "usedTypescriptType": "Scanner_DatabaseInterface",
-        "usedStructName": "scanner.DatabaseInterface",
+        "goType": "DatabaseBackend",
+        "typescriptType": "Scanner_DatabaseBackend",
+        "usedTypescriptType": "Scanner_DatabaseBackend",
+        "usedStructName": "scanner.DatabaseBackend",
         "required": true,
         "public": true,
-        "comments": []
+        "comments": [
+          " Changed from DatabaseInterface to DatabaseBackend"
+        ]
+      },
+      {
+        "name": "Platform",
+        "jsonName": "Platform",
+        "goType": "platform.Platform",
+        "typescriptType": "Platform",
+        "usedTypescriptType": "Platform",
+        "usedStructName": "platform.Platform",
+        "required": false,
+        "public": true,
+        "comments": [
+          " For AniList API access"
+        ]
+      },
+      {
+        "name": "MetadataProvider",
+        "jsonName": "MetadataProvider",
+        "goType": "metadata.Provider",
+        "typescriptType": "Metadata_Provider",
+        "usedTypescriptType": "Metadata_Provider",
+        "usedStructName": "metadata.Provider",
+        "required": false,
+        "public": true,
+        "comments": [
+          " For metadata operations"
+        ]
       },
       {
         "name": "Logger",
@@ -48884,6 +49283,54 @@
   {
     "filepath": "../internal/library/scanner/system_scanner.go",
     "filename": "system_scanner.go",
+    "name": "MappedAnimeInfo",
+    "formattedName": "Scanner_MappedAnimeInfo",
+    "package": "scanner",
+    "fields": [
+      {
+        "name": "AniListID",
+        "jsonName": "anilistId",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Title",
+        "jsonName": "title",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "EpisodeCount",
+        "jsonName": "episodeCount",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Episodes",
+        "jsonName": "episodes",
+        "goType": "[]int",
+        "typescriptType": "Array\u003cnumber\u003e",
+        "required": false,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " MappedAnimeInfo contains information about a newly mapped anime"
+    ]
+  },
+  {
+    "filepath": "../internal/library/scanner/system_scanner.go",
+    "filename": "system_scanner.go",
     "name": "SystemScanResult",
     "formattedName": "Scanner_SystemScanResult",
     "package": "scanner",
@@ -48942,6 +49389,19 @@
         "public": true,
         "comments": [
           " For admin queue"
+        ]
+      },
+      {
+        "name": "MappedAnime",
+        "jsonName": "mappedAnime",
+        "goType": "[]MappedAnimeInfo",
+        "typescriptType": "Array\u003cScanner_MappedAnimeInfo\u003e",
+        "usedTypescriptType": "Scanner_MappedAnimeInfo",
+        "usedStructName": "scanner.MappedAnimeInfo",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Detailed info about newly mapped anime"
         ]
       }
     ],

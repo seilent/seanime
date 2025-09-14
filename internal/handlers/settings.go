@@ -35,15 +35,17 @@ func (h *Handler) HandleGetSettings(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get global/system settings for shared resources like library path
-	globalSettings, err := h.App.Database.GetSettings()
+	// Get global settings for library, torrent, auto-downloader
+	globalSettings, err := h.App.Database.GetGlobalSettings()
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	// Merge settings: use global library settings, user settings for personal preferences
-	if globalSettings != nil && globalSettings.Library != nil {
+	// Populate virtual fields from GlobalSettings for frontend compatibility
+	if globalSettings != nil {
 		userSettings.Library = globalSettings.Library
+		userSettings.Torrent = globalSettings.Torrent
+		userSettings.AutoDownloader = globalSettings.AutoDownloader
 	}
 
 	return h.RespondWithData(c, userSettings)
@@ -59,17 +61,12 @@ func (h *Handler) HandleGetSettings(c echo.Context) error {
 func (h *Handler) HandleGettingStarted(c echo.Context) error {
 
 	type body struct {
-		Library                models.LibrarySettings      `json:"library"`
-		MediaPlayer            models.MediaPlayerSettings  `json:"mediaPlayer"`
-		Torrent                models.TorrentSettings      `json:"torrent"`
-		Anilist                models.AnilistSettings      `json:"anilist"`
-		Discord                models.DiscordSettings      `json:"discord"`
-		Manga                  models.MangaSettings        `json:"manga"`
-		Notifications          models.NotificationSettings `json:"notifications"`
-		EnableTranscode        bool                        `json:"enableTranscode"`
-		EnableTorrentStreaming bool                        `json:"enableTorrentStreaming"`
-		DebridProvider         string                      `json:"debridProvider"`
-		DebridApiKey           string                      `json:"debridApiKey"`
+		Library           models.LibrarySettings      `json:"library"`
+		Torrent           models.TorrentSettings      `json:"torrent"`
+		Anilist           models.AnilistSettings      `json:"anilist"`
+		Manga             models.MangaSettings        `json:"manga"`
+		Notifications     models.NotificationSettings `json:"notifications"`
+		EnableTranscode   bool                        `json:"enableTranscode"`
 		// Admin AniList token for authentication
 		AdminAnilistToken string `json:"adminAnilistToken,omitempty"`
 	}
@@ -79,9 +76,16 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	// Security check: Only allow getting started during first-time setup
+	setupCompleted, _ := h.App.Database.GetGlobalSettingsSetupStatus()
+	if setupCompleted {
+		return h.RespondWithError(c, errors.New("setup has already been completed"))
+	}
+
 	// Set up AniList whitelist and admin user during first-time setup
 	var anilistWhitelist models.StringSlice
 	var adminUsername string
+	var dbUser *models.User
 	if b.AdminAnilistToken != "" {
 		// Validate the AniList token and get user info
 		authenticatedClient := anilist.NewAnilistClient(b.AdminAnilistToken)
@@ -95,7 +99,7 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		h.App.Logger.Info().Str("adminUsername", adminUsername).Msg("Set admin AniList username in whitelist during setup")
 		
 		// Create admin user account and authenticate them
-		dbUser := &models.User{
+		dbUser = &models.User{
 			Username:    adminUsername,
 			DisplayName: getViewer.Viewer.Name,
 			Role:        "admin",
@@ -145,7 +149,8 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 	}
 	b.Library.LibraryPath = filepath.ToSlash(b.Library.LibraryPath)
 
-	settings, err := h.App.Database.UpsertSettings(&models.Settings{
+	// Create global settings (server-wide)
+	globalSettings, err := h.App.Database.UpsertGlobalSettings(&models.GlobalSettings{
 		BaseModel: models.BaseModel{
 			ID:        1,
 			UpdatedAt: time.Now(),
@@ -153,12 +158,7 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		SetupCompleted:   true,
 		AnilistWhitelist: anilistWhitelist,
 		Library:          &b.Library,
-		MediaPlayer:      &b.MediaPlayer,
 		Torrent:          &b.Torrent,
-		Anilist:          &b.Anilist,
-		Discord:          &b.Discord,
-		Manga:            &b.Manga,
-		Notifications:    &b.Notifications,
 		AutoDownloader: &models.AutoDownloaderSettings{
 			Provider:              b.Library.TorrentProvider,
 			Interval:              20,
@@ -172,42 +172,75 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	if b.EnableTorrentStreaming {
+	// Create user settings for the admin
+	if dbUser != nil {
+		_, err = h.App.Database.UpsertSettings(&models.Settings{
+			BaseModel: models.BaseModel{
+				UpdatedAt: time.Now(),
+			},
+			UserID:              dbUser.ID,
+			AutoPlayNextEpisode: false,
+			AutoUpdateProgress:  true,
+			Anilist:             &b.Anilist,
+			Manga:               &b.Manga,
+			Notifications:       &b.Notifications,
+		})
+
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+	}
+
+	// Auto-bootstrap existing library discovery for first admin
+	if dbUser != nil && b.AdminAnilistToken != "" {
 		go func() {
 			defer util.HandlePanicThen(func() {})
-			prev, found := h.App.Database.GetTorrentstreamSettings()
-			if found {
-				prev.Enabled = true
-				//prev.IncludeInLibrary = true
-				_, _ = h.App.Database.UpsertTorrentstreamSettings(prev)
+			h.App.Logger.Info().Str("username", adminUsername).Msg("Starting auto-discovery of existing library files")
+
+			// 1. Fetch AniList collection to populate local database
+			_, err := h.App.RefreshAnimeCollectionForUser(dbUser)
+			if err != nil {
+				h.App.Logger.Error().Err(err).Msg("Failed to fetch AniList collection during setup")
+				return
+			}
+
+			h.App.Logger.Info().Msg("AniList collection fetched, triggering initial library scan")
+
+			// 2. Trigger system scan to discover existing files
+			if h.App.SystemScanService != nil {
+				h.App.SystemScanService.NotifyFileChange()
 			}
 		}()
 	}
 
-	if b.EnableTranscode {
-		go func() {
-			defer util.HandlePanicThen(func() {})
-			prev, found := h.App.Database.GetMediastreamSettings()
-			if found {
-				prev.TranscodeEnabled = true
-				_, _ = h.App.Database.UpsertMediastreamSettings(prev)
-			}
-		}()
+	settings := globalSettings
+
+	if err != nil {
+		return h.RespondWithError(c, err)
 	}
 
-	if b.DebridProvider != "" && b.DebridProvider != "none" {
-		go func() {
-			defer util.HandlePanicThen(func() {})
-			prev, found := h.App.Database.GetDebridSettings()
-			if found {
-				prev.Enabled = true
-				prev.Provider = b.DebridProvider
-				prev.ApiKey = b.DebridApiKey
-				//prev.IncludeDebridStreamInLibrary = true
-				_, _ = h.App.Database.UpsertDebridSettings(prev)
+
+	// Enable transcoding by default during setup
+	go func() {
+		defer util.HandlePanicThen(func() {})
+		prev, found := h.App.Database.GetMediastreamSettings()
+		if found {
+			prev.TranscodeEnabled = b.EnableTranscode
+			_, _ = h.App.Database.UpsertMediastreamSettings(prev)
+		} else {
+			// Create default mediastream settings
+			defaultSettings := &models.MediastreamSettings{
+				BaseModel: models.BaseModel{
+					ID: 1,
+				},
+				TranscodeEnabled: b.EnableTranscode,
+				TranscodePreset:  "fast",
+				TranscodeThreads: 2,
 			}
-		}()
-	}
+			_, _ = h.App.Database.UpsertMediastreamSettings(defaultSettings)
+		}
+	}()
+
 
 	h.App.WSEventManager.SendEvent("settings", settings)
 
@@ -229,13 +262,15 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 func (h *Handler) HandleSaveSettings(c echo.Context) error {
 
 	type body struct {
-		Library       models.LibrarySettings      `json:"library"`
-		MediaPlayer   models.MediaPlayerSettings  `json:"mediaPlayer"`
-		Torrent       models.TorrentSettings      `json:"torrent"`
-		Anilist       models.AnilistSettings      `json:"anilist"`
-		Discord       models.DiscordSettings      `json:"discord"`
-		Manga         models.MangaSettings        `json:"manga"`
-		Notifications models.NotificationSettings `json:"notifications"`
+		Library             models.LibrarySettings      `json:"library"`
+		MediaPlayer         models.MediaPlayerSettings  `json:"mediaPlayer"`
+		Torrent             models.TorrentSettings      `json:"torrent"`
+		Anilist             models.AnilistSettings      `json:"anilist"`
+		Discord             models.DiscordSettings      `json:"discord"`
+		Manga               models.MangaSettings        `json:"manga"`
+		Notifications       models.NotificationSettings `json:"notifications"`
+		AutoUpdateProgress  bool                        `json:"autoUpdateProgress"`
+		AutoPlayNextEpisode bool                        `json:"autoPlayNextEpisode"`
 	}
 	var b body
 
@@ -289,13 +324,13 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 	// Handle global settings (admin-only)
 	if isAdmin {
 		// Admin can modify global settings (library, torrent, auto-downloader)
-		globalSettings, err := h.App.Database.GetSettings()
+		globalSettings, err := h.App.Database.GetGlobalSettings()
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}
-		
+
 		if globalSettings == nil {
-			globalSettings = &models.Settings{
+			globalSettings = &models.GlobalSettings{
 				BaseModel: models.BaseModel{ID: 1, UpdatedAt: time.Now()},
 			}
 		}
@@ -316,7 +351,7 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		globalSettings.AutoDownloader = &autoDownloaderSettings
 		
 		// Save global settings
-		_, err = h.App.Database.UpsertSettings(globalSettings)
+		_, err = h.App.Database.UpsertGlobalSettings(globalSettings)
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}
@@ -334,20 +369,17 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 			ID:        prevSettings.ID,
 			UpdatedAt: time.Now(),
 		},
-		UserID:        user.ID,
-		MediaPlayer:   &b.MediaPlayer,
-		Anilist:       &b.Anilist,
-		Discord:       &b.Discord,
-		Manga:         &b.Manga,
-		Notifications: &b.Notifications,
+		UserID:              user.ID,
+		AutoUpdateProgress:  b.AutoUpdateProgress,
+		AutoPlayNextEpisode: b.AutoPlayNextEpisode,
+		MediaPlayer:         &b.MediaPlayer,
+		Anilist:             &b.Anilist,
+		Discord:             &b.Discord,
+		Manga:               &b.Manga,
+		Notifications:       &b.Notifications,
 	}
 
-	// Non-admins cannot modify library/torrent settings, so keep existing values
-	if !isAdmin && prevSettings != nil {
-		userSettings.Library = prevSettings.Library
-		userSettings.Torrent = prevSettings.Torrent  
-		userSettings.AutoDownloader = prevSettings.AutoDownloader
-	}
+	// Note: Library/Torrent/AutoDownloader settings are now global-only and not part of user settings
 
 	err = h.App.Database.SaveSettingsForUser(user.ID, userSettings)
 	if err != nil {
@@ -386,7 +418,7 @@ func (h *Handler) HandleSaveAutoDownloaderSettings(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	currSettings, err := h.App.Database.GetSettings()
+	currSettings, err := h.App.Database.GetGlobalSettings()
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -412,7 +444,7 @@ func (h *Handler) HandleSaveAutoDownloaderSettings(c echo.Context) error {
 		UpdatedAt: time.Now(),
 	}
 
-	_, err = h.App.Database.UpsertSettings(currSettings)
+	_, err = h.App.Database.UpsertGlobalSettings(currSettings)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

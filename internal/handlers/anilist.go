@@ -43,7 +43,7 @@ func (h *Handler) HandleGetAnimeCollection(c echo.Context) error {
 	}
 
 	go func() {
-		if h.App.Settings != nil && h.App.Settings.GetLibrary().EnableManga {
+		if h.App.GlobalSettings != nil && h.App.GlobalSettings.GetLibrary().EnableManga {
 			_, _ = h.App.RefreshMangaCollectionForUser(user)
 		}
 	}()
