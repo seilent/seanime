@@ -36,7 +36,6 @@ import (
 	"seanime/internal/platforms/anilist_platform"
 	"seanime/internal/platforms/offline_platform"
 	"seanime/internal/platforms/platform"
-	"seanime/internal/platforms/simulated_platform"
 	"seanime/internal/plugin"
 	"seanime/internal/report"
 	"seanime/internal/torrent_clients/torrent_client"
@@ -298,19 +297,13 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		logger.Fatal().Err(err).Msgf("app: Failed to initialize local platform")
 	}
 
-	// Initialize simulated platform for unauthenticated operations
-	simulatedPlatform, err := simulated_platform.NewSimulatedPlatform(localManager, anilistCW, logger)
-	if err != nil {
-		logger.Fatal().Err(err).Msgf("app: Failed to initialize simulated platform")
-	}
-
 	// Change active platform if offline mode is enabled
 	activePlatform := anilistPlatform
 	if cfg.Server.Offline {
 		activePlatform = offlinePlatform
 	} else if !anilistCW.IsAuthenticated() {
-		logger.Warn().Msg("app: Anilist client is not authenticated, using simulated platform")
-		activePlatform = simulatedPlatform
+		logger.Warn().Msg("app: AniList client is not authenticated - multi-token system will handle API calls when needed")
+		// No fallback platform needed - multi-token system can use other authenticated users' tokens
 	}
 
 	// Initialize ProgressSyncService now that we have the active platform

@@ -13,7 +13,6 @@ import { useAtom } from "jotai/react"
 import { atomWithStorage } from "jotai/utils"
 import React from "react"
 import { AiOutlineArrowLeft } from "react-icons/ai"
-import { TbLayoutSidebarRightCollapse, TbLayoutSidebarRightExpand } from "react-icons/tb"
 import { useWindowSize } from "react-use"
 
 const theaterModeAtom = atomWithStorage("sea-media-theater-mode", false)
@@ -43,7 +42,7 @@ export function SeaMediaPlayerLayout(props: SeaMediaPlayerLayoutProps) {
         loading,
     } = props
 
-    const [theaterMode, setTheaterMode] = useAtom(theaterModeAtom)
+    const [theaterMode] = useAtom(theaterModeAtom)
     const { media, progress } = useSeaMediaPlayer()
     const [currentProgress, setCurrentProgress] = useAtom(__seaMediaPlayer_scopedCurrentProgressAtom)
     const [progressItem, setProgressItem] = useAtom(__seaMediaPlayer_scopedProgressItemAtom)
@@ -127,11 +126,6 @@ export function SeaMediaPlayerLayout(props: SeaMediaPlayerLayoutProps) {
                         </Button>
                     )}
                     {rightHeaderActions}
-                    <IconButton
-                        onClick={() => setTheaterMode(p => !p)}
-                        intent="gray-basic"
-                        icon={theaterMode ? <TbLayoutSidebarRightExpand /> : <TbLayoutSidebarRightCollapse />}
-                    />
                 </div>
             </div>
 

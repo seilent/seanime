@@ -50,6 +50,7 @@ import { DiscordRichPresenceSettings } from "./_containers/discord-rich-presence
 import { LocalSettings } from "./_containers/local-settings"
 import { NakamaSettings } from "./_containers/nakama-settings"
 import { UserManagementSettings } from "./_containers/user-management-settings"
+import { MediastreamSettings } from "./_containers/mediastream-settings"
 
 const tabsRootClass = cn("w-full grid grid-cols-1 lg:grid lg:grid-cols-[300px,1fr] gap-4")
 
@@ -807,6 +808,7 @@ export default function Page() {
                                     icon={MdOutlineBroadcastOnHome}
                                 />
 
+                                <MediastreamSettings />
 
                             </TabsContent>
                         )}

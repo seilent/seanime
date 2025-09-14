@@ -235,15 +235,18 @@ func BuildGlobalMediaPool(
 			}
 		}
 
-		// Fetch media details for existing mappings
+		// Fetch media details for existing mappings using multi-token system
 		if len(globalMediaIds) > 0 {
-			mediaMap, fetchErr := platform.BatchGetAnimeWithRelations(ctx, globalMediaIds)
-			if fetchErr == nil {
-				for _, media := range mediaMap {
-					if media != nil {
-						globalMedia = append(globalMedia, media)
-						completeAnimeCache.Set(media.GetID(), media)
-					}
+			// Create MultiTokenAPI for fetching missing anime
+			tempLogger := zerolog.Nop()
+			multiTokenAPI := NewMultiTokenAPI(database, &tempLogger, anilistRateLimiter, completeAnimeCache)
+
+			// Fetch each anime using token rotation
+			for _, mediaID := range globalMediaIds {
+				media, fetchErr := multiTokenAPI.fetchAnimeWithTokenRotation(ctx, mediaID)
+				if fetchErr == nil && media != nil {
+					globalMedia = append(globalMedia, media)
+					completeAnimeCache.Set(media.GetID(), media)
 				}
 			}
 		}
