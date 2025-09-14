@@ -22,6 +22,7 @@ interface AuthContextType {
     isLoading: boolean
     isAdmin: boolean
     login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>
+    loginWithToken: (token: string) => Promise<{ success: boolean; error?: string }>
     logout: () => Promise<void>
     checkAuth: () => Promise<void>
 }
@@ -89,6 +90,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
+    // Token-based login function for AniList
+    const loginWithToken = async (token: string): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const response = await fetch('/api/v1/users/login', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token }),
+            })
+
+            const data = await response.json() as { data?: { user: User }; error?: string }
+
+            if (response.ok && data.data) {
+                setUser(data.data.user)
+                return { success: true }
+            } else {
+                return { success: false, error: data.error || 'Login failed' }
+            }
+        } catch (error) {
+            console.error('Token login error:', error)
+            return { success: false, error: 'Network error occurred' }
+        }
+    }
+
     // Logout function
     const logout = async () => {
         try {
@@ -131,12 +158,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return
             }
 
-            // If user is authenticated and on getting-started, redirect to home
-            if (isAuthenticated && currentPath === '/getting-started') {
-                logger("DBG").info("Redirecting authenticated user from getting-started to home")
-                router.push('/')
-                return
-            }
 
             // If user is not authenticated and trying to access protected routes
             const protectedRoutes = [
@@ -181,6 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAdmin,
         login,
+        loginWithToken,
         logout,
         checkAuth,
     }

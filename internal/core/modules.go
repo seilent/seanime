@@ -2,12 +2,9 @@ package core
 
 import (
 	"runtime"
-	"seanime/internal/api/anilist"
 	"seanime/internal/continuity"
 	"seanime/internal/database/db"
 	"seanime/internal/database/db_bridge"
-	"seanime/internal/database/models"
-	debrid_client "seanime/internal/debrid/client"
 	"seanime/internal/directstream"
 	discordrpc_presence "seanime/internal/discordrpc/presence"
 	"seanime/internal/events"
@@ -22,8 +19,6 @@ import (
 	"seanime/internal/mediaplayers/mpchc"
 	"seanime/internal/mediaplayers/mpv"
 	"seanime/internal/mediaplayers/vlc"
-	"seanime/internal/mediastream"
-	"seanime/internal/nakama"
 	"seanime/internal/nativeplayer"
 	"seanime/internal/notifier"
 	"seanime/internal/plugin"
@@ -31,7 +26,6 @@ import (
 	"seanime/internal/torrent_clients/torrent_client"
 	"seanime/internal/torrent_clients/transmission"
 	"seanime/internal/torrents/torrent"
-	"seanime/internal/torrentstream"
 
 	"github.com/cli/browser"
 	"github.com/rs/zerolog"
@@ -130,19 +124,6 @@ func (a *App) initModulesOnce() {
 
 	a.MangaDownloader.Start()
 
-	// +---------------------+
-	// |    Media Stream     |
-	// +---------------------+
-
-	a.MediastreamRepository = mediastream.NewRepository(&mediastream.NewRepositoryOptions{
-		Logger:         a.Logger,
-		WSEventManager: a.WSEventManager,
-		FileCacher:     a.FileCacher,
-	})
-
-	a.AddCleanupFunction(func() {
-		a.MediastreamRepository.OnCleanup()
-	})
 
 	// +---------------------+
 	// |    Native Player    |
@@ -169,38 +150,7 @@ func (a *App) initModulesOnce() {
 		NativePlayer: a.NativePlayer,
 	})
 
-	// +---------------------+
-	// |   Torrent Stream    |
-	// +---------------------+
 
-	a.TorrentstreamRepository = torrentstream.NewRepository(&torrentstream.NewRepositoryOptions{
-		Logger:              a.Logger,
-		BaseAnimeCache:      anilist.NewBaseAnimeCache(),
-		CompleteAnimeCache:  anilist.NewCompleteAnimeCache(),
-		MetadataProvider:    a.MetadataProvider,
-		TorrentRepository:   a.TorrentRepository,
-		Platform:            a.AnilistPlatform,
-		PlaybackManager:     a.PlaybackManager,
-		WSEventManager:      a.WSEventManager,
-		Database:            a.Database,
-		DirectStreamManager: a.DirectStreamManager,
-		NativePlayer:        a.NativePlayer,
-	})
-
-	// +---------------------+
-	// |  Debrid Client Repo |
-	// +---------------------+
-
-	a.DebridClientRepository = debrid_client.NewRepository(&debrid_client.NewRepositoryOptions{
-		Logger:              a.Logger,
-		WSEventManager:      a.WSEventManager,
-		Database:            a.Database,
-		MetadataProvider:    a.MetadataProvider,
-		Platform:            a.AnilistPlatform,
-		PlaybackManager:     a.PlaybackManager,
-		TorrentRepository:   a.TorrentRepository,
-		DirectStreamManager: a.DirectStreamManager,
-	})
 
 	plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
 		PlaybackManager: a.PlaybackManager,
@@ -218,7 +168,6 @@ func (a *App) initModulesOnce() {
 		Database:                a.Database,
 		WSEventManager:          a.WSEventManager,
 		MetadataProvider:        a.MetadataProvider,
-		DebridClientRepository:  a.DebridClientRepository,
 		IsOffline:               a.IsOffline(),
 	})
 
@@ -243,20 +192,6 @@ func (a *App) initModulesOnce() {
 	// This is run in a goroutine
 	a.AutoScanner.Start()
 
-	// +---------------------+
-	// |       Nakama        |
-	// +---------------------+
-
-	a.NakamaManager = nakama.NewManager(&nakama.NewManagerOptions{
-		Logger:                  a.Logger,
-		WSEventManager:          a.WSEventManager,
-		PlaybackManager:         a.PlaybackManager,
-		TorrentstreamRepository: a.TorrentstreamRepository,
-		DebridClientRepository:  a.DebridClientRepository,
-		Platform:                a.AnilistPlatform,
-		ServerHost:              a.Config.Server.Host,
-		ServerPort:              a.Config.Server.Port,
-	})
 
 }
 
@@ -373,7 +308,6 @@ func (a *App) InitOrRefreshModules() {
 			AutoUpdateProgress:  a.Settings.GetLibrary().AutoUpdateProgress,
 		})
 
-		a.TorrentstreamRepository.SetMediaPlayerRepository(a.MediaPlayerRepository)
 
 		plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
 			MediaPlayerRepository: a.MediaPlayerRepository,
@@ -491,13 +425,6 @@ func (a *App) InitOrRefreshModules() {
 		a.MangaRepository.SetSettings(settings)
 	}
 
-	// +---------------------+
-	// |       Nakama        |
-	// +---------------------+
-
-	if settings.Nakama != nil {
-		a.NakamaManager.SetSettings(settings.Nakama)
-	}
 
 	runtime.GC()
 
@@ -505,132 +432,8 @@ func (a *App) InitOrRefreshModules() {
 
 }
 
-// InitOrRefreshMediastreamSettings will initialize or refresh the mediastream settings.
-// It is called after the App instance is created and after settings are updated.
-func (a *App) InitOrRefreshMediastreamSettings() {
 
-	var settings *models.MediastreamSettings
-	var found bool
-	settings, found = a.Database.GetMediastreamSettings()
-	if !found {
 
-		var err error
-		settings, err = a.Database.UpsertMediastreamSettings(&models.MediastreamSettings{
-			BaseModel: models.BaseModel{
-				ID: 1,
-			},
-			TranscodeEnabled:    false,
-			TranscodeHwAccel:    "cpu",
-			TranscodePreset:     "fast",
-			PreTranscodeEnabled: false,
-		})
-		if err != nil {
-			a.Logger.Error().Err(err).Msg("app: Failed to initialize mediastream module")
-			return
-		}
-	}
-
-	a.MediastreamRepository.InitializeModules(settings, a.Config.Cache.Dir, a.Config.Cache.TranscodeDir)
-
-	// Cleanup cache
-	go func() {
-		if settings.TranscodeEnabled {
-			// If transcoding is enabled, trim files
-			_ = a.FileCacher.TrimMediastreamVideoFiles()
-		} else {
-			// If transcoding is disabled, clear all files
-			_ = a.FileCacher.ClearMediastreamVideoFiles()
-		}
-	}()
-
-	a.SecondarySettings.Mediastream = settings
-}
-
-// InitOrRefreshTorrentstreamSettings will initialize or refresh the mediastream settings.
-// It is called after the App instance is created and after settings are updated.
-func (a *App) InitOrRefreshTorrentstreamSettings() {
-
-	var settings *models.TorrentstreamSettings
-	var found bool
-	settings, found = a.Database.GetTorrentstreamSettings()
-	if !found {
-
-		var err error
-		settings, err = a.Database.UpsertTorrentstreamSettings(&models.TorrentstreamSettings{
-			BaseModel: models.BaseModel{
-				ID: 1,
-			},
-			Enabled:             false,
-			AutoSelect:          true,
-			PreferredResolution: "",
-			DisableIPV6:         false,
-			DownloadDir:         "",
-			AddToLibrary:        false,
-			TorrentClientHost:   "",
-			TorrentClientPort:   43213,
-			StreamingServerHost: "0.0.0.0",
-			StreamingServerPort: 43214,
-			IncludeInLibrary:    false,
-			StreamUrlAddress:    "",
-			SlowSeeding:         false,
-		})
-		if err != nil {
-			a.Logger.Error().Err(err).Msg("app: Failed to initialize mediastream module")
-			return
-		}
-	}
-
-	err := a.TorrentstreamRepository.InitModules(settings, a.Config.Server.Host, a.Config.Server.Port)
-	if err != nil && settings.Enabled {
-		a.Logger.Error().Err(err).Msg("app: Failed to initialize Torrent streaming module")
-		//_, _ = a.Database.UpsertTorrentstreamSettings(&models.TorrentstreamSettings{
-		//	BaseModel: models.BaseModel{
-		//		ID: 1,
-		//	},
-		//	Enabled: false,
-		//})
-	}
-
-	a.Cleanups = append(a.Cleanups, func() {
-		a.TorrentstreamRepository.Shutdown()
-	})
-
-	// Set torrent streaming settings in secondary settings
-	// so the client can use them
-	a.SecondarySettings.Torrentstream = settings
-}
-
-func (a *App) InitOrRefreshDebridSettings() {
-
-	settings, found := a.Database.GetDebridSettings()
-	if !found {
-
-		var err error
-		settings, err = a.Database.UpsertDebridSettings(&models.DebridSettings{
-			BaseModel: models.BaseModel{
-				ID: 1,
-			},
-			Enabled:                      false,
-			Provider:                     "",
-			ApiKey:                       "",
-			IncludeDebridStreamInLibrary: false,
-			StreamAutoSelect:             false,
-			StreamPreferredResolution:    "",
-		})
-		if err != nil {
-			a.Logger.Error().Err(err).Msg("app: Failed to initialize debrid module")
-			return
-		}
-	}
-
-	a.SecondarySettings.Debrid = settings
-
-	err := a.DebridClientRepository.InitializeProvider(settings)
-	if err != nil {
-		a.Logger.Error().Err(err).Msg("app: Failed to initialize debrid provider")
-		return
-	}
-}
 
 // InitOrRefreshAnilistData is now simplified for pure multiuser mode.
 // No global user or collections - everything is per-user via handlers.

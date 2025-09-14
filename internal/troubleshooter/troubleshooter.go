@@ -5,7 +5,6 @@ import (
 	"seanime/internal/database/models"
 	"seanime/internal/mediaplayers/mediaplayer"
 	"seanime/internal/onlinestream"
-	"seanime/internal/torrentstream"
 
 	"github.com/rs/zerolog"
 )
@@ -22,9 +21,8 @@ type (
 	}
 
 	Modules struct {
-		MediaPlayerRepository   *mediaplayer.Repository
-		OnlinestreamRepository  *onlinestream.Repository
-		TorrentstreamRepository *torrentstream.Repository
+		MediaPlayerRepository  *mediaplayer.Repository
+		OnlinestreamRepository *onlinestream.Repository
 	}
 
 	NewTroubleshooterOptions struct {
@@ -34,10 +32,8 @@ type (
 	}
 
 	AppState struct {
-		Settings              *models.Settings
-		TorrentstreamSettings *models.TorrentstreamSettings
-		MediastreamSettings   *models.MediastreamSettings
-		DebridSettings        *models.DebridSettings
+		Settings            *models.Settings
+		MediastreamSettings *models.MediastreamSettings
 	}
 
 	Result struct {
@@ -72,7 +68,6 @@ const (
 	ModuleMediaPlayer      Module = "Media player"
 	ModuleAnimeLibrary     Module = "Anime library"
 	ModuleMediaStreaming   Module = "Media streaming"
-	ModuleTorrentStreaming Module = "Torrent streaming"
 )
 
 func NewTroubleshooter(opts NewTroubleshooterOptions, modules *Modules) *Troubleshooter {

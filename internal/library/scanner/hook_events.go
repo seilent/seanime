@@ -14,10 +14,6 @@ type ScanStartedEvent struct {
 	LibraryPath string `json:"libraryPath"`
 	// Other directories to scan
 	OtherLibraryPaths []string `json:"otherLibraryPaths"`
-	// Whether to use enhanced scanning,
-	// Enhanced scanning will fetch media from AniList based on the local files' titles,
-	// and use the metadata to match the local files.
-	Enhanced bool `json:"enhanced"`
 	// Whether to skip locked files
 	SkipLocked bool `json:"skipLocked"`
 	// Whether to skip ignored files
@@ -53,10 +49,6 @@ type ScanCompletedEvent struct {
 // ScanMediaFetcherStartedEvent is triggered right before Seanime starts fetching media to be matched against the local files.
 type ScanMediaFetcherStartedEvent struct {
 	hook_resolver.Event
-	// Whether to use enhanced scanning.
-	// Enhanced scanning will fetch media from AniList based on the local files' titles,
-	// and use the metadata to match the local files.
-	Enhanced bool `json:"enhanced"`
 }
 
 // ScanMediaFetcherCompletedEvent is triggered when the media fetcher completes.

@@ -171,19 +171,6 @@ export function AutoDownloaderPage() {
                                             name="enabled"
                                         />
 
-                                        <Field.Switch
-                                            side="right"
-                                            label="Use Debrid service"
-                                            name="useDebrid"
-                                        />
-
-                                        {f.watch("useDebrid") && !(serverStatus?.debridSettings?.enabled && !!serverStatus?.debridSettings?.provider) && (
-                                            <Alert
-                                                intent="alert"
-                                                title="Auto Downloader deactivated"
-                                                description="Debrid service is not enabled or configured. Please enable it in the settings."
-                                            />
-                                        )}
                                     </SettingsCard>
 
                                     <SettingsCard

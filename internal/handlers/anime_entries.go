@@ -47,17 +47,12 @@ func (h *Handler) HandleGetAnimeEntry(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get all the local files
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get all the local files from global mappings table
+	lfs, _, err := db_bridge.GetLocalFilesFromGlobalMappings(h.App.Database)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get the host anime library files
-	nakamaLfs, hydratedFromNakama := h.App.NakamaManager.GetHostAnimeLibraryFiles(mId)
-	if hydratedFromNakama && nakamaLfs != nil {
-		lfs = nakamaLfs
-	}
 
 	// Get the user's anilist collection
 	animeCollection, err := h.App.GetAnimeCollectionForUser(user, false)
@@ -100,12 +95,6 @@ func (h *Handler) HandleGetAnimeEntry(c echo.Context) error {
 		h.App.FillerManager.HydrateFillerData(fillerEvent.Entry)
 	}
 
-	if hydratedFromNakama {
-		entry.IsNakamaEntry = true
-		for _, ep := range entry.Episodes {
-			ep.IsNakamaEpisode = true
-		}
-	}
 
 	return h.RespondWithData(c, entry)
 }

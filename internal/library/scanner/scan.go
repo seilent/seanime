@@ -3,8 +3,10 @@ package scanner
 import (
 	"context"
 	"errors"
+	"os"
 	"seanime/internal/api/anilist"
 	"seanime/internal/api/metadata"
+	"seanime/internal/database/models"
 	"seanime/internal/events"
 	"seanime/internal/hook"
 	"seanime/internal/library/anime"
@@ -13,6 +15,7 @@ import (
 	"seanime/internal/platforms/platform"
 	"seanime/internal/util"
 	"seanime/internal/util/limiter"
+	"strconv"
 	"sync"
 	"time"
 
@@ -24,7 +27,6 @@ import (
 type Scanner struct {
 	DirPath            string
 	OtherDirPaths      []string
-	Enhanced           bool
 	Platform           platform.Platform
 	Logger             *zerolog.Logger
 	WSEventManager     events.WSEventManagerInterface
@@ -36,6 +38,8 @@ type Scanner struct {
 	MetadataProvider   metadata.Provider
 	MatchingThreshold  float64
 	MatchingAlgorithm  string
+	Database           DatabaseInterface // For global media pool
+	UserID             uint              // For user subscription tracking
 }
 
 // Scan will scan the directory and return a list of anime.LocalFile.
@@ -68,7 +72,6 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 	event := &ScanStartedEvent{
 		LibraryPath:       scn.DirPath,
 		OtherLibraryPaths: scn.OtherDirPaths,
-		Enhanced:          scn.Enhanced,
 		SkipLocked:        scn.SkipLockedFiles,
 		SkipIgnored:       scn.SkipIgnoredFiles,
 		LocalFiles:        scn.ExistingLocalFiles,
@@ -76,7 +79,6 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 	_ = hook.GlobalHookManager.OnScanStarted().Trigger(event)
 	scn.DirPath = event.LibraryPath
 	scn.OtherDirPaths = event.OtherLibraryPaths
-	scn.Enhanced = event.Enhanced
 	scn.SkipLockedFiles = event.SkipLocked
 	scn.SkipIgnoredFiles = event.SkipIgnored
 
@@ -260,11 +262,7 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 	}
 
 	scn.WSEventManager.SendEvent(events.EventScanProgress, 20)
-	if scn.Enhanced {
-		scn.WSEventManager.SendEvent(events.EventScanStatus, "Fetching media detected from file titles...")
-	} else {
-		scn.WSEventManager.SendEvent(events.EventScanStatus, "Fetching media...")
-	}
+	scn.WSEventManager.SendEvent(events.EventScanStatus, "Fetching media...")
 
 	// +---------------------+
 	// |    MediaFetcher     |
@@ -272,7 +270,6 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 
 	// Fetch media needed for matching
 	mf, err := NewMediaFetcher(ctx, &MediaFetcherOptions{
-		Enhanced:               scn.Enhanced,
 		Platform:               scn.Platform,
 		MetadataProvider:       scn.MetadataProvider,
 		LocalFiles:             localFiles,
@@ -281,6 +278,8 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 		AnilistRateLimiter:     anilistRateLimiter,
 		DisableAnimeCollection: false,
 		ScanLogger:             scn.ScanLogger,
+		Database:               scn.Database, // Pass database for global media pool
+		UserID:                 scn.UserID,   // For user subscription tracking
 	})
 	if err != nil {
 		return nil, err
@@ -398,6 +397,18 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 		wg.Wait()
 	}
 
+	// +---------------------+
+	// |  Save to Global DB  |
+	// +---------------------+
+
+	// Save successful matches to global database for server-wide reuse
+	if scn.Database != nil {
+		err = scn.saveMatchesToGlobalDatabase(localFiles)
+		if err != nil {
+			scn.Logger.Error().Err(err).Msg("scanner: Failed to save matches to global database")
+		}
+	}
+
 	scn.Logger.Info().Msg("scanner: Scan completed")
 	scn.WSEventManager.SendEvent(events.EventScanProgress, 100)
 	scn.WSEventManager.SendEvent(events.EventScanStatus, "Scan completed")
@@ -418,4 +429,117 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 	localFiles = completedEvent.LocalFiles
 
 	return localFiles, nil
+}
+
+// saveMatchesToGlobalDatabase saves successful LocalFile to AniList matches to the global database
+// This populates the server-wide media pool for use by all users
+func (scn *Scanner) saveMatchesToGlobalDatabase(localFiles []*anime.LocalFile) error {
+	if scn.Database == nil {
+		return nil
+	}
+
+	successfulMatches := 0
+	skippedDuplicates := 0
+
+	for _, lf := range localFiles {
+		// Only save files that have been successfully matched to AniList media
+		if lf.MediaId == 0 {
+			continue
+		}
+
+		// Check for duplicate by looking for the same file path through database adapter
+		isDuplicate := false
+		if adapter, ok := scn.Database.(*DatabaseAdapter); ok {
+			// Check if this file path already exists in global mappings
+			_, checkErr := adapter.db.GetGlobalMapping(lf.Path)
+			if checkErr == nil {
+				// Mapping already exists
+				isDuplicate = true
+			}
+		}
+
+		if isDuplicate {
+			skippedDuplicates++
+			continue
+		}
+
+		// Save to database using the adapter
+		saveErr := scn.saveGlobalMapping(lf)
+		if saveErr != nil {
+			scn.Logger.Warn().Err(saveErr).
+				Str("filePath", lf.Path).
+				Int("aniListID", lf.MediaId).
+				Msg("scanner: Failed to save global mapping")
+			continue
+		}
+
+		successfulMatches++
+	}
+
+	if scn.ScanLogger != nil {
+		scn.ScanLogger.logger.Info().
+			Int("saved", successfulMatches).
+			Int("skipped", skippedDuplicates).
+			Msg("Saved successful matches to global database")
+	}
+
+	return nil
+}
+
+// saveGlobalMapping saves a single mapping to the global database
+func (scn *Scanner) saveGlobalMapping(lf *anime.LocalFile) error {
+	// Helper functions to safely extract data from LocalFile
+	getTitle := func() string {
+		if lf.ParsedData != nil && lf.ParsedData.Title != "" {
+			return lf.ParsedData.Title
+		}
+		return lf.Name
+	}
+
+	getYear := func() int {
+		if lf.ParsedData != nil && lf.ParsedData.Year != "" {
+			if year, err := strconv.Atoi(lf.ParsedData.Year); err == nil {
+				return year
+			}
+		}
+		return 0
+	}
+
+	getEpisodeNumber := func() int {
+		if lf.Metadata != nil && lf.Metadata.Episode > 0 {
+			return lf.Metadata.Episode
+		}
+		if lf.ParsedData != nil && lf.ParsedData.Episode != "" {
+			if ep, err := strconv.Atoi(lf.ParsedData.Episode); err == nil {
+				return ep
+			}
+		}
+		return 0
+	}
+
+	getFileSize := func() int64 {
+		if info, err := os.Stat(lf.Path); err == nil {
+			return info.Size()
+		}
+		return 0
+	}
+
+	// Create a models.GlobalAnimeFileMapping from our data
+	dbMapping := &models.GlobalAnimeFileMapping{
+		AniListID:     lf.MediaId,
+		LocalFilePath: lf.Path,
+		Title:         getTitle(),
+		Year:          getYear(),
+		EpisodeNumber: getEpisodeNumber(),
+		FileSize:      getFileSize(),
+		LastScanned:   time.Now(),
+		// Note: MappedByUserID could be added if we have access to current user context
+	}
+
+	// Save through database adapter
+	if adapter, ok := scn.Database.(*DatabaseAdapter); ok {
+		return adapter.db.CreateGlobalMapping(dbMapping)
+	}
+
+	return errors.New("database adapter not properly configured")
 }

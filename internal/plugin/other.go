@@ -5,7 +5,6 @@ import (
 	"seanime/internal/extension"
 	"seanime/internal/goja/goja_bindings"
 	"seanime/internal/library/anime"
-	"seanime/internal/onlinestream"
 	goja_util "seanime/internal/util/goja"
 	"strconv"
 
@@ -271,14 +270,6 @@ func (a *AppContextImpl) BindFillerManagerToContextObj(vm *goja.Runtime, obj *go
 		return goja.Undefined()
 	})
 
-	_ = fillerManagerObj.Set("hydrateOnlinestreamFillerData", func(mId int, episodes []*onlinestream.Episode) goja.Value {
-		fillerManager, ok := a.fillerManager.Get()
-		if !ok {
-			goja_bindings.PanicThrowErrorString(vm, "fillerManager not set")
-		}
-		fillerManager.HydrateOnlinestreamFillerData(mId, episodes)
-		return goja.Undefined()
-	})
 
 	_ = obj.Set("fillerManager", fillerManagerObj)
 

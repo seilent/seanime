@@ -1,6 +1,5 @@
 import { Anime_Episode } from "@/api/generated/types"
 import { useDirectstreamPlayLocalFile } from "@/api/hooks/directstream.hooks"
-import { useNakamaPlayVideo } from "@/api/hooks/nakama.hooks"
 import { usePlaybackPlayVideo, usePlaybackStartManualTracking } from "@/api/hooks/playback_manager.hooks"
 import {
     ElectronPlaybackMethod,
@@ -9,8 +8,6 @@ import {
     useExternalPlayerLink,
 } from "@/app/(main)/_atoms/playback.atoms"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
-import { useTorrentStreamAutoplay } from "@/app/(main)/entry/_containers/torrent-stream/_lib/handle-torrent-stream"
-import { useMediastreamActiveOnDevice, useMediastreamCurrentFile } from "@/app/(main)/mediastream/_lib/mediastream.atoms"
 import { clientIdAtom } from "@/app/websocket-provider"
 import { ExternalPlayerLink } from "@/lib/external-player-link/external-player-link"
 import { openTab } from "@/lib/helpers/browser"
@@ -26,8 +23,6 @@ export function useHandlePlayMedia() {
     const serverStatus = useServerStatus()
     const clientId = useAtomValue(clientIdAtom)
 
-    const { activeOnDevice: mediastreamActiveOnDevice } = useMediastreamActiveOnDevice()
-    const { setFilePath: setMediastreamFilePath } = useMediastreamCurrentFile()
 
     const { mutate: startManualTracking, isPending: isStarting } = usePlaybackStartManualTracking()
 
@@ -36,45 +31,14 @@ export function useHandlePlayMedia() {
 
     // Play using desktop external player
     const { mutate: playVideo } = usePlaybackPlayVideo()
-    const { mutate: playNakamaVideo } = useNakamaPlayVideo()
 
     const { mutate: directstreamPlayLocalFile } = useDirectstreamPlayLocalFile()
 
-    const { setTorrentstreamAutoplayInfo } = useTorrentStreamAutoplay()
 
     function playMediaFile({ path, mediaId, episode }: { path: string, mediaId: number, episode: Anime_Episode }) {
         const anidbEpisode = episode.localFile?.metadata?.aniDBEpisode ?? ""
 
-        setTorrentstreamAutoplayInfo(null)
 
-        if (episode._isNakamaEpisode) {
-            // If external player link is set, open the media file in the external player
-            if (downloadedMediaPlayback === PlaybackDownloadedMedia.ExternalPlayerLink) {
-                const link = new ExternalPlayerLink(externalPlayerLink)
-                link.setEpisodeNumber(episode.progressNumber)
-                link.setMediaTitle(episode.baseAnime?.title?.userPreferred)
-                link.to({
-                    endpoint: "/api/v1/nakama/stream?type=file&path=" + Buffer.from(path).toString("base64"),
-                }).then()
-                openTab(link.getFullUrl())
-
-                if (episode?.progressNumber && episode.type === "main") {
-                    logger("PLAY MEDIA").error("Starting manual tracking for nakama file")
-                    // Start manual tracking
-                    React.startTransition(() => {
-                        startManualTracking({
-                            mediaId: mediaId,
-                            episodeNumber: episode?.progressNumber,
-                            clientId: clientId || "",
-                        })
-                    })
-                } else {
-                    logger("PLAY MEDIA").warning("No manual tracking, progress number is not set for nakama file")
-                }
-                return
-            }
-            return playNakamaVideo({ path, mediaId, anidbEpisode })
-        }
 
         logger("PLAY MEDIA").info("Playing media file", path)
 
@@ -95,21 +59,13 @@ export function useHandlePlayMedia() {
 
             logger("PLAY MEDIA").info("Opening media file in external player", externalPlayerLink, path)
 
-            setMediastreamFilePath(path)
             React.startTransition(() => {
                 router.push(`/medialinks?id=${mediaId}`)
             })
             return
         }
 
-        // Handle media streaming
-        if (serverStatus?.mediastreamSettings?.transcodeEnabled && mediastreamActiveOnDevice) {
-            setMediastreamFilePath(path)
-            React.startTransition(() => {
-                router.push(`/mediastream?id=${mediaId}`)
-            })
-            return
-        }
+        // Media streaming removed
 
         return playVideo({ path })
     }

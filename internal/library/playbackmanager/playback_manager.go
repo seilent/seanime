@@ -16,6 +16,7 @@ import (
 	"seanime/internal/platforms/platform"
 	"seanime/internal/util"
 	"seanime/internal/util/result"
+	"strconv"
 	"sync"
 	"sync/atomic"
 
@@ -425,23 +426,12 @@ func (pm *PlaybackManager) StartStreamingUsingMediaPlayer(windowTitle string, op
 	}
 
 	pm.currentStreamMedia = mo.Some(event.Media)
-	episodeNumber := 0
-
-	// Find the current episode being stream
-	episodeCollection, err := anime.NewEpisodeCollection(anime.NewEpisodeCollectionOptions{
-		AnimeMetadata:    nil,
-		Media:            event.Media,
-		MetadataProvider: pm.metadataProvider,
-		Logger:           pm.Logger,
-	})
-
 	pm.currentStreamAniDbEpisode = mo.Some(aniDbEpisode)
 
-	if episode, ok := episodeCollection.FindEpisodeByAniDB(aniDbEpisode); ok {
-		episodeNumber = episode.EpisodeNumber
-		pm.currentStreamEpisode = mo.Some(episode)
-	} else {
-		pm.Logger.Warn().Str("episode", aniDbEpisode).Msg("playback manager: Failed to find episode in episode collection")
+	// Extract episode number directly from AniDB episode string (simplified without streaming episode collection)
+	episodeNumber := 0
+	if episodeInt, err := strconv.Atoi(aniDbEpisode); err == nil {
+		episodeNumber = episodeInt
 	}
 
 	err = pm.MediaPlayerRepository.Stream(event.Payload, episodeNumber, event.Media.ID, windowTitle)
@@ -497,8 +487,7 @@ func (pm *PlaybackManager) PlayNextEpisode() (err error) {
 		pm.MediaPlayerRepository.StartTracking()
 
 	case StreamPlayback:
-		// TODO: Implement it for torrentstream
-		// Check if torrent stream etc...
+		// Stream playback handling
 	}
 
 	return nil

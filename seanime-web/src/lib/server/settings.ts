@@ -3,9 +3,7 @@ import { z } from "zod"
 
 // Extended type to include admin fields for first-time setup
 type GettingStartedWithAdmin = GettingStarted_Variables & {
-    adminUsername?: string
-    adminPassword?: string
-    adminDisplayName?: string
+    adminAnilistToken?: string
 }
 
 export const DEFAULT_TORRENT_PROVIDER = "animetosho"
@@ -34,19 +32,8 @@ export const _gettingStartedSchema = z.object({
     enableTorrentStreaming: z.boolean().optional().default(false),
     debridProvider: z.string().optional().default("none"),
     debridApiKey: z.string().optional().default(""),
-    // Admin account creation fields
-    adminUsername: z.string()
-        .min(3, "Username must be at least 3 characters")
-        .max(50, "Username must be less than 50 characters")
-        .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens")
-        .optional().default(""),
-    adminPassword: z.string()
-        .min(6, "Password must be at least 6 characters")
-        .max(100, "Password must be less than 100 characters")
-        .optional().default(""),
-    adminDisplayName: z.string()
-        .max(100, "Display name must be less than 100 characters")
-        .optional().default(""),
+    // Admin AniList token for authentication
+    adminAnilistToken: z.string().optional().default(""),
 })
 
 export const settingsSchema = z.object({
@@ -130,10 +117,8 @@ export const settingsSchema = z.object({
 export const gettingStartedSchema = _gettingStartedSchema.extend(settingsSchema.shape)
 
 export const getDefaultSettings = (data: z.infer<typeof gettingStartedSchema>): GettingStartedWithAdmin => ({
-    // Admin user creation fields
-    adminUsername: data.adminUsername,
-    adminPassword: data.adminPassword,
-    adminDisplayName: data.adminDisplayName,
+    // Admin AniList token for authentication
+    adminAnilistToken: data.adminAnilistToken,
     library: {
         libraryPath: data.libraryPath,
         autoUpdateProgress: true,
@@ -156,18 +141,6 @@ export const getDefaultSettings = (data: z.infer<typeof gettingStartedSchema>): 
         scannerMatchingAlgorithm: "",
         autoSyncToLocalAccount: false,
         autoSaveCurrentMediaOffline: false,
-    },
-    nakama: {
-        enabled: false,
-        isHost: false,
-        hostPassword: "",
-        remoteServerURL: "",
-        remoteServerPassword: "",
-        hostShareLocalAnimeLibrary: false,
-        username: data.nakamaUsername,
-        includeNakamaAnimeLibrary: false,
-        hostUnsharedAnimeIds: [],
-        hostEnablePortForwarding: false,
     },
     manga: {
         defaultMangaProvider: "",

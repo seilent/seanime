@@ -5,7 +5,6 @@ import (
 	"seanime/internal/database/db"
 	"seanime/internal/hook"
 	"seanime/internal/library/anime"
-	"seanime/internal/onlinestream"
 	"seanime/internal/util"
 	"strconv"
 	"sync"
@@ -236,32 +235,7 @@ func (fm *FillerManager) HydrateFillerData(e *anime.Entry) {
 	})
 }
 
-func (fm *FillerManager) HydrateOnlinestreamFillerData(mId int, episodes []*onlinestream.Episode) {
-	if fm == nil {
-		return
-	}
-	if episodes == nil || len(episodes) == 0 {
-		return
-	}
-
-	event := &HydrateOnlinestreamFillerDataRequestedEvent{
-		Episodes: episodes,
-	}
-	_ = hook.GlobalHookManager.OnHydrateOnlinestreamFillerDataRequested().Trigger(event)
-	if event.DefaultPrevented {
-		return
-	}
-	episodes = event.Episodes
-
-	// Check if the filler data has been fetched
-	if !fm.HasFillerFetched(mId) {
-		return
-	}
-
-	for _, ep := range episodes {
-		ep.IsFiller = fm.IsEpisodeFiller(mId, ep.Number)
-	}
-}
+// HydrateOnlinestreamFillerData - Removed: onlinestream functionality disabled
 
 func (fm *FillerManager) HydrateEpisodeFillerData(mId int, episodes []*anime.Episode) {
 	if fm == nil || len(episodes) == 0 {

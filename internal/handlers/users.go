@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
+	"seanime/internal/api/anilist"
 	"seanime/internal/database/models"
 	"strconv"
 	"time"
@@ -12,10 +15,9 @@ import (
 
 // User authentication and management handlers
 
-// LoginRequest represents the login request payload
-type LoginRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+// AniListLoginRequest represents the AniList OAuth login request payload
+type AniListLoginRequest struct {
+	Token string `json:"token" validate:"required"` // AniList access token
 }
 
 // LoginResponse represents the login response
@@ -27,8 +29,7 @@ type LoginResponse struct {
 
 // CreateUserRequest represents the create user request payload
 type CreateUserRequest struct {
-	Username    string `json:"username" validate:"required"`
-	Password    string `json:"password" validate:"required,min=4"`
+	Username    string `json:"username" validate:"required"` // AniList username
 	DisplayName string `json:"displayName"`
 	Role        string `json:"role"`
 }
@@ -51,24 +52,108 @@ type ResetPasswordRequest struct {
 	NewPassword string `json:"newPassword" validate:"required,min=4"`
 }
 
-// HandleUserLogin handles user login
+// HandleUserLogin handles AniList OAuth login
 //
-//	@summary User login
-//	@desc Authenticates a user and creates a session
+//	@summary AniList OAuth login
+//	@desc Authenticates a user via AniList OAuth and creates a session
 //	@route /api/v1/users/login [POST]
 //	@returns LoginResponse
 func (h *Handler) HandleUserLogin(c echo.Context) error {
-	var req LoginRequest
+	var req AniListLoginRequest
 	if err := c.Bind(&req); err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	// Validate user credentials
-	user, err := h.App.Database.ValidateUserPassword(req.Username, req.Password)
+	// Create AniList client with provided token
+	authenticatedClient := anilist.NewAnilistClient(req.Token)
+	getViewer, err := authenticatedClient.GetViewer(context.Background())
 	if err != nil {
+		h.App.Logger.Error().Err(err).Msg("Failed to get AniList user info")
 		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Invalid username or password",
+			"error": "Failed to get user information from AniList",
 		})
+	}
+
+	// Check if user is in whitelist or if this is first setup
+	settings, err := h.App.Database.GetSettings()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	isWhitelisted := false
+	isFirstSetup := settings == nil || len(settings.AnilistWhitelist) == 0
+
+	if isFirstSetup {
+		// First setup: create whitelist with this user as admin
+		anilistWhitelist := models.StringSlice{getViewer.Viewer.Name}
+		_, err = h.App.Database.UpsertSettings(&models.Settings{
+			BaseModel: models.BaseModel{
+				ID:        1,
+				UpdatedAt: time.Now(),
+			},
+			SetupCompleted:   false,
+			AnilistWhitelist: anilistWhitelist,
+		})
+		if err != nil {
+			h.App.Logger.Error().Err(err).Msg("Failed to create whitelist during first setup")
+		} else {
+			h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Created admin whitelist during first setup")
+		}
+		isWhitelisted = true
+	} else {
+		// Check existing whitelist
+		for _, whitelistedUsername := range settings.AnilistWhitelist {
+			if whitelistedUsername == getViewer.Viewer.Name {
+				isWhitelisted = true
+				break
+			}
+		}
+	}
+
+	if !isWhitelisted {
+		h.App.Logger.Warn().Str("username", getViewer.Viewer.Name).Msg("AniList user not in whitelist")
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error": "User not authorized to access this server",
+		})
+	}
+
+	// Create or update user
+	user, err := h.App.Database.GetUserByUsername(getViewer.Viewer.Name)
+	if err != nil {
+		// User doesn't exist, create new one
+		// First user during setup becomes admin, or first user in whitelist
+		role := "user"
+		if isFirstSetup || (len(settings.AnilistWhitelist) > 0 && settings.AnilistWhitelist[0] == getViewer.Viewer.Name) {
+			role = "admin"
+		}
+
+		user = &models.User{
+			Username:    getViewer.Viewer.Name,
+			Role:        role,
+			IsActive:    true,
+			DisplayName: getViewer.Viewer.Name,
+		}
+
+		user, err = h.App.Database.CreateUser(user)
+		if err != nil {
+			return h.RespondWithError(c, err)
+		}
+
+		h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Str("role", role).Msg("Created new user from AniList OAuth")
+	}
+
+	// Create or update AniList account record
+	viewerBytes, _ := json.Marshal(getViewer.Viewer)
+	account := &models.Account{
+		UserID:   user.ID,
+		Username: getViewer.Viewer.Name,
+		Token:    req.Token,
+		Viewer:   viewerBytes,
+	}
+
+	_, err = h.App.Database.UpsertAccount(account)
+	if err != nil {
+		return h.RespondWithError(c, err)
 	}
 
 	// Create user session (7 days expiration)
@@ -259,7 +344,7 @@ func (h *Handler) HandleGetAllUsers(c echo.Context) error {
 // HandleCreateUser creates a new user (admin only)
 //
 //	@summary Create user
-//	@desc Creates a new user (admin only)
+//	@desc Creates a new user with AniList username (admin only)
 //	@route /api/v1/admin/users [POST]
 //	@returns models.User
 func (h *Handler) HandleCreateUser(c echo.Context) error {
@@ -287,8 +372,15 @@ func (h *Handler) HandleCreateUser(c echo.Context) error {
 		})
 	}
 
-	// Create user
-	newUser, err := h.App.Database.CreateUser(req.Username, req.Password, req.DisplayName, req.Role)
+	// Create user (AniList username only, no password)
+	newUser := &models.User{
+		Username:    req.Username,
+		DisplayName: req.DisplayName,
+		Role:        req.Role,
+		IsActive:    true,
+	}
+	
+	newUser, err := h.App.Database.CreateUser(newUser)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -444,21 +536,196 @@ func (h *Handler) HandleResetUserPassword(c echo.Context) error {
 	})
 }
 
+// Whitelist management handlers
+
+// HandleGetWhitelist gets the current AniList whitelist (admin only)
+//
+//	@summary Get AniList whitelist
+//	@desc Gets the current AniList whitelist (admin only)
+//	@route /api/v1/admin/whitelist [GET]
+//	@returns []string
+func (h *Handler) HandleGetWhitelist(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil || !user.IsAdmin() {
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error": "Admin access required",
+		})
+	}
+
+	settings, err := h.App.Database.GetSettings()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	if settings == nil || settings.AnilistWhitelist == nil {
+		return h.RespondWithData(c, []string{})
+	}
+
+	return h.RespondWithData(c, settings.AnilistWhitelist)
+}
+
+// HandleAddToWhitelist adds a user to the AniList whitelist (admin only)
+//
+//	@summary Add user to whitelist
+//	@desc Adds a user to the AniList whitelist (admin only)
+//	@route /api/v1/admin/whitelist [POST]
+//	@returns map[string]string
+func (h *Handler) HandleAddToWhitelist(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil || !user.IsAdmin() {
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error": "Admin access required",
+		})
+	}
+
+	var req struct {
+		Username string `json:"username"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	if req.Username == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Username is required",
+		})
+	}
+
+	settings, err := h.App.Database.GetSettings()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	if settings == nil {
+		settings = &models.Settings{
+			BaseModel: models.BaseModel{
+				ID:        1,
+				UpdatedAt: time.Now(),
+			},
+		}
+	}
+
+	// Check if user is already in whitelist
+	for _, whitelistedUser := range settings.AnilistWhitelist {
+		if whitelistedUser == req.Username {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": "User already in whitelist",
+			})
+		}
+	}
+
+	// Add user to whitelist
+	settings.AnilistWhitelist = append(settings.AnilistWhitelist, req.Username)
+	settings.UpdatedAt = time.Now()
+
+	_, err = h.App.Database.UpsertSettings(settings)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	h.App.Logger.Info().Str("username", req.Username).Str("addedBy", user.Username).Msg("User added to AniList whitelist")
+
+	return h.RespondWithData(c, map[string]string{
+		"message": "User added to whitelist successfully",
+	})
+}
+
+// HandleRemoveFromWhitelist removes a user from the AniList whitelist (admin only)
+//
+//	@summary Remove user from whitelist
+//	@desc Removes a user from the AniList whitelist (admin only)
+//	@route /api/v1/admin/whitelist/:username [DELETE]
+//	@returns map[string]string
+func (h *Handler) HandleRemoveFromWhitelist(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil || !user.IsAdmin() {
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error": "Admin access required",
+		})
+	}
+
+	username := c.Param("username")
+	if username == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Username is required",
+		})
+	}
+
+	settings, err := h.App.Database.GetSettings()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	if settings == nil || len(settings.AnilistWhitelist) == 0 {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "Whitelist is empty",
+		})
+	}
+
+	// Find and remove user from whitelist
+	found := false
+	newWhitelist := make([]string, 0, len(settings.AnilistWhitelist))
+	for _, whitelistedUser := range settings.AnilistWhitelist {
+		if whitelistedUser != username {
+			newWhitelist = append(newWhitelist, whitelistedUser)
+		} else {
+			found = true
+		}
+	}
+
+	if !found {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "User not found in whitelist",
+		})
+	}
+
+	// Prevent removing the last admin (first user in whitelist)
+	if len(settings.AnilistWhitelist) > 0 && settings.AnilistWhitelist[0] == username && len(newWhitelist) > 0 {
+		// If removing the first user, make the next user admin by ensuring they're first
+		// This maintains the "first user is admin" rule
+		h.App.Logger.Warn().Str("removedAdmin", username).Str("newAdmin", newWhitelist[0]).Msg("Admin user removed from whitelist, promoting next user")
+	}
+
+	if len(newWhitelist) == 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Cannot remove the last user from whitelist",
+		})
+	}
+
+	settings.AnilistWhitelist = newWhitelist
+	settings.UpdatedAt = time.Now()
+
+	_, err = h.App.Database.UpsertSettings(settings)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	h.App.Logger.Info().Str("username", username).Str("removedBy", user.Username).Msg("User removed from AniList whitelist")
+
+	return h.RespondWithData(c, map[string]string{
+		"message": "User removed from whitelist successfully",
+	})
+}
+
 // Setup-related handlers
 
 // HandleSetupRequired checks if first-time setup is required
 //
 //	@summary Check if setup is required
-//	@desc Checks if any users exist in the system
+//	@desc Checks if AniList whitelist is configured
 //	@route /api/v1/setup/required [GET]
 //	@returns map[string]bool
 func (h *Handler) HandleSetupRequired(c echo.Context) error {
-	// Check if any users exist - setup is required if no users exist
-	users, err := h.App.Database.GetAllUsers()
+	// Check if AniList whitelist is configured - setup is required if whitelist is empty
+	settings, err := h.App.Database.GetSettings()
 	if err != nil {
-		return h.RespondWithError(c, err)
+		// If settings don't exist or error occurred, setup is required
+		return h.RespondWithData(c, map[string]bool{
+			"required": true,
+		})
 	}
-	isRequired := len(users) == 0
+	
+	isRequired := len(settings.AnilistWhitelist) == 0
 	
 	return h.RespondWithData(c, map[string]bool{
 		"required": isRequired,

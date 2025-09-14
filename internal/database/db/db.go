@@ -134,6 +134,12 @@ func migrateTables(db *gorm.DB) error {
 		&models.UserEpisodeProgress{},
 		&models.UserActivePlayback{},
 		&models.UserMediaSubscription{},
+		// Global mapping models
+		&models.GlobalAnimeFileMapping{},
+		&models.UnmappedFile{},
+		&models.UserAnimeSubscription{},
+		&models.UserLibrarySubscription{},
+		&models.UserProgressSyncItem{},
 		//&models.MangaChapterContainer{},
 	)
 	if err != nil {

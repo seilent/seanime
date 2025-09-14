@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
-import { __scanner_modalIsOpen } from "@/app/(main)/(library)/_containers/scanner-modal"
+import { useSmartLibraryScan } from "@/app/(main)/(library)/_hooks/use-smart-library-scan"
 
 import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
@@ -10,7 +10,6 @@ import { Spinner } from "@/components/ui/loading-spinner"
 import { useBoolean } from "@/hooks/use-disclosure"
 import { WSEvents } from "@/lib/server/ws-events"
 import { useQueryClient } from "@tanstack/react-query"
-import { useSetAtom } from "jotai/react"
 import React, { useState } from "react"
 import { BiSolidBinoculars } from "react-icons/bi"
 import { FiSearch } from "react-icons/fi"
@@ -35,7 +34,7 @@ export function LibraryWatcher(props: LibraryWatcherProps) {
     const autoScanning = useBoolean(false)
     const [progress, setProgress] = useState(0)
 
-    const setScannerModalOpen = useSetAtom(__scanner_modalIsOpen)
+    const { scanLibrary, isPending: isScanning } = useSmartLibraryScan()
 
     useWebsocketMessageListener<string>({
         type: WSEvents.LIBRARY_WATCHER_FILE_ADDED,
@@ -135,7 +134,8 @@ export function LibraryWatcher(props: LibraryWatcherProps) {
                                 intent="primary-outline"
                                 leftIcon={<FiSearch />}
                                 size="sm"
-                                onClick={() => setScannerModalOpen(true)}
+                                onClick={() => scanLibrary()}
+                                loading={isScanning}
                                 className="rounded-full"
                             >
                                 Scan your library

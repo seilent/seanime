@@ -17,11 +17,11 @@ func (h *Handler) UserAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 
-		// Allow setup-related APIs during initial setup (when no users exist)
+		// Allow setup-related APIs during initial setup (when whitelist is empty)
 		if h.isSetupPath(path) {
-			users, err := h.App.Database.GetAllUsers()
-			if err == nil && len(users) == 0 {
-				// No users exist, allow setup APIs
+			settings, err := h.App.Database.GetSettings()
+			if err != nil || len(settings.AnilistWhitelist) == 0 {
+				// No whitelist configured, allow setup APIs
 				return next(c)
 			}
 		}
@@ -44,24 +44,6 @@ func (h *Handler) UserAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 
-		// Handle Nakama client connections
-		if h.App.Settings.GetNakama().Enabled && h.App.Settings.GetNakama().IsHost {
-			nakamaPasswordHeader := c.Request().Header.Get("X-Seanime-Nakama-Token")
-
-			if path == "/api/v1/nakama/ws" {
-				if nakamaPasswordHeader == h.App.Settings.GetNakama().HostPassword {
-					c.Response().Header().Set("X-Seanime-Nakama-Is-Client", "true")
-					return next(c)
-				}
-			}
-
-			if strings.HasPrefix(path, "/api/v1/nakama/host/") {
-				if nakamaPasswordHeader == h.App.Settings.GetNakama().HostPassword {
-					c.Response().Header().Set("X-Seanime-Nakama-Is-Client", "true")
-					return next(c)
-				}
-			}
-		}
 
 		return c.JSON(401, map[string]string{"error": "Authentication required"})
 	}
@@ -92,8 +74,6 @@ func (h *Handler) isPublicPath(path string) bool {
 		"/api/v1/mediastream/direct",
 		"/api/v1/mediastream/transcode/",
 		"/api/v1/mediastream/subs/",
-		"/api/v1/torrentstream/stream/",
-		"/api/v1/nakama/stream",
 	}
 
 	for _, prefix := range publicPrefixes {

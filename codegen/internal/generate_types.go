@@ -18,9 +18,6 @@ const (
 
 // Structs that are not directly referenced by the API routes but are needed for the Typescript file.
 var additionalStructNames = []string{
-	"torrentstream.TorrentLoadingStatus",
-	"torrentstream.TorrentStatus",
-	"debrid_client.StreamState",
 	"extension_repo.TrayPluginExtensionItem",
 	"vendor_habari.Metadata",
 	"nativeplayer.PlaybackInfo",

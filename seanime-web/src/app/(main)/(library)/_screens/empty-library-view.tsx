@@ -1,4 +1,4 @@
-import { __scanner_modalIsOpen } from "@/app/(main)/(library)/_containers/scanner-modal"
+import { useSmartLibraryScan } from "@/app/(main)/(library)/_hooks/use-smart-library-scan"
 import { __mainLibrary_paramsAtom, __mainLibrary_paramsInputAtom } from "@/app/(main)/(library)/_lib/handle-library-collection"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { DiscoverPageHeader } from "@/app/(main)/discover/_components/discover-page-header"
@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button"
 import { HorizontalDraggableScroll } from "@/components/ui/horizontal-draggable-scroll"
 import { StaticTabs } from "@/components/ui/tabs"
 import { useDebounce } from "@/hooks/use-debounce"
-import { useSetAtom } from "jotai/index"
-import { useAtom } from "jotai/react"
+import { useAtom, useSetAtom } from "jotai/react"
 import React from "react"
 import { FiSearch } from "react-icons/fi"
 import { LuCog } from "react-icons/lu"
@@ -30,7 +29,7 @@ export function EmptyLibraryView(props: EmptyLibraryViewProps) {
     } = props
 
     const serverStatus = useServerStatus()
-    const setScannerModalOpen = useSetAtom(__scanner_modalIsOpen)
+    const { scanLibrary, isPending: isScanning } = useSmartLibraryScan()
 
     if (hasEntries || isLoading) return null
 
@@ -50,7 +49,8 @@ export function EmptyLibraryView(props: EmptyLibraryViewProps) {
                                 leftIcon={<FiSearch />}
                                 size="xl"
                                 rounded
-                                onClick={() => setScannerModalOpen(true)}
+                                onClick={() => scanLibrary()}
+                                loading={isScanning}
                             >
                                 Scan your library
                             </Button>
@@ -69,20 +69,6 @@ export function EmptyLibraryView(props: EmptyLibraryViewProps) {
                                         <SeaLink href="/settings?tab=onlinestream">
                                             <Button intent="primary-subtle" leftIcon={<LuCog className="text-xl" />}>
                                                 Include online streaming in your library
-                                            </Button>
-                                        </SeaLink>
-                                    </p>}
-                                    {serverStatus?.torrentstreamSettings?.enabled && <p>
-                                        <SeaLink href="/settings?tab=torrentstream">
-                                            <Button intent="primary-subtle" leftIcon={<LuCog className="text-xl" />}>
-                                                Include torrent streaming in your library
-                                            </Button>
-                                        </SeaLink>
-                                    </p>}
-                                    {serverStatus?.debridSettings?.enabled && <p>
-                                        <SeaLink href="/settings?tab=debrid">
-                                            <Button intent="primary-subtle" leftIcon={<LuCog className="text-xl" />}>
-                                                Include debrid streaming in your library
                                             </Button>
                                         </SeaLink>
                                     </p>}

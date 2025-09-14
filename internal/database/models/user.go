@@ -7,11 +7,10 @@ import (
 // User represents a user account in the multi-user system
 type User struct {
 	BaseModel
-	Username     string `gorm:"unique;not null" json:"username"`
-	PasswordHash string `gorm:"not null" json:"-"` // Never return in JSON responses
-	Role         string `gorm:"default:'user'" json:"role"` // "admin", "user"
-	IsActive     bool   `gorm:"default:true" json:"isActive"`
-	DisplayName  string `json:"displayName"`
+	Username    string `gorm:"unique;not null" json:"username"` // AniList username
+	Role        string `gorm:"default:'user'" json:"role"`      // "admin", "user"
+	IsActive    bool   `gorm:"default:true" json:"isActive"`
+	DisplayName string `json:"displayName"`
 }
 
 // UserSession represents an active user session

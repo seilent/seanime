@@ -1,10 +1,6 @@
-import { Anime_Entry, Debrid_TorrentItemInstantAvailability, HibikeTorrent_AnimeTorrent } from "@/api/generated/types"
-import { useGetTorrentstreamBatchHistory } from "@/api/hooks/torrentstream.hooks"
+import { Anime_Entry, HibikeTorrent_AnimeTorrent } from "@/api/generated/types"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
-import { useHandleStartDebridStream } from "@/app/(main)/entry/_containers/debrid-stream/_lib/handle-debrid-stream"
-import { DebridStreamFileSelectionModal } from "@/app/(main)/entry/_containers/debrid-stream/debrid-stream-file-selection-modal"
 import {
-    TorrentDebridInstantAvailabilityBadge,
     TorrentResolutionBadge,
     TorrentSeedersBadge,
 } from "@/app/(main)/entry/_containers/torrent-search/_components/torrent-item-badges"
@@ -15,15 +11,6 @@ import { Torrent_SearchType, useHandleTorrentSearch } from "@/app/(main)/entry/_
 import { useTorrentSearchSelectedStreamEpisode } from "@/app/(main)/entry/_containers/torrent-search/_lib/handle-torrent-selection"
 import { TorrentConfirmationModal } from "@/app/(main)/entry/_containers/torrent-search/torrent-confirmation-modal"
 import { __torrentSearch_selectionAtom, TorrentSelectionType } from "@/app/(main)/entry/_containers/torrent-search/torrent-search-drawer"
-import {
-    useDebridStreamAutoplay,
-    useHandleStartTorrentStream,
-    useTorrentStreamAutoplay,
-} from "@/app/(main)/entry/_containers/torrent-stream/_lib/handle-torrent-stream"
-import {
-    __torrentSearch_torrentstreamSelectedTorrentAtom,
-    TorrentstreamFileSelectionModal,
-} from "@/app/(main)/entry/_containers/torrent-stream/torrent-stream-file-selection-modal"
 import { LuffyError } from "@/components/shared/luffy-error"
 import { Alert } from "@/components/ui/alert"
 import { AppLayoutStack } from "@/components/ui/app-layout"
@@ -122,8 +109,6 @@ export function TorrentSearchContainer({ type, entry }: { type: TorrentSelection
 
     const torrents = React.useMemo(() => data?.torrents ?? [], [data?.torrents])
     const previews = React.useMemo(() => data?.previews ?? [], [data?.previews])
-    const debridInstantAvailability = React.useMemo(() => serverStatus?.debridSettings?.enabled ? data?.debridInstantAvailability ?? {} : {},
-        [data?.debridInstantAvailability, serverStatus?.debridSettings?.enabled])
 
     /**
      * Select torrent
@@ -157,12 +142,10 @@ export function TorrentSearchContainer({ type, entry }: { type: TorrentSelection
 
     return (
         <>
-            {(type === "torrentstream-select" || type === "torrentstream-select-file" || type === "debridstream-select-file" || type === "debridstream-select") &&
                 <TorrentSearchTorrentStreamBatchHistory
                     type={type}
                     entry={entry}
-                    debridInstantAvailability={debridInstantAvailability}
-                />}
+                />
 
             <AppLayoutStack className="Sea-TorrentSearchContainer__root space-y-4" data-torrent-search-container>
 
@@ -350,8 +333,7 @@ export function TorrentSearchContainer({ type, entry }: { type: TorrentSelection
                                             isLoading={isLoading}
                                             selectedTorrents={selectedTorrents}
                                             onToggleTorrent={handleToggleTorrent}
-                                            debridInstantAvailability={debridInstantAvailability}
-                                            type={type}
+                                                                    type={type}
                                             torrentMetadata={data?.torrentMetadata}
                                             // animeMetadata={data?.animeMetadata}
                                         />
@@ -374,8 +356,7 @@ export function TorrentSearchContainer({ type, entry }: { type: TorrentSelection
                                     isFetching={isFetching}
                                     selectedTorrents={selectedTorrents}
                                     onToggleTorrent={handleToggleTorrent}
-                                    debridInstantAvailability={debridInstantAvailability}
-                                    animeMetadata={data?.animeMetadata}
+                                                    animeMetadata={data?.animeMetadata}
                                     torrentMetadata={data?.torrentMetadata}
                                 />
                             </>
@@ -396,98 +377,15 @@ export function TorrentSearchContainer({ type, entry }: { type: TorrentSelection
                 entry={entry}
             />}
 
-            {type === "torrentstream-select-file" && <TorrentstreamFileSelectionModal entry={entry} />}
-            {type === "debridstream-select-file" && <DebridStreamFileSelectionModal entry={entry} />}
         </>
     )
 
 }
 
-function TorrentSearchTorrentStreamBatchHistory({ entry, type, debridInstantAvailability }: {
+function TorrentSearchTorrentStreamBatchHistory({ entry, type }: {
     entry: Anime_Entry | undefined,
-    type: TorrentSelectionType,
-    debridInstantAvailability: Record<string, Debrid_TorrentItemInstantAvailability>
+    type: TorrentSelectionType
 }) {
-
-    const { data: batchHistory } = useGetTorrentstreamBatchHistory(entry?.mediaId, true)
-
-    const { handleManualTorrentStreamSelection } = useHandleStartTorrentStream()
-    const { handleStreamSelection } = useHandleStartDebridStream()
-    const { torrentStreamingSelectedEpisode } = useTorrentSearchSelectedStreamEpisode()
-    const setTorrentstreamSelectedTorrent = useSetAtom(__torrentSearch_torrentstreamSelectedTorrentAtom)
-    const [, setter] = useAtom(__torrentSearch_selectionAtom)
-
-    const { setDebridstreamAutoplaySelectedTorrent } = useDebridStreamAutoplay()
-    const { setTorrentstreamAutoplaySelectedTorrent } = useTorrentStreamAutoplay()
-
-    if (!batchHistory?.torrent || !entry) return null
-
-    return (
-        <AppLayoutStack>
-            <h5 className="text-center flex gap-2 items-center"><LuCornerLeftDown className="mt-1" /> Previous selection</h5>
-
-            <TorrentPreviewItem
-                link={batchHistory?.torrent?.link}
-                confirmed={batchHistory?.torrent?.confirmed}
-                key={batchHistory?.torrent.link}
-                title={""}
-                releaseGroup={batchHistory?.torrent.releaseGroup || ""}
-                subtitle={batchHistory?.torrent.name}
-                isBatch={batchHistory?.torrent.isBatch ?? false}
-                image={entry?.media?.coverImage?.large || entry?.media?.bannerImage}
-                fallbackImage={entry?.media?.coverImage?.large || entry?.media?.bannerImage}
-                isBestRelease={batchHistory?.torrent.isBestRelease}
-                onClick={() => {
-                    if (!batchHistory?.torrent || !torrentStreamingSelectedEpisode?.aniDBEpisode) return
-                    if (type === "torrentstream-select") {
-                        setTorrentstreamAutoplaySelectedTorrent(batchHistory.torrent)
-                        handleManualTorrentStreamSelection({
-                            torrent: batchHistory?.torrent,
-                            entry,
-                            aniDBEpisode: torrentStreamingSelectedEpisode.aniDBEpisode,
-                            episodeNumber: torrentStreamingSelectedEpisode.episodeNumber,
-                            chosenFileIndex: undefined,
-                        })
-                        setter(undefined)
-                    } else if (type === "debridstream-select") {
-                        setDebridstreamAutoplaySelectedTorrent(batchHistory.torrent)
-                        handleStreamSelection({
-                            torrent: batchHistory?.torrent,
-                            entry,
-                            aniDBEpisode: torrentStreamingSelectedEpisode.aniDBEpisode,
-                            episodeNumber: torrentStreamingSelectedEpisode.episodeNumber,
-                            chosenFileId: "",
-                        })
-                        setter(undefined)
-                    } else if (type === "torrentstream-select-file" || type === "debridstream-select-file") {
-                        // Open the drawer to select the file
-                        // This opens the file selection drawer
-                        setTorrentstreamSelectedTorrent(batchHistory?.torrent)
-                    }
-                }}
-            >
-                <div className="flex flex-wrap gap-3 items-center">
-                    {batchHistory?.torrent?.isBestRelease && (
-                        <Badge
-                            className="rounded-[--radius-md] text-[0.8rem] bg-pink-800 border-transparent border"
-                            intent="success-solid"
-                            leftIcon={<LuGem className="text-md" />}
-                        >
-                            Best release
-                        </Badge>
-                    )}
-                    <TorrentResolutionBadge resolution={batchHistory?.torrent?.resolution} />
-                    {(!!batchHistory?.torrent?.infoHash && debridInstantAvailability[batchHistory?.torrent?.infoHash]) && (
-                        <TorrentDebridInstantAvailabilityBadge />
-                    )}
-                    <TorrentSeedersBadge seeders={batchHistory?.torrent?.seeders} />
-                    {!!batchHistory?.torrent?.size && <p className="text-gray-300 text-sm flex items-center gap-1">
-                        {batchHistory?.torrent?.formattedSize}</p>}
-                    {batchHistory?.torrent?.date && <p className="text-[--muted] text-sm flex items-center gap-1">
-                        <BiCalendarAlt /> {formatDistanceToNowSafe(batchHistory?.torrent?.date)}
-                    </p>}
-                </div>
-            </TorrentPreviewItem>
-        </AppLayoutStack>
-    )
+    // Torrent stream batch history functionality has been removed
+    return null
 }

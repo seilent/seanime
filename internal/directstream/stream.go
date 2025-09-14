@@ -192,10 +192,6 @@ func (m *Manager) listenToNativePlayerEvents() {
 							return
 						}
 						lfStream.StartSubtitleStream(lfStream, m.playbackCtx, subReader, 0)
-					} else if ts, ok := cs.(*TorrentStream); ok {
-						subReader := ts.file.NewReader()
-						subReader.SetResponsive()
-						ts.StartSubtitleStream(ts, m.playbackCtx, subReader, 0)
 					}
 
 					// Discord

@@ -52,7 +52,7 @@ func (h *Handler) HandleSaveIssueReport(c echo.Context) error {
 		ReactQueryLogs:      b.ReactQueryLogs,
 		ConsoleLogs:         b.ConsoleLogs,
 		Settings:            h.App.Settings,
-		DebridSettings:      h.App.SecondarySettings.Debrid,
+		DebridSettings:      nil,
 		IsAnimeLibraryIssue: b.IsAnimeLibraryIssue,
 		LocalFiles:          localFiles,
 		ServerStatus:        status,

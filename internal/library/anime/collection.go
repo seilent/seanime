@@ -202,44 +202,42 @@ func (lc *LibraryCollection) hydrateCollectionLists(
 			// For each list, get the entries
 			entries := list.GetEntries()
 
-			// For each entry, check if the media id is in the local files
-			// If it is, create a new LibraryCollectionEntry with the associated local files
+			// Create a new LibraryCollectionEntry for each entry
+			// Include all anime entries, regardless of local file presence
 			p2 := pool.NewWithResults[*LibraryCollectionEntry]()
 			for _, entry := range entries {
 				p2.Go(func() *LibraryCollectionEntry {
-					if slices.Contains(mIds, entry.Media.ID) {
+					var libraryData *EntryLibraryData = nil
 
+					// Only create library data if local files exist for this media
+					if slices.Contains(mIds, entry.Media.ID) {
 						entryLfs, _ := groupedLfs[entry.Media.ID]
-						libraryData, _ := NewEntryLibraryData(&NewEntryLibraryDataOptions{
+						libraryData, _ = NewEntryLibraryData(&NewEntryLibraryDataOptions{
 							EntryLocalFiles: entryLfs,
 							MediaId:         entry.Media.ID,
 							CurrentProgress: entry.GetProgressSafe(),
 						})
+					}
 
-						return &LibraryCollectionEntry{
-							MediaId:          entry.Media.ID,
-							Media:            entry.Media,
-							EntryLibraryData: libraryData,
-							EntryListData: &EntryListData{
-								Progress:    entry.GetProgressSafe(),
-								Score:       entry.GetScoreSafe(),
-								Status:      entry.Status,
-								Repeat:      entry.GetRepeatSafe(),
-								StartedAt:   anilist.ToEntryStartDate(entry.StartedAt),
-								CompletedAt: anilist.ToEntryCompletionDate(entry.CompletedAt),
-							},
-						}
-					} else {
-						return nil
+					// Always create the entry, with or without local files
+					return &LibraryCollectionEntry{
+						MediaId:          entry.Media.ID,
+						Media:            entry.Media,
+						EntryLibraryData: libraryData, // nil if no local files, populated if has files
+						EntryListData: &EntryListData{
+							Progress:    entry.GetProgressSafe(),
+							Score:       entry.GetScoreSafe(),
+							Status:      entry.Status,
+							Repeat:      entry.GetRepeatSafe(),
+							StartedAt:   anilist.ToEntryStartDate(entry.StartedAt),
+							CompletedAt: anilist.ToEntryCompletionDate(entry.CompletedAt),
+						},
 					}
 				})
 			}
 
 			r := p2.Wait()
-			// Filter out nil entries
-			r = lo.Filter(r, func(item *LibraryCollectionEntry, index int) bool {
-				return item != nil
-			})
+			// All entries are valid now (no more nil filtering needed)
 			// Sort by title
 			sort.Slice(r, func(i, j int) bool {
 				return r[i].Media.GetTitleSafe() < r[j].Media.GetTitleSafe()

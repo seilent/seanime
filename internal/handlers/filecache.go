@@ -88,12 +88,6 @@ func (h *Handler) HandleClearFileCacheMediastreamVideoFiles(c echo.Context) erro
 		return h.RespondWithError(c, err)
 	}
 
-	// Clear the transcode dir
-	h.App.MediastreamRepository.ClearTranscodeDir()
-
-	if h.App.MediastreamRepository != nil {
-		go h.App.MediastreamRepository.CacheWasCleared()
-	}
 
 	// Return a success response
 	return h.RespondWithData(c, true)

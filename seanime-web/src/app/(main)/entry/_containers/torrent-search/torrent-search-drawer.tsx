@@ -14,12 +14,7 @@ import React, { useEffect } from "react"
 export const __torrentSearch_selectionAtom = atom<TorrentSelectionType | undefined>(undefined)
 export const __torrentSearch_selectionEpisodeAtom = atom<number | undefined>(undefined)
 
-export type TorrentSelectionType =
-    "torrentstream-select"
-    | "torrentstream-select-file"
-    | "debridstream-select"
-    | "debridstream-select-file"
-    | "download"
+export type TorrentSelectionType = "download"
 
 export function TorrentSearchDrawer(props: { entry: Anime_Entry }) {
 

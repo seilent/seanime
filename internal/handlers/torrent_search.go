@@ -2,15 +2,11 @@ package handlers
 
 import (
 	"seanime/internal/api/anilist"
-	"seanime/internal/debrid/debrid"
 	"seanime/internal/torrents/torrent"
-	"seanime/internal/util/result"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
-var debridInstantAvailabilityCache = result.NewCache[string, map[string]debrid.TorrentItemInstantAvailability]()
 
 // HandleSearchTorrent
 //
@@ -51,30 +47,6 @@ func (h *Handler) HandleSearchTorrent(c echo.Context) error {
 	})
 	if err != nil {
 		return h.RespondWithError(c, err)
-	}
-
-	//
-	// Debrid torrent instant availability
-	//
-	if h.App.SecondarySettings.Debrid.Enabled {
-		hashes := make([]string, 0)
-		for _, t := range data.Torrents {
-			if t.InfoHash == "" {
-				continue
-			}
-			hashes = append(hashes, t.InfoHash)
-		}
-		hashesKey := strings.Join(hashes, ",")
-		var found bool
-		data.DebridInstantAvailability, found = debridInstantAvailabilityCache.Get(hashesKey)
-		if !found {
-			provider, err := h.App.DebridClientRepository.GetProvider()
-			if err == nil {
-				instantAvail := provider.GetInstantAvailability(hashes)
-				data.DebridInstantAvailability = instantAvail
-				debridInstantAvailabilityCache.Set(hashesKey, instantAvail)
-			}
-		}
 	}
 
 	return h.RespondWithData(c, data)

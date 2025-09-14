@@ -1,12 +1,11 @@
 import {
     ElectronPlaybackMethod,
     PlaybackDownloadedMedia,
-    PlaybackTorrentStreaming,
     useCurrentDevicePlaybackSettings,
     useExternalPlayerLink,
 } from "@/app/(main)/_atoms/playback.atoms"
-import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { useMediastreamActiveOnDevice } from "@/app/(main)/mediastream/_lib/mediastream.atoms"
+import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { SettingsCard, SettingsPageHeader } from "@/app/(main)/settings/_components/settings-card"
 import { __settings_tabAtom } from "@/app/(main)/settings/_components/settings-page.atoms"
 import { Alert } from "@/components/ui/alert"
@@ -39,8 +38,6 @@ export function PlaybackSettings(props: PlaybackSettingsProps) {
     const {
         downloadedMediaPlayback,
         setDownloadedMediaPlayback,
-        torrentStreamingPlayback,
-        setTorrentStreamingPlayback,
         electronPlaybackMethod,
         setElectronPlaybackMethod,
     } = useCurrentDevicePlaybackSettings()
@@ -69,7 +66,7 @@ export function PlaybackSettings(props: PlaybackSettingsProps) {
                 </div>
             </div>
 
-            {(!externalPlayerLink && (downloadedMediaPlayback === PlaybackDownloadedMedia.ExternalPlayerLink || torrentStreamingPlayback === PlaybackTorrentStreaming.ExternalPlayerLink)) && (
+            {(!externalPlayerLink && downloadedMediaPlayback === PlaybackDownloadedMedia.ExternalPlayerLink) && (
                 <Alert
                     intent="alert-basic"
                     description={
@@ -212,69 +209,6 @@ export function PlaybackSettings(props: PlaybackSettingsProps) {
                 </div>
             </SettingsCard>
 
-            <SettingsCard
-                title="Torrent & Debrid Streaming"
-                description="Choose how to play streamed content from torrents and debrid services"
-                className={cn(
-                    "transition-all duration-200",
-                    usingNativePlayer && "opacity-50 pointer-events-none",
-                )}
-            >
-                <div className="space-y-4">
-
-                    {/* Option Comparison */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Desktop Player Option */}
-                        <div
-                            className={cn(
-                                "p-4 rounded-lg border cursor-pointer transition-all",
-                                torrentStreamingPlayback === PlaybackTorrentStreaming.Default
-                                    ? "border-[--brand] bg-brand-900/10"
-                                    : "border-gray-700 hover:border-gray-600",
-                            )}
-                            onClick={() => {
-                                setTorrentStreamingPlayback(PlaybackTorrentStreaming.Default)
-                                toast.success("Playback settings updated")
-                            }}
-                        >
-                            <div className="flex items-start gap-3">
-                                <LuLaptop className="text-xl text-brand-600 dark:text-brand-400 mt-1" />
-                                <div className="flex-1 space-y-2">
-                                    <div>
-                                        <p className="font-medium">Desktop Media Player</p>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400">Opens streams in your system player with automatic
-                                                                                                tracking</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* External Player Option */}
-                        <div
-                            className={cn(
-                                "p-4 rounded-lg border cursor-pointer transition-all",
-                                torrentStreamingPlayback === PlaybackTorrentStreaming.ExternalPlayerLink
-                                    ? "border-[--brand] bg-brand-900/10"
-                                    : "border-gray-700 hover:border-gray-600",
-                            )}
-                            onClick={() => {
-                                setTorrentStreamingPlayback(PlaybackTorrentStreaming.ExternalPlayerLink)
-                                toast.success("Playback settings updated")
-                            }}
-                        >
-                            <div className="flex items-start gap-3">
-                                <LuExternalLink className="text-xl text-brand-600 dark:text-brand-400 mt-1" />
-                                <div className="flex-1 space-y-2">
-                                    <div>
-                                        <p className="font-medium">External Player Link</p>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400">Send stream URL to another application</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </SettingsCard>
 
             <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 dark:bg-gray-900/30 rounded-lg p-3 border border-gray-200 dark:border-gray-800 border-dashed">
                 <RiSettings3Fill className="text-base" />

@@ -114,6 +114,9 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1 := e.Group("/api").Group("/v1") // Commented out for now, will be used later
 
+	// SSE endpoint for Server-Sent Events
+	v1.GET("/sse/events", h.HandleSSEEvents)
+
 	// Setup endpoints (before auth middleware)
 	v1.GET("/setup/required", h.HandleSetupRequired)
 
@@ -156,6 +159,17 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Admin.PATCH("/users/:id", h.HandleUpdateUser)
 	v1Admin.DELETE("/users/:id", h.HandleDeleteUser)
 	v1Admin.POST("/users/:id/reset-password", h.HandleResetUserPassword)
+
+	// Admin Whitelist Management
+	v1Admin.GET("/whitelist", h.HandleGetWhitelist)
+	v1Admin.POST("/whitelist", h.HandleAddToWhitelist)
+	v1Admin.DELETE("/whitelist/:username", h.HandleRemoveFromWhitelist)
+
+	// Admin System Scan Management
+	v1Admin.POST("/system-scan/start", h.HandleStartSystemScan)
+	v1Admin.GET("/system-scan/status", h.HandleGetSystemScanStatus)
+
+	// Admin Unmapped Files Management - handled by global-mapping routes
 
 	// Settings
 	v1.GET("/settings", h.HandleGetSettings)
@@ -352,18 +366,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.DELETE("/playlist", h.HandleDeletePlaylist)
 	v1.GET("/playlist/episodes/:id/:progress", h.HandleGetPlaylistEpisodes)
 
-	//
-	// Onlinestream
-	//
-
-	v1.POST("/onlinestream/episode-source", h.HandleGetOnlineStreamEpisodeSource)
-	v1.POST("/onlinestream/episode-list", h.HandleGetOnlineStreamEpisodeList)
-	v1.DELETE("/onlinestream/cache", h.HandleOnlineStreamEmptyCache)
-
-	v1.POST("/onlinestream/search", h.HandleOnlinestreamManualSearch)
-	v1.POST("/onlinestream/manual-mapping", h.HandleOnlinestreamManualMapping)
-	v1.POST("/onlinestream/get-mapping", h.HandleGetOnlinestreamMapping)
-	v1.POST("/onlinestream/remove-mapping", h.HandleRemoveOnlinestreamMapping)
 
 	//
 	// Metadata Provider
@@ -416,8 +418,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1FileCache := v1.Group("/filecache")
 	v1FileCache.GET("/total-size", h.HandleGetFileCacheTotalSize)
 	v1FileCache.DELETE("/bucket", h.HandleRemoveFileCacheBucket)
-	v1FileCache.GET("/mediastream/videofiles/total-size", h.HandleGetFileCacheMediastreamVideoFilesTotalSize)
-	v1FileCache.DELETE("/mediastream/videofiles", h.HandleClearFileCacheMediastreamVideoFiles)
 
 	//
 	// Discord
@@ -430,21 +430,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Discord.POST("/presence/anime-update", h.HandleUpdateDiscordAnimeActivityWithProgress)
 	v1Discord.POST("/presence/cancel", h.HandleCancelDiscordActivity)
 
-	//
-	// Media Stream
-	//
-	v1.GET("/mediastream/settings", h.HandleGetMediastreamSettings)
-	v1.PATCH("/mediastream/settings", h.HandleSaveMediastreamSettings)
-	v1.POST("/mediastream/request", h.HandleRequestMediastreamMediaContainer)
-	v1.POST("/mediastream/preload", h.HandlePreloadMediastreamMediaContainer)
-	// Transcode
-	v1.POST("/mediastream/shutdown-transcode", h.HandleMediastreamShutdownTranscodeStream)
-	v1.GET("/mediastream/transcode/*", h.HandleMediastreamTranscode)
-	v1.GET("/mediastream/subs/*", h.HandleMediastreamGetSubtitles)
-	v1.GET("/mediastream/att/*", h.HandleMediastreamGetAttachments)
-	v1.GET("/mediastream/direct", h.HandleMediastreamDirectPlay)
-	v1.HEAD("/mediastream/direct", h.HandleMediastreamDirectPlay)
-	v1.GET("/mediastream/file", h.HandleMediastreamFile)
 
 	//
 	// Direct Stream
@@ -454,17 +439,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.HEAD("/directstream/stream", echo.WrapHandler(h.HandleDirectstreamGetStream()))
 	v1.GET("/directstream/att/*", h.HandleDirectstreamGetAttachments)
 
-	//
-	// Torrent stream
-	//
-	v1.GET("/torrentstream/settings", h.HandleGetTorrentstreamSettings)
-	v1.PATCH("/torrentstream/settings", h.HandleSaveTorrentstreamSettings)
-	v1.POST("/torrentstream/start", h.HandleTorrentstreamStartStream)
-	v1.POST("/torrentstream/stop", h.HandleTorrentstreamStopStream)
-	v1.POST("/torrentstream/drop", h.HandleTorrentstreamDropTorrent)
-	v1.POST("/torrentstream/torrent-file-previews", h.HandleGetTorrentstreamTorrentFilePreviews)
-	v1.POST("/torrentstream/batch-history", h.HandleGetTorrentstreamBatchHistory)
-	v1.GET("/torrentstream/stream/*", h.HandleTorrentstreamServeStream)
 
 	//
 	// Extensions
@@ -484,7 +458,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Extensions.GET("/payload/:id", h.HandleGetExtensionPayload)
 	v1Extensions.GET("/list/development", h.HandleListDevelopmentModeExtensions)
 	v1Extensions.GET("/list/manga-provider", h.HandleListMangaProviderExtensions)
-	v1Extensions.GET("/list/onlinestream-provider", h.HandleListOnlinestreamProviderExtensions)
 	v1Extensions.GET("/list/anime-torrent-provider", h.HandleListAnimeTorrentProviderExtensions)
 	v1Extensions.GET("/user-config/:id", h.HandleGetExtensionUserConfig)
 	v1Extensions.POST("/user-config", h.HandleSaveExtensionUserConfig)
@@ -519,21 +492,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1Local.POST("/offline", h.HandleSetOfflineMode)
 
-	//
-	// Debrid
-	//
-
-	v1.GET("/debrid/settings", h.HandleGetDebridSettings)
-	v1.PATCH("/debrid/settings", h.HandleSaveDebridSettings)
-	v1.POST("/debrid/torrents", h.HandleDebridAddTorrents)
-	v1.POST("/debrid/torrents/download", h.HandleDebridDownloadTorrent)
-	v1.POST("/debrid/torrents/cancel", h.HandleDebridCancelDownload)
-	v1.DELETE("/debrid/torrent", h.HandleDebridDeleteTorrent)
-	v1.GET("/debrid/torrents", h.HandleDebridGetTorrents)
-	v1.POST("/debrid/torrents/info", h.HandleDebridGetTorrentInfo)
-	v1.POST("/debrid/torrents/file-previews", h.HandleDebridGetTorrentFilePreviews)
-	v1.POST("/debrid/stream/start", h.HandleDebridStartStream)
-	v1.POST("/debrid/stream/cancel", h.HandleDebridCancelStream)
 
 	//
 	// Report
@@ -542,28 +500,33 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.POST("/report/issue", h.HandleSaveIssueReport)
 	v1.GET("/report/issue/download", h.HandleDownloadIssueReport)
 
+
 	//
-	// Nakama
+	// Admin System Scan
 	//
 
-	v1Nakama := v1.Group("/nakama")
-	v1Nakama.GET("/ws", h.HandleNakamaWebSocket)
-	v1Nakama.POST("/message", h.HandleSendNakamaMessage)
-	v1Nakama.POST("/reconnect", h.HandleNakamaReconnectToHost)
-	v1Nakama.POST("/cleanup", h.HandleNakamaRemoveStaleConnections)
-	v1Nakama.GET("/host/anime/library", h.HandleGetNakamaAnimeLibrary)
-	v1Nakama.GET("/host/anime/library/collection", h.HandleGetNakamaAnimeLibraryCollection)
-	v1Nakama.GET("/host/anime/library/files/:id", h.HandleGetNakamaAnimeLibraryFiles)
-	v1Nakama.GET("/host/anime/library/files", h.HandleGetNakamaAnimeAllLibraryFiles)
-	v1Nakama.POST("/play", h.HandleNakamaPlayVideo)
-	v1Nakama.GET("/host/torrentstream/stream", h.HandleNakamaHostTorrentstreamServeStream)
-	v1Nakama.GET("/host/anime/library/stream", h.HandleNakamaHostAnimeLibraryServeStream)
-	v1Nakama.GET("/host/debridstream/stream", h.HandleNakamaHostDebridstreamServeStream)
-	v1Nakama.GET("/host/debridstream/url", h.HandleNakamaHostGetDebridstreamURL)
-	v1Nakama.GET("/stream", h.HandleNakamaProxyStream)
-	v1Nakama.POST("/watch-party/create", h.HandleNakamaCreateWatchParty)
-	v1Nakama.POST("/watch-party/join", h.HandleNakamaJoinWatchParty)
-	v1Nakama.POST("/watch-party/leave", h.HandleNakamaLeaveWatchParty)
+	v1AdminSystemScan := v1.Group("/admin/system-scan")
+	v1AdminSystemScan.POST("/start", h.HandleStartSystemScan)
+	v1AdminSystemScan.GET("/status", h.HandleGetSystemScanStatus)
+
+	//
+	// Global Mapping
+	//
+
+	v1GlobalMapping := v1.Group("/global-mapping")
+	v1GlobalMapping.GET("/unmapped-files", h.HandleGetUnmappedFiles)
+	v1GlobalMapping.GET("/ignored-files", h.HandleGetIgnoredFiles)
+	v1GlobalMapping.GET("/mappings", h.HandleGetGlobalMappings)
+	v1GlobalMapping.POST("/map-file", h.HandleMapFileToAniList)
+	v1GlobalMapping.POST("/ignore-file", h.HandleIgnoreFile)
+	v1GlobalMapping.POST("/unignore-file", h.HandleUnignoreFile)
+	v1GlobalMapping.POST("/remove-mapping", h.HandleRemoveMapping)
+	v1GlobalMapping.GET("/progress-sync-stats", h.HandleGetProgressSyncStats)
+	v1GlobalMapping.POST("/retry-failed-sync", h.HandleRetryFailedSyncItems)
+	v1GlobalMapping.GET("/files/:anilistId", h.HandleGetFilesForAnime)
+	v1GlobalMapping.GET("/user-subscriptions", h.HandleGetUserSubscriptions)
+	v1GlobalMapping.POST("/subscribe", h.HandleSubscribeToAnime)
+	v1GlobalMapping.POST("/unsubscribe", h.HandleUnsubscribeFromAnime)
 
 }
 

@@ -1,5 +1,4 @@
 import { AL_BaseAnime, Anime_Entry, HibikeTorrent_AnimeTorrent } from "@/api/generated/types"
-import { useDebridAddTorrents } from "@/api/hooks/debrid.hooks"
 import { useDownloadTorrentFile } from "@/api/hooks/download.hooks"
 import { useTorrentClientDownload } from "@/api/hooks/torrent_client.hooks"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
@@ -18,7 +17,6 @@ import { atom } from "jotai"
 import { useAtom, useAtomValue, useSetAtom } from "jotai/react"
 import { useRouter } from "next/navigation"
 import React, { useMemo, useState } from "react"
-import { AiOutlineCloudServer } from "react-icons/ai"
 import { BiCollection, BiDownload, BiX } from "react-icons/bi"
 import { FcFilmReel, FcFolder } from "react-icons/fc"
 import { LuDownload, LuPlay } from "react-icons/lu"
@@ -85,14 +83,8 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
         setTorrentDrawerIsOpen(undefined)
     })
 
-    // download via debrid service
-    const { mutate: debridAddTorrents, isPending: isDownloadingDebrid } = useDebridAddTorrents(() => {
-        setConfirmationModalOpen(false)
-        setTorrentDrawerIsOpen(undefined)
-        router.push("/debrid")
-    })
 
-    const isDisabled = isPending || isDownloadingFiles || isDownloadingDebrid
+    const isDisabled = isPending || isDownloadingFiles
 
     function handleLaunchDownload(smartSelect: boolean) {
         if (smartSelect) {
@@ -126,16 +118,7 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
         })
     }
 
-    function handleDebridAddTorrents() {
-        debridAddTorrents({
-            torrents: selectedTorrents,
-            destination,
-            media,
-        })
-    }
 
-    const debridActive = serverStatus?.debridSettings?.enabled && !!serverStatus?.debridSettings?.provider
-    const [isDebrid, setIsDebrid] = useState(debridActive)
 
     if (selectedTorrents.length === 0) return null
 
@@ -148,13 +131,6 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
             data-torrent-confirmation-modal
         >
 
-            {debridActive && (
-                <Switch
-                    label="Download with Debrid service"
-                    value={isDebrid}
-                    onValueChange={v => setIsDebrid(v)}
-                />
-            )}
 
             <DirectorySelector
                 name="destination"
@@ -206,24 +182,6 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
                 </Tooltip>
             ))}
 
-            {isDebrid ? (
-                <>
-                    {(serverStatus?.debridSettings?.enabled && !!serverStatus?.debridSettings?.provider) && (
-                        <Button
-                            data-torrent-confirmation-modal-debrid-button
-                            leftIcon={<AiOutlineCloudServer className="text-2xl" />}
-                            intent="white"
-                            onClick={() => handleDebridAddTorrents()}
-                            disabled={isDisabled}
-                            loading={isDownloadingDebrid}
-                            className="w-full"
-                        >
-                            Download with Debrid service
-                        </Button>
-                    )}
-                </>
-            ) : (
-                <>
                     <div className="space-y-2" data-torrent-confirmation-modal-download-buttons>
 
                         <div className="flex w-full gap-2" data-torrent-confirmation-modal-download-buttons-left>
@@ -247,9 +205,7 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
                                     loading={isPending}
                                     className="w-full"
                                 >
-                                    {!serverStatus?.debridSettings?.enabled
-                                        ? (canSmartSelect ? "Download all" : "Download")
-                                        : "Download with torrent client"}
+                                    {canSmartSelect ? "Download all" : "Download"}
                                 </Button>
                             )}
                         </div>
@@ -269,8 +225,6 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
                         )}
 
                     </div>
-                </>
-            )}
         </Modal>
     )
 

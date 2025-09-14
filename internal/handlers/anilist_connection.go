@@ -84,9 +84,6 @@ func (h *Handler) HandleAnilistConnect(c echo.Context) error {
 
 	go func() {
 		defer util.HandlePanicThen(func() {})
-		h.App.InitOrRefreshTorrentstreamSettings()
-		h.App.InitOrRefreshMediastreamSettings()
-		h.App.InitOrRefreshDebridSettings()
 	}()
 
 	// Return new status

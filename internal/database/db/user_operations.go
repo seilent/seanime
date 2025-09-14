@@ -13,19 +13,16 @@ import (
 
 // User management operations
 
-// CreateUser creates a new user with hashed password
-func (db *Database) CreateUser(username, password, displayName, role string) (*models.User, error) {
+// CreateUserWithPassword creates a new user with hashed password (legacy method)
+func (db *Database) CreateUserWithPassword(username, password, displayName, role string) (*models.User, error) {
 	// Check if username already exists
 	var existingUser models.User
 	if err := db.gormdb.Where("username = ?", username).First(&existingUser).Error; err == nil {
 		return nil, errors.New("username already exists")
 	}
 
-	// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
+	// Password hashing removed for AniList OAuth - this method is deprecated
+	_ = password // Silence unused parameter warning
 
 	// Set default role if not provided
 	if role == "" {
@@ -38,12 +35,35 @@ func (db *Database) CreateUser(username, password, displayName, role string) (*m
 	}
 
 	user := &models.User{
-		Username:     username,
-		PasswordHash: string(hashedPassword),
-		DisplayName:  displayName,
-		Role:         role,
-		IsActive:     true,
+		Username:    username,
+		DisplayName: displayName,
+		Role:        role,
+		IsActive:    true,
 	}
+
+	if err := db.gormdb.Create(user).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// CreateUser creates a new user from a User struct (for AniList OAuth)
+func (db *Database) CreateUser(user *models.User) (*models.User, error) {
+	// Check if username already exists
+	var existingUser models.User
+	if err := db.gormdb.Where("username = ?", user.Username).First(&existingUser).Error; err == nil {
+		return nil, errors.New("username already exists")
+	}
+
+	// Set default values if not provided
+	if user.Role == "" {
+		user.Role = "user"
+	}
+	if user.DisplayName == "" {
+		user.DisplayName = user.Username
+	}
+	user.IsActive = true
 
 	if err := db.gormdb.Create(user).Error; err != nil {
 		return nil, err
@@ -70,18 +90,10 @@ func (db *Database) GetUserByID(id uint) (*models.User, error) {
 	return &user, nil
 }
 
-// ValidateUserPassword validates a user's password
+// ValidateUserPassword is no longer used (AniList OAuth replaces password auth)
+// Kept for backwards compatibility but will always return error
 func (db *Database) ValidateUserPassword(username, password string) (*models.User, error) {
-	user, err := db.GetUserByUsername(username)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return nil, errors.New("invalid password")
-	}
-
-	return user, nil
+	return nil, errors.New("password authentication is no longer supported - use AniList OAuth")
 }
 
 // UpdateUserPassword updates a user's password
@@ -392,7 +404,7 @@ func (db *Database) CreateFirstTimeSetup(username, password, displayName string)
 	}
 
 	// Create the first admin user
-	user, err := db.CreateUser(username, password, displayName, "admin")
+	user, err := db.CreateUserWithPassword(username, password, displayName, "admin")
 	if err != nil {
 		return nil, err
 	}

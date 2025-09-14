@@ -39,7 +39,6 @@ type (
 		EnableMalMutationTests     bool `mapstructure:"enable_mal_mutation_tests"`
 		EnableMediaPlayerTests     bool `mapstructure:"enable_media_player_tests"`
 		EnableTorrentClientTests   bool `mapstructure:"enable_torrent_client_tests"`
-		EnableTorrentstreamTests   bool `mapstructure:"enable_torrentstream_tests"`
 	}
 
 	ProviderConfig struct {
@@ -137,11 +136,6 @@ func MediaPlayer() FlagFunc {
 func TorrentClient() FlagFunc {
 	return func() bool {
 		return ConfigData.Flags.EnableTorrentClientTests
-	}
-}
-func Torrentstream() FlagFunc {
-	return func() bool {
-		return ConfigData.Flags.EnableTorrentstreamTests
 	}
 }
 

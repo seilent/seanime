@@ -2,7 +2,6 @@ import { Anime_Episode } from "@/api/generated/types"
 import { useGetAnimeEntry } from "@/api/hooks/anime_entries.hooks"
 import { PlaybackManager_PlaybackState } from "@/app/(main)/_features/progress-tracking/_lib/playback-manager.types"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
-import { useDebridStreamAutoplay, useTorrentStreamAutoplay } from "@/app/(main)/entry/_containers/torrent-stream/_lib/handle-torrent-stream"
 import { useHandlePlayMedia } from "@/app/(main)/entry/_lib/handle-play-media"
 import { logger } from "@/lib/helpers/debug"
 import { atom } from "jotai"
@@ -31,8 +30,6 @@ export function useAutoplay() {
     const [nextEpisode, setNextEpisode] = useAtom(__autoplay_nextEpisodeAtom)
     const [streamingType, setStreamingType] = useAtom(__autoplay_streamingTypeAtom)
 
-    const { hasNextTorrentstreamEpisode, autoplayNextTorrentstreamEpisode, resetTorrentstreamAutoplayInfo } = useTorrentStreamAutoplay()
-    const { hasNextDebridstreamEpisode, autoplayNextDebridstreamEpisode, resetDebridstreamAutoplayInfo } = useDebridStreamAutoplay()
 
     // Local playback
     const { playMediaFile } = useHandlePlayMedia()
@@ -68,8 +65,6 @@ export function useAutoplay() {
         setCountdown(5)
 
         // Reset streaming autoplay info
-        resetTorrentstreamAutoplayInfo()
-        resetDebridstreamAutoplayInfo()
     }
 
     const startAutoplay = (
@@ -94,17 +89,13 @@ export function useAutoplay() {
         if (nextEp) {
             episodeToPlay = nextEp
             detectedType = type
-        } else if (hasNextTorrentstreamEpisode) {
-            detectedType = "torrent"
-        } else if (hasNextDebridstreamEpisode) {
-            detectedType = "debrid"
         } else {
             // For local episodes, we'll pass the episode in the nextEp
             // The caller is responsible for getting the next episode
             detectedType = "local"
         }
 
-        if (!episodeToPlay && !hasNextTorrentstreamEpisode && !hasNextDebridstreamEpisode) {
+        if (!episodeToPlay) {
             logger("Autoplay").info("No next episode found")
             return
         }
@@ -164,12 +155,6 @@ export function useAutoplay() {
                         toast.info("Playing next episode")
                     }
                     break
-                case "torrent":
-                    autoplayNextTorrentstreamEpisode()
-                    break
-                case "debrid":
-                    autoplayNextDebridstreamEpisode()
-                    break
                 default:
                     logger("Autoplay").warning("Unknown streaming type", type)
             }
@@ -207,7 +192,7 @@ export function useAutoplay() {
         startAutoplay,
         cancelAutoplay,
 
-        hasNextEpisode: !!nextEpisode || hasNextTorrentstreamEpisode || hasNextDebridstreamEpisode,
+        hasNextEpisode: !!nextEpisode,
         resetAutoplayInfo: cancelAutoplay,
     }
 }

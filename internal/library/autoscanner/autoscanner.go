@@ -219,7 +219,6 @@ func (as *AutoScanner) scan() {
 	sc := scanner.Scanner{
 		DirPath:            settings.Library.LibraryPath,
 		OtherDirPaths:      settings.Library.LibraryPaths,
-		Enhanced:           false, // Do not use enhanced mode for auto scanner.
 		Platform:           as.platform,
 		Logger:             as.logger,
 		WSEventManager:     as.wsEventManager,

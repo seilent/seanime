@@ -7,6 +7,29 @@ export type ApiEndpoints = Record<string, Record<string, {
 }>>
 
 export const API_ENDPOINTS = {
+    ADMIN_SYSTEM_SCAN: {
+        /**
+         *  @description
+         *  Route Start system-wide library scan
+         *  Initiates a system-wide scan of all library paths using multi-token strategy
+         *  Requires admin privileges
+         */
+        StartSystemScan: {
+            key: "ADMIN-SYSTEM-SCAN-start-system-scan",
+            methods: ["POST"],
+            endpoint: "/api/v1/admin/system-scan/start",
+        },
+        /**
+         *  @description
+         *  Route Get system scan status
+         *  Returns the current status of system scanning operations
+         */
+        GetSystemScanStatus: {
+            key: "ADMIN-SYSTEM-SCAN-get-system-scan-status",
+            methods: ["GET"],
+            endpoint: "/api/v1/admin/system-scan/status",
+        },
+    },
     ANILIST: {
         /**
          *  @description
@@ -153,9 +176,8 @@ export const API_ENDPOINTS = {
     ANIME: {
         /**
          *  @description
-         *  Route gets list of main episodes
-         *  This returns a list of main episodes for the given AniList anime media id.
-         *  It also loads the episode list into the different modules.
+         *  Route gets list of main episodes from local files
+         *  This returns a list of main episodes for the given AniList anime media id from local library files.
          */
         GetAnimeEpisodeCollection: {
             key: "ANIME-get-anime-episode-collection",
@@ -431,114 +453,6 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/continuity/history",
         },
     },
-    DEBRID: {
-        /**
-         *  @description
-         *  Route get debrid settings.
-         *  This returns the debrid settings.
-         */
-        GetDebridSettings: {
-            key: "DEBRID-get-debrid-settings",
-            methods: ["GET"],
-            endpoint: "/api/v1/debrid/settings",
-        },
-        /**
-         *  @description
-         *  Route save debrid settings.
-         *  This saves the debrid settings.
-         *  The client should refetch the server status.
-         */
-        SaveDebridSettings: {
-            key: "DEBRID-save-debrid-settings",
-            methods: ["PATCH"],
-            endpoint: "/api/v1/debrid/settings",
-        },
-        /**
-         *  @description
-         *  Route add torrent to debrid.
-         *  This adds a torrent to the debrid service.
-         */
-        DebridAddTorrents: {
-            key: "DEBRID-debrid-add-torrents",
-            methods: ["POST"],
-            endpoint: "/api/v1/debrid/torrents",
-        },
-        /**
-         *  @description
-         *  Route download torrent from debrid.
-         *  Manually downloads a torrent from the debrid service locally.
-         */
-        DebridDownloadTorrent: {
-            key: "DEBRID-debrid-download-torrent",
-            methods: ["POST"],
-            endpoint: "/api/v1/debrid/torrents/download",
-        },
-        /**
-         *  @description
-         *  Route cancel download from debrid.
-         *  This cancels a download from the debrid service.
-         */
-        DebridCancelDownload: {
-            key: "DEBRID-debrid-cancel-download",
-            methods: ["POST"],
-            endpoint: "/api/v1/debrid/torrents/cancel",
-        },
-        /**
-         *  @description
-         *  Route remove torrent from debrid.
-         *  This removes a torrent from the debrid service.
-         */
-        DebridDeleteTorrent: {
-            key: "DEBRID-debrid-delete-torrent",
-            methods: ["DELETE"],
-            endpoint: "/api/v1/debrid/torrent",
-        },
-        /**
-         *  @description
-         *  Route get torrents from debrid.
-         *  This gets the torrents from the debrid service.
-         */
-        DebridGetTorrents: {
-            key: "DEBRID-debrid-get-torrents",
-            methods: ["GET"],
-            endpoint: "/api/v1/debrid/torrents",
-        },
-        /**
-         *  @description
-         *  Route get torrent info from debrid.
-         *  This gets the torrent info from the debrid service.
-         */
-        DebridGetTorrentInfo: {
-            key: "DEBRID-debrid-get-torrent-info",
-            methods: ["POST"],
-            endpoint: "/api/v1/debrid/torrents/info",
-        },
-        DebridGetTorrentFilePreviews: {
-            key: "DEBRID-debrid-get-torrent-file-previews",
-            methods: ["POST"],
-            endpoint: "/api/v1/debrid/torrents/file-previews",
-        },
-        /**
-         *  @description
-         *  Route start stream from debrid.
-         *  This starts streaming a torrent from the debrid service.
-         */
-        DebridStartStream: {
-            key: "DEBRID-debrid-start-stream",
-            methods: ["POST"],
-            endpoint: "/api/v1/debrid/stream/start",
-        },
-        /**
-         *  @description
-         *  Route cancel stream from debrid.
-         *  This cancels a stream from the debrid service.
-         */
-        DebridCancelStream: {
-            key: "DEBRID-debrid-cancel-stream",
-            methods: ["POST"],
-            endpoint: "/api/v1/debrid/stream/cancel",
-        },
-    },
     DIRECTORY_SELECTOR: {
         /**
          *  @description
@@ -786,6 +700,140 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/filecache/mediastream/videofiles",
         },
     },
+    GLOBAL_MAPPING: {
+        /**
+         *  @description
+         *  Route returns all unmapped files
+         *  This returns all files that could not be automatically matched to AniList entries.
+         *  These files need manual mapping or can be marked as ignored.
+         */
+        GetUnmappedFiles: {
+            key: "GLOBAL-MAPPING-get-unmapped-files",
+            methods: ["GET"],
+            endpoint: "/api/v1/global-mapping/unmapped-files",
+        },
+        /**
+         *  @description
+         *  Route returns all ignored files
+         *  This returns all files that have been manually marked as ignored.
+         */
+        GetIgnoredFiles: {
+            key: "GLOBAL-MAPPING-get-ignored-files",
+            methods: ["GET"],
+            endpoint: "/api/v1/global-mapping/ignored-files",
+        },
+        /**
+         *  @description
+         *  Route returns all global file mappings
+         *  This returns all files that have been successfully mapped to AniList entries.
+         */
+        GetGlobalMappings: {
+            key: "GLOBAL-MAPPING-get-global-mappings",
+            methods: ["GET"],
+            endpoint: "/api/v1/global-mapping/mappings",
+        },
+        /**
+         *  @description
+         *  Route maps a file to an AniList entry
+         *  This manually maps a file to a specific AniList entry.
+         *  The file will be moved from unmapped to mapped status.
+         */
+        MapFileToAniList: {
+            key: "GLOBAL-MAPPING-map-file-to-ani-list",
+            methods: ["POST"],
+            endpoint: "/api/v1/global-mapping/map-file",
+        },
+        /**
+         *  @description
+         *  Route marks a file as ignored
+         *  This marks an unmapped file as ignored so it won't appear in the unmapped files list.
+         */
+        IgnoreFile: {
+            key: "GLOBAL-MAPPING-ignore-file",
+            methods: ["POST"],
+            endpoint: "/api/v1/global-mapping/ignore-file",
+        },
+        /**
+         *  @description
+         *  Route unmarks a file as ignored
+         *  This moves an ignored file back to the unmapped files list.
+         */
+        UnignoreFile: {
+            key: "GLOBAL-MAPPING-unignore-file",
+            methods: ["POST"],
+            endpoint: "/api/v1/global-mapping/unignore-file",
+        },
+        /**
+         *  @description
+         *  Route removes a global file mapping
+         *  This removes a global file mapping and optionally moves the file back to unmapped.
+         */
+        RemoveMapping: {
+            key: "GLOBAL-MAPPING-remove-mapping",
+            methods: ["POST"],
+            endpoint: "/api/v1/global-mapping/remove-mapping",
+        },
+        /**
+         *  @description
+         *  Route returns progress sync statistics
+         *  This returns statistics about the progress sync queue (pending, synced, failed items).
+         */
+        GetProgressSyncStats: {
+            key: "GLOBAL-MAPPING-get-progress-sync-stats",
+            methods: ["GET"],
+            endpoint: "/api/v1/global-mapping/progress-sync-stats",
+        },
+        /**
+         *  @description
+         *  Route retries failed progress sync items
+         *  This resets all failed sync items back to pending status for retry.
+         */
+        RetryFailedSyncItems: {
+            key: "GLOBAL-MAPPING-retry-failed-sync-items",
+            methods: ["POST"],
+            endpoint: "/api/v1/global-mapping/retry-failed-sync",
+        },
+        /**
+         *  @description
+         *  Route returns all files mapped to a specific AniList ID
+         *  This returns all files that are mapped to a specific anime.
+         */
+        GetFilesForAnime: {
+            key: "GLOBAL-MAPPING-get-files-for-anime",
+            methods: ["GET"],
+            endpoint: "/api/v1/global-mapping/files/:anilistId",
+        },
+        /**
+         *  @description
+         *  Route returns current user's anime subscriptions
+         *  This returns all AniList IDs that the current user is subscribed to.
+         */
+        GetUserSubscriptions: {
+            key: "GLOBAL-MAPPING-get-user-subscriptions",
+            methods: ["GET"],
+            endpoint: "/api/v1/global-mapping/user-subscriptions",
+        },
+        /**
+         *  @description
+         *  Route subscribes user to an anime
+         *  This manually subscribes the current user to receive notifications for a specific anime.
+         */
+        SubscribeToAnime: {
+            key: "GLOBAL-MAPPING-subscribe-to-anime",
+            methods: ["POST"],
+            endpoint: "/api/v1/global-mapping/subscribe",
+        },
+        /**
+         *  @description
+         *  Route unsubscribes user from an anime
+         *  This removes the current user's subscription to a specific anime.
+         */
+        UnsubscribeFromAnime: {
+            key: "GLOBAL-MAPPING-unsubscribe-from-anime",
+            methods: ["POST"],
+            endpoint: "/api/v1/global-mapping/unsubscribe",
+        },
+    },
     LOCAL: {
         /**
          *  @description
@@ -937,6 +985,17 @@ export const API_ENDPOINTS = {
             key: "LOCALFILES-remove-empty-directories",
             methods: ["DELETE"],
             endpoint: "/api/v1/library/empty-directories",
+        },
+        /**
+         *  @description
+         *  Route returns available episodes for a specific media across the entire server.
+         *  This endpoint returns all locally available episodes for a media from the server-wide file mapping.
+         *  Useful for checking what episodes are available when a user adds anime to their library.
+         */
+        GetMediaAvailability: {
+            key: "LOCALFILES-get-media-availability",
+            methods: ["GET"],
+            endpoint: "/api/v1/library/media-availability/{id}",
         },
     },
     MAL: {
@@ -1231,60 +1290,6 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/media-player/start",
         },
     },
-    MEDIASTREAM: {
-        /**
-         *  @description
-         *  Route get mediastream settings.
-         *  This returns the mediastream settings.
-         */
-        GetMediastreamSettings: {
-            key: "MEDIASTREAM-get-mediastream-settings",
-            methods: ["GET"],
-            endpoint: "/api/v1/mediastream/settings",
-        },
-        /**
-         *  @description
-         *  Route save mediastream settings.
-         *  This saves the mediastream settings.
-         */
-        SaveMediastreamSettings: {
-            key: "MEDIASTREAM-save-mediastream-settings",
-            methods: ["PATCH"],
-            endpoint: "/api/v1/mediastream/settings",
-        },
-        /**
-         *  @description
-         *  Route request media stream.
-         *  This requests a media stream and returns the media container to start the playback.
-         */
-        RequestMediastreamMediaContainer: {
-            key: "MEDIASTREAM-request-mediastream-media-container",
-            methods: ["POST"],
-            endpoint: "/api/v1/mediastream/request",
-        },
-        /**
-         *  @description
-         *  Route preloads media stream for playback.
-         *  This preloads a media stream by extracting the media information and attachments.
-         */
-        PreloadMediastreamMediaContainer: {
-            key: "MEDIASTREAM-preload-mediastream-media-container",
-            methods: ["POST"],
-            endpoint: "/api/v1/mediastream/preload",
-        },
-        /**
-         *  @description
-         *  Route shuts down the transcode stream
-         *  This requests the transcoder to shut down. It should be called when unmounting the player (playback is no longer needed).
-         *  This will also send an events.MediastreamShutdownStream event.
-         *  It will not return any error and is safe to call multiple times.
-         */
-        MediastreamShutdownTranscodeStream: {
-            key: "MEDIASTREAM-mediastream-shutdown-transcode-stream",
-            methods: ["POST"],
-            endpoint: "/api/v1/mediastream/shutdown-transcode",
-        },
-    },
     METADATA: {
         /**
          *  @description
@@ -1305,193 +1310,6 @@ export const API_ENDPOINTS = {
             key: "METADATA-remove-filler-data",
             methods: ["DELETE"],
             endpoint: "/api/v1/metadata-provider/filler",
-        },
-    },
-    NAKAMA: {
-        /**
-         *  @description
-         *  Route handles WebSocket connections for Nakama peers.
-         *  This endpoint handles WebSocket connections from Nakama peers when this instance is acting as a host.
-         */
-        NakamaWebSocket: {
-            key: "NAKAMA-nakama-web-socket",
-            methods: ["GET"],
-            endpoint: "/api/v1/nakama/ws",
-        },
-        /**
-         *  @description
-         *  Route sends a custom message through Nakama.
-         *  This allows sending custom messages to connected peers or the host.
-         */
-        SendNakamaMessage: {
-            key: "NAKAMA-send-nakama-message",
-            methods: ["POST"],
-            endpoint: "/api/v1/nakama/message",
-        },
-        /**
-         *  @description
-         *  Route shares the local anime collection with Nakama clients.
-         *  This creates a new LibraryCollection struct and returns it.
-         *  This is used to share the local anime collection with Nakama clients.
-         */
-        GetNakamaAnimeLibrary: {
-            key: "NAKAMA-get-nakama-anime-library",
-            methods: ["GET"],
-            endpoint: "/api/v1/nakama/host/anime/library/collection",
-        },
-        /**
-         *  @description
-         *  Route shares the local anime collection with Nakama clients.
-         *  This creates a new LibraryCollection struct and returns it.
-         *  This is used to share the local anime collection with Nakama clients.
-         */
-        GetNakamaAnimeLibraryCollection: {
-            key: "NAKAMA-get-nakama-anime-library-collection",
-            methods: ["GET"],
-            endpoint: "/api/v1/nakama/host/anime/library/collection",
-        },
-        /**
-         *  @description
-         *  Route return the local files for the given AniList anime media id.
-         *  This is used by the anime media entry pages to get all the data about the anime.
-         */
-        GetNakamaAnimeLibraryFiles: {
-            key: "NAKAMA-get-nakama-anime-library-files",
-            methods: ["POST"],
-            endpoint: "/api/v1/nakama/host/anime/library/files/{id}",
-        },
-        /**
-         *  @description
-         *  Route return all the local files for the host.
-         *  This is used to share the local anime collection with Nakama clients.
-         */
-        GetNakamaAnimeAllLibraryFiles: {
-            key: "NAKAMA-get-nakama-anime-all-library-files",
-            methods: ["POST"],
-            endpoint: "/api/v1/nakama/host/anime/library/files",
-        },
-        NakamaPlayVideo: {
-            key: "NAKAMA-nakama-play-video",
-            methods: ["POST"],
-            endpoint: "/api/v1/nakama/play",
-        },
-        /**
-         *  @description
-         *  Route reconnects to the Nakama host.
-         *  This attempts to reconnect to the configured Nakama host if the connection was lost.
-         */
-        NakamaReconnectToHost: {
-            key: "NAKAMA-nakama-reconnect-to-host",
-            methods: ["POST"],
-            endpoint: "/api/v1/nakama/reconnect",
-        },
-        /**
-         *  @description
-         *  Route removes stale peer connections.
-         *  This removes peer connections that haven't responded to ping messages for a while.
-         */
-        NakamaRemoveStaleConnections: {
-            key: "NAKAMA-nakama-remove-stale-connections",
-            methods: ["POST"],
-            endpoint: "/api/v1/nakama/cleanup",
-        },
-        /**
-         *  @description
-         *  Route creates a new watch party session.
-         *  This creates a new watch party that peers can join to watch content together in sync.
-         */
-        NakamaCreateWatchParty: {
-            key: "NAKAMA-nakama-create-watch-party",
-            methods: ["POST"],
-            endpoint: "/api/v1/nakama/watch-party/create",
-        },
-        /**
-         *  @description
-         *  Route joins an existing watch party.
-         *  This allows a peer to join an active watch party session.
-         */
-        NakamaJoinWatchParty: {
-            key: "NAKAMA-nakama-join-watch-party",
-            methods: ["POST"],
-            endpoint: "/api/v1/nakama/watch-party/join",
-        },
-        /**
-         *  @description
-         *  Route leaves the current watch party.
-         *  This removes the user from the active watch party session.
-         */
-        NakamaLeaveWatchParty: {
-            key: "NAKAMA-nakama-leave-watch-party",
-            methods: ["POST"],
-            endpoint: "/api/v1/nakama/watch-party/leave",
-        },
-    },
-    ONLINESTREAM: {
-        /**
-         *  @description
-         *  Route returns the episode list for the given media and provider.
-         *  It returns the episode list for the given media and provider.
-         *  The episodes are cached using a file cache.
-         *  The episode list is just a list of episodes with no video sources, it's what the client uses to display the episodes and subsequently fetch the sources.
-         *  The episode list might be nil or empty if nothing could be found, but the media will always be returned.
-         */
-        GetOnlineStreamEpisodeList: {
-            key: "ONLINESTREAM-get-online-stream-episode-list",
-            methods: ["POST"],
-            endpoint: "/api/v1/onlinestream/episode-list",
-        },
-        GetOnlineStreamEpisodeSource: {
-            key: "ONLINESTREAM-get-online-stream-episode-source",
-            methods: ["POST"],
-            endpoint: "/api/v1/onlinestream/episode-source",
-        },
-        OnlineStreamEmptyCache: {
-            key: "ONLINESTREAM-online-stream-empty-cache",
-            methods: ["DELETE"],
-            endpoint: "/api/v1/onlinestream/cache",
-        },
-        /**
-         *  @description
-         *  Route returns search results for a manual search.
-         *  Returns search results for a manual search.
-         */
-        OnlinestreamManualSearch: {
-            key: "ONLINESTREAM-onlinestream-manual-search",
-            methods: ["POST"],
-            endpoint: "/api/v1/onlinestream/search",
-        },
-        /**
-         *  @description
-         *  Route manually maps an anime entry to an anime ID from the provider.
-         *  This is used to manually map an anime entry to an anime ID from the provider.
-         *  The client should re-fetch the chapter container after this.
-         */
-        OnlinestreamManualMapping: {
-            key: "ONLINESTREAM-onlinestream-manual-mapping",
-            methods: ["POST"],
-            endpoint: "/api/v1/onlinestream/manual-mapping",
-        },
-        /**
-         *  @description
-         *  Route returns the mapping for an anime entry.
-         *  This is used to get the mapping for an anime entry.
-         *  An empty string is returned if there's no manual mapping. If there is, the anime ID will be returned.
-         */
-        GetOnlinestreamMapping: {
-            key: "ONLINESTREAM-get-onlinestream-mapping",
-            methods: ["POST"],
-            endpoint: "/api/v1/onlinestream/get-mapping",
-        },
-        /**
-         *  @description
-         *  Route removes the mapping for an anime entry.
-         *  This is used to remove the mapping for an anime entry.
-         *  The client should re-fetch the chapter container after this.
-         */
-        RemoveOnlinestreamMapping: {
-            key: "ONLINESTREAM-remove-onlinestream-mapping",
-            methods: ["POST"],
-            endpoint: "/api/v1/onlinestream/remove-mapping",
         },
     },
     PLAYBACK_MANAGER: {
@@ -1852,6 +1670,120 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/memory/gc",
         },
     },
+    SYNC_LIBRARY: {
+        /**
+         *  @description
+         *  Route Synchronize user's library subscriptions
+         *  Updates user's media subscriptions for real-time LocalFile updates
+         */
+        SyncUserLibrary: {
+            key: "SYNC-LIBRARY-sync-user-library",
+            methods: ["POST"],
+            endpoint: "/api/v1/sync/library/sync",
+        },
+        /**
+         *  @description
+         *  Route Handle user library changes
+         *  Updates subscriptions when user's library changes (adds/removes anime)
+         */
+        LibraryChanged: {
+            key: "SYNC-LIBRARY-library-changed",
+            methods: ["POST"],
+            endpoint: "/api/v1/sync/library/changed",
+        },
+        /**
+         *  @description
+         *  Route Get sync system statistics
+         *  Returns statistics about the sync system for debugging/monitoring
+         */
+        GetSyncStats: {
+            key: "SYNC-LIBRARY-get-sync-stats",
+            methods: ["GET"],
+            endpoint: "/api/v1/sync/stats",
+        },
+        /**
+         *  @description
+         *  Route Register WebSocket session with user
+         *  Associates a WebSocket session with the current user for targeted events
+         */
+        RegisterWebSocketSession: {
+            key: "SYNC-LIBRARY-register-web-socket-session",
+            methods: ["POST"],
+            endpoint: "/api/v1/sync/websocket/register",
+        },
+        /**
+         *  @description
+         *  Route Unregister WebSocket session
+         *  Removes a WebSocket session from user association
+         */
+        UnregisterWebSocketSession: {
+            key: "SYNC-LIBRARY-unregister-web-socket-session",
+            methods: ["POST"],
+            endpoint: "/api/v1/sync/websocket/unregister",
+        },
+    },
+    SYNC_PROGRESS: {
+        /**
+         *  @description
+         *  Route Get user's episode progress for a specific media
+         *  Returns all episode progress for a user's media including resume points
+         */
+        GetUserProgress: {
+            key: "SYNC-PROGRESS-get-user-progress",
+            methods: ["GET"],
+            endpoint: "/api/v1/sync/progress/:mediaId",
+        },
+        /**
+         *  @description
+         *  Route Get resume point for a specific episode
+         *  Returns resume point if available for the specified episode
+         */
+        GetResumePoint: {
+            key: "SYNC-PROGRESS-get-resume-point",
+            methods: ["GET"],
+            endpoint: "/api/v1/sync/progress/:mediaId/:episode/resume",
+        },
+        /**
+         *  @description
+         *  Route Start progress tracking for playback
+         *  Initiates progress tracking for a user's playback session
+         */
+        StartWatching: {
+            key: "SYNC-PROGRESS-start-watching",
+            methods: ["POST"],
+            endpoint: "/api/v1/sync/progress/start",
+        },
+        /**
+         *  @description
+         *  Route Update playback progress
+         *  Updates the current playback progress for an active session
+         */
+        UpdateProgress: {
+            key: "SYNC-PROGRESS-update-progress",
+            methods: ["PUT"],
+            endpoint: "/api/v1/sync/progress/update",
+        },
+        /**
+         *  @description
+         *  Route Pause progress tracking
+         *  Pauses the current playback and saves progress
+         */
+        PauseWatching: {
+            key: "SYNC-PROGRESS-pause-watching",
+            methods: ["POST"],
+            endpoint: "/api/v1/sync/progress/pause",
+        },
+        /**
+         *  @description
+         *  Route Stop progress tracking
+         *  Stops the current playback and saves final progress
+         */
+        StopWatching: {
+            key: "SYNC-PROGRESS-stop-watching",
+            methods: ["POST"],
+            endpoint: "/api/v1/sync/progress/stop",
+        },
+    },
     THEME: {
         GetTheme: {
             key: "THEME-get-theme",
@@ -1927,86 +1859,11 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/torrent/search",
         },
     },
-    TORRENTSTREAM: {
-        /**
-         *  @description
-         *  Route get torrentstream settings.
-         *  This returns the torrentstream settings.
-         */
-        GetTorrentstreamSettings: {
-            key: "TORRENTSTREAM-get-torrentstream-settings",
-            methods: ["GET"],
-            endpoint: "/api/v1/torrentstream/settings",
-        },
-        /**
-         *  @description
-         *  Route save torrentstream settings.
-         *  This saves the torrentstream settings.
-         *  The client should refetch the server status.
-         */
-        SaveTorrentstreamSettings: {
-            key: "TORRENTSTREAM-save-torrentstream-settings",
-            methods: ["PATCH"],
-            endpoint: "/api/v1/torrentstream/settings",
-        },
-        /**
-         *  @description
-         *  Route get list of torrent files from a batch
-         *  This returns a list of file previews from the torrent
-         */
-        GetTorrentstreamTorrentFilePreviews: {
-            key: "TORRENTSTREAM-get-torrentstream-torrent-file-previews",
-            methods: ["POST"],
-            endpoint: "/api/v1/torrentstream/torrent-file-previews",
-        },
-        /**
-         *  @description
-         *  Route starts a torrent stream.
-         *  This starts the entire streaming process.
-         */
-        TorrentstreamStartStream: {
-            key: "TORRENTSTREAM-torrentstream-start-stream",
-            methods: ["POST"],
-            endpoint: "/api/v1/torrentstream/start",
-        },
-        /**
-         *  @description
-         *  Route stop a torrent stream.
-         *  This stops the entire streaming process and drops the torrent if it's below a threshold.
-         *  This is made to be used while the stream is running.
-         */
-        TorrentstreamStopStream: {
-            key: "TORRENTSTREAM-torrentstream-stop-stream",
-            methods: ["POST"],
-            endpoint: "/api/v1/torrentstream/stop",
-        },
-        /**
-         *  @description
-         *  Route drops a torrent stream.
-         *  This stops the entire streaming process and drops the torrent completely.
-         *  This is made to be used to force drop a torrent.
-         */
-        TorrentstreamDropTorrent: {
-            key: "TORRENTSTREAM-torrentstream-drop-torrent",
-            methods: ["POST"],
-            endpoint: "/api/v1/torrentstream/drop",
-        },
-        /**
-         *  @description
-         *  Route returns the most recent batch selected.
-         *  This returns the most recent batch selected.
-         */
-        GetTorrentstreamBatchHistory: {
-            key: "TORRENTSTREAM-get-torrentstream-batch-history",
-            methods: ["POST"],
-            endpoint: "/api/v1/torrentstream/batch-history",
-        },
-    },
     USERS: {
         /**
          *  @description
-         *  Route User login
-         *  Authenticates a user and creates a session
+         *  Route AniList OAuth login
+         *  Authenticates a user via AniList OAuth and creates a session
          */
         UserLogin: {
             key: "USERS-user-login",
@@ -2066,7 +1923,7 @@ export const API_ENDPOINTS = {
         /**
          *  @description
          *  Route Create user
-         *  Creates a new user (admin only)
+         *  Creates a new user with AniList username (admin only)
          */
         CreateUser: {
             key: "USERS-create-user",
@@ -2105,8 +1962,38 @@ export const API_ENDPOINTS = {
         },
         /**
          *  @description
+         *  Route Get AniList whitelist
+         *  Gets the current AniList whitelist (admin only)
+         */
+        GetWhitelist: {
+            key: "USERS-get-whitelist",
+            methods: ["GET"],
+            endpoint: "/api/v1/admin/whitelist",
+        },
+        /**
+         *  @description
+         *  Route Add user to whitelist
+         *  Adds a user to the AniList whitelist (admin only)
+         */
+        AddToWhitelist: {
+            key: "USERS-add-to-whitelist",
+            methods: ["POST"],
+            endpoint: "/api/v1/admin/whitelist",
+        },
+        /**
+         *  @description
+         *  Route Remove user from whitelist
+         *  Removes a user from the AniList whitelist (admin only)
+         */
+        RemoveFromWhitelist: {
+            key: "USERS-remove-from-whitelist",
+            methods: ["DELETE"],
+            endpoint: "/api/v1/admin/whitelist/:username",
+        },
+        /**
+         *  @description
          *  Route Check if setup is required
-         *  Checks if any users exist in the system
+         *  Checks if AniList whitelist is configured
          */
         SetupRequired: {
             key: "USERS-setup-required",

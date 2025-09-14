@@ -1,6 +1,9 @@
 package db_bridge
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/goccy/go-json"
 	"github.com/samber/mo"
 	"seanime/internal/database/db"
@@ -143,4 +146,93 @@ func InsertLocalFilesForUser(db *db.Database, lfs []*anime.LocalFile, userID uin
 
 	return lfs, nil
 
+}
+
+// InvalidateLocalFilesCache clears the cached local files, forcing the next GetLocalFiles call to reload from database
+func InvalidateLocalFilesCache() {
+	CurrLocalFiles = mo.None[[]*anime.LocalFile]()
+	CurrLocalFilesDbId = 0
+}
+
+// GetLocalFilesTimestamp returns the last updated timestamp of the local files in database
+func GetLocalFilesTimestamp(db *db.Database) (*time.Time, error) {
+	var res models.LocalFiles
+	err := db.Gorm().Select("updated_at").Last(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return &res.UpdatedAt, nil
+}
+
+// GetCacheTimestamp returns the timestamp when the cache was last populated, or zero time if empty
+func GetCacheTimestamp(db *db.Database) *time.Time {
+	if !CurrLocalFiles.IsPresent() {
+		zeroTime := time.Time{}
+		return &zeroTime
+	}
+
+	// Get the cached entry timestamp
+	var res models.LocalFiles
+	err := db.Gorm().Select("updated_at").Where("id = ?", CurrLocalFilesDbId).First(&res).Error
+	if err != nil {
+		zeroTime := time.Time{}
+		return &zeroTime
+	}
+
+	return &res.UpdatedAt
+}
+
+// GetLocalFilesFromGlobalMappings retrieves local files from the global anime file mappings table
+// This replaces the old system of storing local files as JSON blobs
+func GetLocalFilesFromGlobalMappings(database *db.Database) ([]*anime.LocalFile, uint, error) {
+	// Query all global mappings
+	var mappings []models.GlobalAnimeFileMapping
+	err := database.Gorm().Find(&mappings).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Convert mappings to local files format
+	localFiles := make([]*anime.LocalFile, 0, len(mappings))
+
+	for _, mapping := range mappings {
+		// Create local file from global mapping
+		localFile := anime.NewLocalFile(mapping.LocalFilePath, "/") // Use root path as base
+
+		// Set media ID from mapping
+		localFile.MediaId = mapping.AniListID
+
+		// Create metadata from mapping information
+		localFile.Metadata = &anime.LocalFileMetadata{
+			Episode:      mapping.EpisodeNumber,
+			AniDBEpisode: fmt.Sprintf("%d", mapping.EpisodeNumber), // Convert episode number to string
+			Type:         anime.LocalFileTypeMain, // Default to main type
+		}
+
+		// Set as locked since it's mapped
+		localFile.Locked = true
+		localFile.Ignored = false
+
+		localFiles = append(localFiles, localFile)
+	}
+
+	database.Logger.Debug().
+		Int("count", len(localFiles)).
+		Msg("db: Local files retrieved from global mappings table")
+
+	// Return dummy ID since we're not using the old system
+	return localFiles, 1, nil
+}
+
+// IsLocalFilesCacheStale compares database timestamp with cache timestamp
+func IsLocalFilesCacheStale(db *db.Database) (bool, error) {
+	dbTimestamp, err := GetLocalFilesTimestamp(db)
+	if err != nil {
+		return false, err
+	}
+
+	cacheTimestamp := GetCacheTimestamp(db)
+
+	// Cache is stale if database is newer than cache
+	return dbTimestamp.After(*cacheTimestamp), nil
 }

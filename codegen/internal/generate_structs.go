@@ -96,7 +96,6 @@ var typePrefixesByPackage = map[string]string{
 	"core":                   "INTERNAL_",
 	"comparison":             "Comparison_",
 	"mediastream":            "Mediastream_",
-	"torrentstream":          "Torrentstream_",
 	"extension":              "Extension_",
 	"extension_repo":         "ExtensionRepo_",
 	//"vendor_hibike_manga":        "HibikeManga_",

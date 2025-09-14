@@ -10,7 +10,6 @@ import { __library_viewAtom } from "@/app/(main)/(library)/_lib/library-view.ato
 import { MediaCardLazyGrid } from "@/app/(main)/_features/media/_components/media-card-grid"
 import { MediaEntryCard } from "@/app/(main)/_features/media/_components/media-entry-card"
 import { MediaGenreSelector } from "@/app/(main)/_features/media/_components/media-genre-selector"
-import { useNakamaStatus } from "@/app/(main)/_features/nakama/nakama-manager"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { ADVANCED_SEARCH_FORMATS, ADVANCED_SEARCH_SEASONS, ADVANCED_SEARCH_STATUS } from "@/app/(main)/search/_lib/advanced-search-constants"
 import { PageWrapper } from "@/components/shared/page-wrapper"
@@ -61,7 +60,6 @@ export function DetailedLibraryView(props: LibraryViewProps) {
 
     const ts = useThemeSettings()
     const setView = useSetAtom(__library_viewAtom)
-    const nakamaStatus = useNakamaStatus()
 
     const {
         stats,
@@ -92,9 +90,7 @@ export function DetailedLibraryView(props: LibraryViewProps) {
                         size="sm"
                         onClick={() => setView("base")}
                     />
-                    {!isNakamaLibrary && <h3 className="text-ellipsis truncate">Library</h3>}
-                    {isNakamaLibrary &&
-                        <h3 className="text-ellipsis truncate">{nakamaStatus?.hostConnectionStatus?.username || "Host"}'s Library</h3>}
+                    <h3 className="text-ellipsis truncate">Library</h3>
                 </div>
 
                 <SearchInput />

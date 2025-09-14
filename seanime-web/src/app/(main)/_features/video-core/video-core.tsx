@@ -46,7 +46,6 @@ import {
     vc_formatTime,
     vc_logGeneralInfo,
 } from "@/app/(main)/_features/video-core/video-core.utils"
-import { TorrentStreamOverlay } from "@/app/(main)/entry/_containers/torrent-stream/torrent-stream-overlay"
 import { LuffyError } from "@/components/shared/luffy-error"
 import { Button, IconButton } from "@/components/ui/button"
 import { useUpdateEffect } from "@/components/ui/core/hooks"
@@ -788,7 +787,6 @@ export function VideoCore(props: VideoCoreProps) {
                     togglePlay()
                 }}
             >
-                {!(!!state.playbackInfo?.streamUrl && !state.loadingState) && <TorrentStreamOverlay isNativePlayerComponent />}
 
                 {(state?.playbackError) && (
                     <div className="h-full w-full bg-black/80 flex items-center justify-center z-[200] absolute p-4">
@@ -933,7 +931,6 @@ export function VideoCore(props: VideoCoreProps) {
                                 >
                                     <FloatingButtons part="video" onTerminateStream={onTerminateStream} />
                                 </div>
-                                {/*<TorrentStreamOverlay isNativePlayerComponent="info" />*/}
                             </VideoCoreTopSection>
 
                             {isPip && <div className="absolute top-0 left-0 w-full h-full z-[100] bg-black flex items-center justify-center">
@@ -963,7 +960,6 @@ export function VideoCore(props: VideoCoreProps) {
 
                                 <div className="flex flex-1" />
 
-                                {!isMiniPlayer && <TorrentStreamOverlay isNativePlayerComponent="control-bar" />}
 
                                 <VideoCoreSettingsButton />
 

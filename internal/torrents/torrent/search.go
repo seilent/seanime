@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"seanime/internal/api/anilist"
 	"seanime/internal/api/metadata"
-	"seanime/internal/debrid/debrid"
+	// "seanime/internal/debrid/debrid" // Removed - streaming not needed
 	"seanime/internal/extension"
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
 	"seanime/internal/library/anime"
@@ -64,7 +64,6 @@ type (
 		Torrents                  []*hibiketorrent.AnimeTorrent                    `json:"torrents"`                  // Torrents found
 		Previews                  []*Preview                                       `json:"previews"`                  // TorrentPreview for each torrent
 		TorrentMetadata           map[string]*TorrentMetadata                      `json:"torrentMetadata"`           // Torrent metadata
-		DebridInstantAvailability map[string]debrid.TorrentItemInstantAvailability `json:"debridInstantAvailability"` // Debrid instant availability
 		AnimeMetadata             *metadata.AnimeMetadata                          `json:"animeMetadata"`             // Animap media
 	}
 )

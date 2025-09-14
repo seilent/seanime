@@ -1,5 +1,5 @@
 "use client"
-import { useLogout, useAnilistDisconnect } from "@/api/hooks/auth.hooks"
+import { useLogout } from "@/api/hooks/auth.hooks"
 import { useAuth } from "@/contexts/auth-context"
 import { useGetExtensionUpdateData as useGetExtensionUpdateData } from "@/api/hooks/extensions.hooks"
 import { isLoginModalOpenAtom } from "@/app/(main)/_atoms/server-status.atoms"
@@ -45,7 +45,6 @@ import { MdOutlineConnectWithoutContact } from "react-icons/md"
 import { PiArrowCircleLeftDuotone, PiArrowCircleRightDuotone, PiClockCounterClockwiseFill, PiListChecksFill } from "react-icons/pi"
 import { SiAnilist } from "react-icons/si"
 import { TbWorldDownload } from "react-icons/tb"
-import { nakamaModalOpenAtom, useNakamaStatus } from "../nakama/nakama-manager"
 import { PluginSidebarTray } from "../plugin/tray/plugin-sidebar-tray"
 
 // User profile info component
@@ -62,29 +61,6 @@ function UserProfileInfo() {
     )
 }
 
-// Site logout menu item component
-function SiteLogoutMenuItem() {
-    const { logout: siteLogout, user: authUser } = useAuth()
-    
-    if (!authUser) return null
-    
-    const confirmSiteLogout = useConfirmationDialog({
-        title: "Sign out from site",
-        description: "Are you sure you want to sign out from the site?",
-        onConfirm: async () => {
-            await siteLogout()
-        },
-    })
-    
-    return (
-        <>
-            <DropdownMenuItem onClick={confirmSiteLogout.open}>
-                <BiLogOut /> Sign out from site
-            </DropdownMenuItem>
-            <ConfirmationDialog {...confirmSiteLogout} />
-        </>
-    )
-}
 
 /**
  * @description
@@ -115,7 +91,6 @@ export function MainSidebar() {
 
     // Logout
     const { mutate: logout, data, isPending } = useLogout()
-    const { mutate: anilistDisconnect } = useAnilistDisconnect()
 
     React.useEffect(() => {
         if (!isPending) {
@@ -125,8 +100,6 @@ export function MainSidebar() {
 
     const setGlobalSearchIsOpen = useSetAtom(__globalSearch_isOpenAtom)
     const [loginModal, setLoginModal] = useAtom(isLoginModalOpenAtom)
-    const [nakamaModalOpen, setNakamaModalOpen] = useAtom(nakamaModalOpenAtom)
-    const nakamaStatus = useNakamaStatus()
 
     const handleExpandSidebar = () => {
         if (!ctx.isBelowBreakpoint && ts.expandSidebarOnHover) {
@@ -139,11 +112,13 @@ export function MainSidebar() {
         }
     }
 
+    const { logout: authLogout, isAdmin } = useAuth()
+    
     const confirmSignOut = useConfirmationDialog({
-        title: "Disconnect AniList",
-        description: "Are you sure you want to disconnect from AniList?",
-        onConfirm: () => {
-            anilistDisconnect()
+        title: "Sign out",
+        description: "Are you sure you want to sign out?",
+        onConfirm: async () => {
+            await authLogout()
         },
     })
 
@@ -208,24 +183,6 @@ export function MainSidebar() {
             href: "/anilist",
             isCurrent: pathname === "/anilist",
         },
-        ...serverStatus?.settings?.nakama?.enabled ? [{
-            id: "nakama",
-            iconType: MdOutlineConnectWithoutContact,
-            iconClass: "size-6",
-            name: "Nakama",
-            isCurrent: nakamaModalOpen,
-            onClick: () => setNakamaModalOpen(true),
-            addon: <>
-                {nakamaStatus?.isHost && !!nakamaStatus?.connectedPeers?.length && <Badge
-                    className="absolute right-0 top-0" size="sm"
-                    intent="info"
-                >{nakamaStatus?.connectedPeers?.length}</Badge>}
-
-                {nakamaStatus?.isConnectedToHost && <div
-                    className="absolute right-2 top-2 animate-pulse size-2 bg-green-500 rounded-full"
-                ></div>}
-            </>,
-        }] : [],
         ...serverStatus?.settings?.library?.torrentProvider !== TORRENT_PROVIDER.NONE ? [{
             id: "auto-downloader",
             iconType: TbWorldDownload,
@@ -256,13 +213,6 @@ export function MainSidebar() {
                     >{activeTorrentCount.downloading + activeTorrentCount.paused}</Badge>
                     : undefined,
             }] : [],
-        ...(serverStatus?.debridSettings?.enabled && !!serverStatus?.debridSettings?.provider) ? [{
-            id: "debrid",
-            iconType: HiOutlineServerStack,
-            name: "Debrid",
-            href: "/debrid",
-            isCurrent: pathname === "/debrid",
-        }] : [],
         {
             id: "scan-summaries",
             iconType: PiClockCounterClockwiseFill,
@@ -425,7 +375,7 @@ export function MainSidebar() {
                                 ...(ctx.isBelowBreakpoint ? [
                                     {
                                         iconType: user?.isSimulated ? FiLogIn : BiLogOut,
-                                        name: user?.isSimulated ? "Connect AniList" : "Disconnect AniList",
+                                        name: user?.isSimulated ? "Connect AniList" : "Sign out",
                                         onClick: user?.isSimulated ? () => setLoginModal(true) : confirmSignOut.open,
                                     },
                                 ] : []),
@@ -468,11 +418,10 @@ export function MainSidebar() {
                             onOpenChange={setDropdownOpen}
                         >
                             {!user.isSimulated ? <DropdownMenuItem onClick={confirmSignOut.open}>
-                                <BiLogOut /> Disconnect AniList
+                                <BiLogOut /> Sign out
                             </DropdownMenuItem> : <DropdownMenuItem onClick={() => setLoginModal(true)}>
                                 <BiLogIn /> Connect AniList
                             </DropdownMenuItem>}
-                            <SiteLogoutMenuItem />
                         </DropdownMenu>
                     </div>}
                 </div>

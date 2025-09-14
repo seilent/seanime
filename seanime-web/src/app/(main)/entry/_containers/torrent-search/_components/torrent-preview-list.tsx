@@ -1,6 +1,5 @@
 import {
     Anime_Entry,
-    Debrid_TorrentItemInstantAvailability,
     HibikeTorrent_AnimeTorrent,
     Torrent_Preview,
     Torrent_TorrentMetadata,
@@ -13,7 +12,6 @@ import {
     useTorrentSorting,
 } from "@/app/(main)/entry/_containers/torrent-search/_components/torrent-common-helpers"
 import {
-    TorrentDebridInstantAvailabilityBadge,
     TorrentParsedMetadata,
     TorrentResolutionBadge,
     TorrentSeedersBadge,
@@ -32,7 +30,6 @@ import { LuGem } from "react-icons/lu"
 type TorrentPreviewList = {
     entry: Anime_Entry
     previews: Torrent_Preview[]
-    debridInstantAvailability: Record<string, Debrid_TorrentItemInstantAvailability>
     isLoading: boolean
     selectedTorrents: HibikeTorrent_AnimeTorrent[]
     onToggleTorrent: (t: HibikeTorrent_AnimeTorrent) => void
@@ -47,7 +44,6 @@ export const TorrentPreviewList = React.memo((
         isLoading,
         selectedTorrents,
         onToggleTorrent,
-        debridInstantAvailability,
         type,
         torrentMetadata,
     }: TorrentPreviewList) => {
@@ -115,9 +111,6 @@ export const TorrentPreviewList = React.memo((
                                     </Badge>
                                 )}
                                 <TorrentResolutionBadge resolution={item.torrent.resolution} />
-                                {((type === "download" || type === "debridstream-select" || type === "debridstream-select-file") && !!item.torrent.infoHash && debridInstantAvailability[item.torrent.infoHash]) && (
-                                    <TorrentDebridInstantAvailabilityBadge />
-                                )}
                                 <TorrentSeedersBadge seeders={item.torrent.seeders} />
                                 {!!item.torrent.size && <p className="text-gray-300 text-sm flex items-center gap-1">
                                     {item.torrent.formattedSize}</p>}

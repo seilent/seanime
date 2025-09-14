@@ -21,7 +21,7 @@ type Token struct {
 
 type Account struct {
 	BaseModel
-	UserID   uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
+	UserID   uint   `gorm:"column:user_id;unique" json:"userId"` // Foreign key to User
 	Username string `gorm:"column:username" json:"username"`
 	Token    string `gorm:"column:token" json:"token"`
 	Viewer   []byte `gorm:"column:viewer" json:"viewer"`
@@ -43,17 +43,19 @@ type LocalFiles struct {
 
 type Settings struct {
 	BaseModel
-	UserID         uint                    `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
-	Library        *LibrarySettings        `gorm:"embedded" json:"library"`
-	MediaPlayer    *MediaPlayerSettings    `gorm:"embedded" json:"mediaPlayer"`
-	Torrent        *TorrentSettings        `gorm:"embedded" json:"torrent"`
-	Manga          *MangaSettings          `gorm:"embedded" json:"manga"`
-	Anilist        *AnilistSettings        `gorm:"embedded" json:"anilist"`
-	ListSync       *ListSyncSettings       `gorm:"embedded" json:"listSync"`
-	AutoDownloader *AutoDownloaderSettings `gorm:"embedded" json:"autoDownloader"`
-	Discord        *DiscordSettings        `gorm:"embedded" json:"discord"`
-	Notifications  *NotificationSettings   `gorm:"embedded" json:"notifications"`
-	Nakama         *NakamaSettings         `gorm:"embedded;embeddedPrefix:nakama_" json:"nakama"`
+	UserID            uint                    `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
+	SetupCompleted    bool                    `gorm:"column:setup_completed;default:false" json:"setupCompleted"` // Tracks if initial setup is complete
+	AnilistWhitelist  StringSlice             `gorm:"column:anilist_whitelist;type:text" json:"anilistWhitelist"` // Whitelisted AniList usernames
+	Library           *LibrarySettings        `gorm:"embedded" json:"library"`
+	MediaPlayer       *MediaPlayerSettings    `gorm:"embedded" json:"mediaPlayer"`
+	Torrent           *TorrentSettings        `gorm:"embedded" json:"torrent"`
+	Manga             *MangaSettings          `gorm:"embedded" json:"manga"`
+	Anilist           *AnilistSettings        `gorm:"embedded" json:"anilist"`
+	ListSync          *ListSyncSettings       `gorm:"embedded" json:"listSync"`
+	AutoDownloader    *AutoDownloaderSettings `gorm:"embedded" json:"autoDownloader"`
+	Discord           *DiscordSettings        `gorm:"embedded" json:"discord"`
+	Notifications     *NotificationSettings   `gorm:"embedded" json:"notifications"`
+	Nakama            *NakamaSettings         `gorm:"embedded;embeddedPrefix:nakama_" json:"nakama"`
 }
 
 type AnilistSettings struct {
@@ -572,4 +574,75 @@ type UserMediaSubscription struct {
 	MediaID   int       `gorm:"uniqueIndex:idx_user_media_sub" json:"mediaId"`
 	IsActive  bool      `gorm:"default:true" json:"isActive"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+// +---------------------+
+// |   Global Mapping    |
+// +---------------------+
+
+// GlobalAnimeFileMapping stores global AniList ID to local file path mappings
+type GlobalAnimeFileMapping struct {
+	BaseModel
+	AniListID     int       `gorm:"column:anilist_id;index" json:"anilistId"`
+	LocalFilePath string    `gorm:"column:local_file_path;unique" json:"localFilePath"`
+	Title         string    `gorm:"column:title" json:"title"`                      // Primary title for display
+	RomajiTitle   string    `gorm:"column:romaji_title" json:"romajiTitle"`         // Romaji title variant
+	EnglishTitle  string    `gorm:"column:english_title" json:"englishTitle"`       // English title variant
+	Synonyms      string    `gorm:"column:synonyms;type:text" json:"synonyms"`      // JSON array of synonyms
+	Year          int       `gorm:"column:year" json:"year"`
+	EpisodeNumber int       `gorm:"column:episode_number" json:"episodeNumber"`
+	FileSize      int64     `gorm:"column:file_size" json:"fileSize"`
+	LastScanned   time.Time `gorm:"column:last_scanned" json:"lastScanned"`
+}
+
+// UserAnimeSubscription tracks which users have which anime in their AniList collections
+// This enables multi-token API strategy and user-specific catalog features
+type UserAnimeSubscription struct {
+	BaseModel
+	UserID       uint      `gorm:"column:user_id;index" json:"userId"`                               // Foreign key to User
+	AniListID    int       `gorm:"column:anilist_id;index" json:"anilistId"`                        // Which anime they have
+	LastVerified time.Time `gorm:"column:last_verified" json:"lastVerified"`                        // When we last confirmed they have it
+	TokenStatus  string    `gorm:"column:token_status;default:'active'" json:"tokenStatus"`         // active/failed/removed
+	AddedAt      time.Time `gorm:"column:added_at;default:CURRENT_TIMESTAMP" json:"addedAt"`        // When first detected
+}
+
+// Index for efficient queries: unique user-anime combinations
+func (UserAnimeSubscription) TableName() string {
+	return "user_anime_subscriptions"
+}
+
+// UnmappedFile stores files that couldn't be automatically matched to AniList entries
+type UnmappedFile struct {
+	BaseModel
+	LocalFilePath   string     `gorm:"column:local_file_path;unique" json:"localFilePath"`
+	ParsedTitle     string     `gorm:"column:parsed_title" json:"parsedTitle"`       // Parsed anime title from filename
+	DetectedTitle   string     `gorm:"column:detected_title" json:"detectedTitle"`   // Alternative detected title
+	FileSize        int64      `gorm:"column:file_size" json:"fileSize"`
+	LastDetected    time.Time  `gorm:"column:last_detected" json:"lastDetected"`
+	Status          string     `gorm:"column:status;default:'PENDING'" json:"status"` // "PENDING", "IGNORED", "ASSIGNED"
+	IgnoredByUserID uint       `gorm:"column:ignored_by_user_id" json:"ignoredByUserId"`
+	IgnoredAt       *time.Time `gorm:"column:ignored_at" json:"ignoredAt"`
+}
+
+// UserLibrarySubscription tracks which anime each user has subscribed to in their library
+type UserLibrarySubscription struct {
+	BaseModel
+	UserID    uint      `gorm:"column:user_id;index:idx_user_subscription" json:"userId"`
+	AniListID int       `gorm:"column:anilist_id;index:idx_anilist_subscription" json:"anilistId"`
+	AddedAt   time.Time `gorm:"column:added_at" json:"addedAt"`
+}
+
+// UserProgressSyncItem queues user progress updates for batch sync to AniList
+type UserProgressSyncItem struct {
+	BaseModel
+	UserID         uint      `gorm:"column:user_id;index:idx_user_sync" json:"userId"`
+	AniListID      int       `gorm:"column:anilist_id" json:"anilistId"`
+	EpisodeNumber  int       `gorm:"column:episode_number" json:"episodeNumber"`
+	Status         string    `gorm:"column:status" json:"status"`                     // "CURRENT", "COMPLETED", etc.
+	Score          int       `gorm:"column:score" json:"score"`
+	Progress       int       `gorm:"column:progress" json:"progress"`
+	IsCompleted    bool      `gorm:"column:is_completed" json:"isCompleted"`
+	LastUpdated    time.Time `gorm:"column:last_updated" json:"lastUpdated"`
+	SyncStatus     string    `gorm:"column:sync_status;default:'PENDING'" json:"syncStatus"` // "PENDING", "SYNCED", "FAILED"
+	RetryCount     int       `gorm:"column:retry_count;default:0" json:"retryCount"`
 }

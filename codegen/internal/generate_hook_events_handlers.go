@@ -67,7 +67,6 @@ func GenerateHandlerHookEvents(handlersJsonPath string, outputDir string) {
 		"\"seanime/internal/sync\"",
 		"\"seanime/internal/torrent_clients/torrent_client\"",
 		"\"seanime/internal/torrents/torrent\"",
-		"\"seanime/internal/torrentstream\"",
 		"\"seanime/internal/updater\"",
 	}
 

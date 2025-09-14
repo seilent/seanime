@@ -14,11 +14,8 @@ import (
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/manga"
 	"seanime/internal/mediaplayers/mediaplayer"
-	"seanime/internal/mediastream"
-	"seanime/internal/onlinestream"
 	"seanime/internal/platforms/platform"
 	"seanime/internal/torrent_clients/torrent_client"
-	"seanime/internal/torrentstream"
 	"seanime/internal/util/filecache"
 	goja_util "seanime/internal/util/goja"
 
@@ -43,9 +40,6 @@ type AppContextModules struct {
 	AutoScanner                     *autoscanner.AutoScanner
 	AutoDownloader                  *autodownloader.AutoDownloader
 	FileCacher                      *filecache.Cacher
-	OnlinestreamRepository          *onlinestream.Repository
-	MediastreamRepository           *mediastream.Repository
-	TorrentstreamRepository         *torrentstream.Repository
 	FillerManager                   *fillermanager.FillerManager
 	OnRefreshAnilistAnimeCollection func()
 	OnRefreshAnilistMangaCollection func()
@@ -148,9 +142,6 @@ type AppContextImpl struct {
 	metadataProvider                mo.Option[metadata.Provider]
 	fillerManager                   mo.Option[*fillermanager.FillerManager]
 	torrentClientRepository         mo.Option[*torrent_client.Repository]
-	torrentstreamRepository         mo.Option[*torrentstream.Repository]
-	mediastreamRepository           mo.Option[*mediastream.Repository]
-	onlinestreamRepository          mo.Option[*onlinestream.Repository]
 	continuityManager               mo.Option[*continuity.Manager]
 	autoScanner                     mo.Option[*autoscanner.AutoScanner]
 	autoDownloader                  mo.Option[*autodownloader.AutoDownloader]
@@ -174,9 +165,6 @@ func NewAppContext() AppContext {
 		discordPresence:                 mo.None[*discordrpc_presence.Presence](),
 		fillerManager:                   mo.None[*fillermanager.FillerManager](),
 		torrentClientRepository:         mo.None[*torrent_client.Repository](),
-		torrentstreamRepository:         mo.None[*torrentstream.Repository](),
-		mediastreamRepository:           mo.None[*mediastream.Repository](),
-		onlinestreamRepository:          mo.None[*onlinestream.Repository](),
 		continuityManager:               mo.None[*continuity.Manager](),
 		autoScanner:                     mo.None[*autoscanner.AutoScanner](),
 		autoDownloader:                  mo.None[*autodownloader.AutoDownloader](),
@@ -278,17 +266,7 @@ func (a *AppContextImpl) SetModulesPartial(modules AppContextModules) {
 		a.torrentClientRepository = mo.Some(modules.TorrentClientRepository)
 	}
 
-	if modules.TorrentstreamRepository != nil {
-		a.torrentstreamRepository = mo.Some(modules.TorrentstreamRepository)
-	}
 
-	if modules.MediastreamRepository != nil {
-		a.mediastreamRepository = mo.Some(modules.MediastreamRepository)
-	}
-
-	if modules.OnlinestreamRepository != nil {
-		a.onlinestreamRepository = mo.Some(modules.OnlinestreamRepository)
-	}
 
 	if modules.AutoDownloader != nil {
 		a.autoDownloader = mo.Some(modules.AutoDownloader)

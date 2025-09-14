@@ -1,4 +1,4 @@
-import { AL_BaseAnime, AL_BaseManga, Anime_Episode, Onlinestream_Episode } from "@/api/generated/types"
+import { AL_BaseAnime, AL_BaseManga, Anime_Episode } from "@/api/generated/types"
 import { Button, ButtonProps, IconButton } from "@/components/ui/button"
 import { ContextMenuItem, ContextMenuSeparator } from "@/components/ui/context-menu"
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
@@ -294,14 +294,13 @@ type PluginEpisodeGridItemMenuItem = {
     onClick: string
     label: string
     id: string
-    type: "library" | "torrentstream" | "debridstream" | "onlinestream" | "undownloaded" | "medialinks" | "mediastream"
     style: React.CSSProperties
 }
 
 export function PluginEpisodeGridItemMenuItems(props: {
     isDropdownMenu: boolean,
-    type: PluginEpisodeGridItemMenuItem["type"],
-    episode: Anime_Episode | Onlinestream_Episode | undefined
+    type: string,
+    episode: Anime_Episode | undefined
 }) {
     const [items, setItems] = useState<PluginEpisodeGridItemMenuItem[]>([])
 
@@ -315,8 +314,8 @@ export function PluginEpisodeGridItemMenuItems(props: {
     // Listen for the action to render the episode grid item context menu items
     usePluginListenActionRenderEpisodeGridItemMenuItemsEvent((event, extensionId) => {
         setItems(p => {
-            const otherItems = p.filter(i => i.extensionId !== extensionId && i.type === props.type)
-            const extItems = event.items.filter((i: PluginEpisodeGridItemMenuItem) => i.type === props.type)
+            const otherItems = p.filter(i => i.extensionId !== extensionId)
+            const extItems = event.items
                 .map((i: Record<string, any>) => ({ ...i, extensionId } as PluginEpisodeGridItemMenuItem))
             return sortItems([...otherItems, ...extItems])
         })

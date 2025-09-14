@@ -22,7 +22,6 @@ import (
 func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 
 	type body struct {
-		Enhanced         bool `json:"enhanced"`
 		SkipLockedFiles  bool `json:"skipLockedFiles"`
 		SkipIgnoredFiles bool `json:"skipIgnoredFiles"`
 	}
@@ -85,11 +84,13 @@ func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 	userPlatform := anilist_platform.NewAnilistPlatform(client, h.App.Logger)
 	userPlatform.SetUsername(account.Username) // Use the stored AniList username
 
+	// Create database adapter for global media pool
+	databaseAdapter := scanner.NewDatabaseAdapter(h.App.Database)
+
 	// Create a new scanner
 	sc := scanner.Scanner{
 		DirPath:            libraryPath,
 		OtherDirPaths:      additionalLibraryPaths,
-		Enhanced:           b.Enhanced,
 		Platform:           userPlatform,
 		Logger:             h.App.Logger,
 		WSEventManager:     h.App.WSEventManager,
@@ -101,6 +102,8 @@ func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 		MetadataProvider:   h.App.MetadataProvider,
 		MatchingAlgorithm:  h.App.Settings.GetLibrary().ScannerMatchingAlgorithm,
 		MatchingThreshold:  h.App.Settings.GetLibrary().ScannerMatchingThreshold,
+		Database:           databaseAdapter, // For global media pool access
+		UserID:             user.ID,         // For user subscription tracking
 	}
 
 	// Scan the library

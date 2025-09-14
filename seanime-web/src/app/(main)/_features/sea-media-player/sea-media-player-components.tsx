@@ -1,4 +1,25 @@
-import { submenuClass, VdsSubmenuButton } from "@/app/(main)/onlinestream/_components/onlinestream-video-addons"
+// Local definitions replacing deleted onlinestream components
+const submenuClass = "vds-menu-content text-sm font-medium outline-none data-[focus]:ring-4 data-[hocus]:bg-white/10 data-[open]:bg-white/10 data-[focus]:ring-media-focus rounded-sm"
+
+interface VdsSubmenuButtonProps {
+    label: string
+    hint?: string
+    icon: React.ComponentType<any>
+    disabled?: boolean
+}
+
+function VdsSubmenuButton({ label, hint, icon: Icon, disabled }: VdsSubmenuButtonProps) {
+    return (
+        <Menu.Button
+            className="vds-menu-button vds-menu-item flex w-full cursor-pointer select-none items-center justify-start rounded-sm p-2.5 text-left text-sm font-medium outline-none data-[focus]:ring-4 data-[hocus]:bg-white/10 data-[focus]:ring-media-focus aria-hidden:hidden"
+            disabled={disabled}
+        >
+            <Icon className="vds-icon h-5 w-5" />
+            <span className="vds-menu-label ml-2">{label}</span>
+            {hint && <span className="vds-menu-hint ml-auto text-xs opacity-60">{hint}</span>}
+        </Menu.Button>
+    )
+}
 import { Switch } from "@/components/ui/switch"
 import { Menu } from "@vidstack/react"
 import { useAtom } from "jotai/react"

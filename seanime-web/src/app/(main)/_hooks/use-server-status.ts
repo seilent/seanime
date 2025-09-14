@@ -27,10 +27,8 @@ export function useHasTorrentProvider() {
 }
 
 export function useHasDebridService() {
-    const serverStatus = useServerStatus()
     return {
-        hasDebridService: React.useMemo(() => !!serverStatus?.debridSettings?.enabled && !!serverStatus?.debridSettings?.provider,
-            [serverStatus?.debridSettings]),
+        hasDebridService: false,
     }
 }
 

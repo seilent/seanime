@@ -9,12 +9,10 @@ import (
 	"seanime/internal/api/metadata"
 	"seanime/internal/extension"
 	hibikemanga "seanime/internal/extension/hibike/manga"
-	hibikeonlinestream "seanime/internal/extension/hibike/onlinestream"
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
 	"seanime/internal/extension_repo"
 	goja_runtime "seanime/internal/goja/goja_runtime"
 	"seanime/internal/manga"
-	"seanime/internal/onlinestream"
 	"seanime/internal/platforms/platform"
 	"seanime/internal/util"
 	"seanime/internal/util/result"
@@ -88,8 +86,6 @@ func (r *PlaygroundRepository) RunPlaygroundCode(params *RunPlaygroundCodeParams
 	switch params.Type {
 	case extension.TypeMangaProvider:
 		return r.runPlaygroundCodeMangaProvider(ext, params)
-	case extension.TypeOnlinestreamProvider:
-		return r.runPlaygroundCodeOnlinestreamProvider(ext, params)
 	case extension.TypeAnimeTorrentProvider:
 		return r.runPlaygroundCodeAnimeTorrentProvider(ext, params)
 	default:
@@ -393,99 +389,3 @@ func (r *PlaygroundRepository) runPlaygroundCodeMangaProvider(ext *extension.Ext
 	return nil, fmt.Errorf("unknown call")
 }
 
-func (r *PlaygroundRepository) runPlaygroundCodeOnlinestreamProvider(ext *extension.Extension, params *RunPlaygroundCodeParams) (resp *RunPlaygroundCodeResponse, err error) {
-
-	playgroundLogger := r.newPlaygroundDebugLogger()
-
-	mediaId, ok := params.Inputs["mediaId"].(float64)
-	if !ok || mediaId <= 0 {
-		return nil, fmt.Errorf("invalid mediaId")
-	}
-
-	// Fetch the anime
-	anime, _, err := r.getAnime(int(mediaId))
-	if err != nil {
-		return nil, err
-	}
-
-	titles := anime.GetAllTitles()
-
-	queryMedia := hibikeonlinestream.Media{
-		ID:           anime.GetID(),
-		IDMal:        anime.GetIDMal(),
-		Status:       string(*anime.GetStatus()),
-		Format:       string(*anime.GetFormat()),
-		EnglishTitle: anime.GetTitle().GetEnglish(),
-		RomajiTitle:  anime.GetRomajiTitleSafe(),
-		EpisodeCount: anime.GetTotalEpisodeCount(),
-		Synonyms:     anime.GetSynonymsContainingSeason(),
-		IsAdult:      *anime.GetIsAdult(),
-		StartDate: &hibikeonlinestream.FuzzyDate{
-			Year:  *anime.GetStartDate().GetYear(),
-			Month: anime.GetStartDate().GetMonth(),
-			Day:   anime.GetStartDate().GetDay(),
-		},
-	}
-
-	switch params.Language {
-	case extension.LanguageGo:
-	//...
-	case extension.LanguageJavascript, extension.LanguageTypescript:
-		_, provider, err := extension_repo.NewGojaOnlinestreamProvider(ext, params.Language, playgroundLogger.logger, r.gojaRuntimeManager)
-		if err != nil {
-			return newPlaygroundResponse(playgroundLogger, err), nil
-		}
-		defer r.gojaRuntimeManager.DeletePluginPool(ext.ID)
-
-		// Run the code
-		switch params.Function {
-		case "search":
-			// Search - params: dub: boolean
-			ret := make([]*hibikeonlinestream.SearchResult, 0)
-			for _, title := range titles {
-				res, err := provider.Search(hibikeonlinestream.SearchOptions{
-					Media: queryMedia,
-					Query: *title,
-					Dub:   params.Inputs["dub"].(bool),
-					Year:  anime.GetStartYearSafe(),
-				})
-				if err != nil {
-					playgroundLogger.logger.Error().Err(err).Msgf("playground: Search failed for title \"%s\"", *title)
-				}
-				ret = append(ret, res...)
-			}
-
-			if len(ret) == 0 {
-				return newPlaygroundResponse(playgroundLogger, onlinestream.ErrNoAnimeFound), nil
-			}
-
-			bestRes, found := onlinestream.GetBestSearchResult(ret, titles)
-			if !found {
-				return newPlaygroundResponse(playgroundLogger, onlinestream.ErrNoAnimeFound), nil
-			}
-
-			return newPlaygroundResponse(playgroundLogger, bestRes), nil
-
-		case "findEpisodes":
-			// FindEpisodes - params: id: string
-			res, err := provider.FindEpisodes(params.Inputs["id"].(string))
-			if err != nil {
-				return newPlaygroundResponse(playgroundLogger, err), nil
-			}
-			return newPlaygroundResponse(playgroundLogger, res), nil
-
-		case "findEpisodeServer":
-			// FindEpisodeServer - params: episode: EpisodeDetails, server: string
-			var episode hibikeonlinestream.EpisodeDetails
-			_ = json.Unmarshal([]byte(params.Inputs["episode"].(string)), &episode)
-
-			res, err := provider.FindEpisodeServer(&episode, params.Inputs["server"].(string))
-			if err != nil {
-				return newPlaygroundResponse(playgroundLogger, err), nil
-			}
-			return newPlaygroundResponse(playgroundLogger, res), nil
-		}
-	}
-
-	return nil, fmt.Errorf("unknown call")
-}

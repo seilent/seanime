@@ -1805,188 +1805,6 @@ export type INTERNAL_FeatureFlags = {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Debrid
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/debrid/debrid/debrid.go
- * - Filename: debrid.go
- * - Package: debrid
- */
-export type Debrid_CachedFile = {
-    size: number
-    name: string
-}
-
-/**
- * - Filepath: internal/debrid/debrid/debrid.go
- * - Filename: debrid.go
- * - Package: debrid
- */
-export type Debrid_TorrentInfo = {
-    /**
-     * ID of the torrent if added to the debrid service
-     */
-    id?: string
-    name: string
-    hash: string
-    size: number
-    files?: Array<Debrid_TorrentItemFile>
-}
-
-/**
- * - Filepath: internal/debrid/debrid/debrid.go
- * - Filename: debrid.go
- * - Package: debrid
- */
-export type Debrid_TorrentItem = {
-    id: string
-    /**
-     * Name of the torrent or file
-     */
-    name: string
-    /**
-     * SHA1 hash of the torrent
-     */
-    hash: string
-    /**
-     * Size of the selected files (size in bytes)
-     */
-    size: number
-    /**
-     * Formatted size of the selected files
-     */
-    formattedSize: string
-    /**
-     * Progress percentage (0 to 100)
-     */
-    completionPercentage: number
-    /**
-     * Formatted estimated time remaining
-     */
-    eta: string
-    /**
-     * Current download status
-     */
-    status: Debrid_TorrentItemStatus
-    /**
-     * Date when the torrent was added, RFC3339 format
-     */
-    added: string
-    /**
-     * Current download speed (optional, present in downloading state)
-     */
-    speed?: string
-    /**
-     * Number of seeders (optional, present in downloading state)
-     */
-    seeders?: number
-    /**
-     * Whether the torrent is ready to be downloaded
-     */
-    isReady: boolean
-    /**
-     * List of files in the torrent (optional)
-     */
-    files?: Array<Debrid_TorrentItemFile>
-}
-
-/**
- * - Filepath: internal/debrid/debrid/debrid.go
- * - Filename: debrid.go
- * - Package: debrid
- */
-export type Debrid_TorrentItemFile = {
-    /**
-     * ID of the file, usually the index
-     */
-    id: string
-    index: number
-    name: string
-    path: string
-    size: number
-}
-
-/**
- * - Filepath: internal/debrid/debrid/debrid.go
- * - Filename: debrid.go
- * - Package: debrid
- */
-export type Debrid_TorrentItemInstantAvailability = {
-    /**
-     * Key is the file ID (or index)
-     */
-    cachedFiles?: Record<string, Debrid_CachedFile>
-}
-
-/**
- * - Filepath: internal/debrid/debrid/debrid.go
- * - Filename: debrid.go
- * - Package: debrid
- */
-export type Debrid_TorrentItemStatus = "downloading" |
-    "completed" |
-    "seeding" |
-    "error" |
-    "stalled" |
-    "paused" |
-    "other"
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// DebridClient
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/debrid/client/stream.go
- * - Filename: stream.go
- * - Package: debrid_client
- */
-export type DebridClient_CancelStreamOptions = {
-    removeTorrent: boolean
-}
-
-/**
- * - Filepath: internal/debrid/client/previews.go
- * - Filename: previews.go
- * - Package: debrid_client
- */
-export type DebridClient_FilePreview = {
-    path: string
-    displayPath: string
-    displayTitle: string
-    episodeNumber: number
-    relativeEpisodeNumber: number
-    isLikely: boolean
-    index: number
-    fileId: string
-}
-
-/**
- * - Filepath: internal/debrid/client/stream.go
- * - Filename: stream.go
- * - Package: debrid_client
- */
-export type DebridClient_StreamPlaybackType = "none" | "noneAndAwait" | "default" | "nativeplayer" | "externalPlayerLink"
-
-/**
- * - Filepath: internal/debrid/client/stream.go
- * - Filename: stream.go
- * - Package: debrid_client
- */
-export type DebridClient_StreamState = {
-    status: DebridClient_StreamStatus
-    torrentName: string
-    message: string
-}
-
-/**
- * - Filepath: internal/debrid/client/stream.go
- * - Filename: stream.go
- * - Package: debrid_client
- */
-export type DebridClient_StreamStatus = "downloading" | "ready" | "failed" | "started"
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Extension
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2602,8 +2420,6 @@ export type Status = {
     themeSettings?: Models_Theme
     isOffline: boolean
     mediastreamSettings?: Models_MediastreamSettings
-    torrentstreamSettings?: Models_TorrentstreamSettings
-    debridSettings?: Models_DebridSettings
     anilistClientId: string
     /**
      * If true, a new screen will be displayed
@@ -2678,29 +2494,6 @@ export type HibikeManga_Settings = {
     supportsMultiScanlator: boolean
     supportsMultiLanguage: boolean
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Hibikeonlinestream
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/extension/hibike/onlinestream/types.go
- * - Filename: types.go
- * - Package: hibikeonlinestream
- */
-export type HibikeOnlinestream_SearchResult = {
-    id: string
-    title: string
-    url: string
-    subOrDub: HibikeOnlinestream_SubOrDub
-}
-
-/**
- * - Filepath: internal/extension/hibike/onlinestream/types.go
- * - Filename: types.go
- * - Package: hibikeonlinestream
- */
-export type HibikeOnlinestream_SubOrDub = "sub" | "dub" | "both"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Hibiketorrent
@@ -2958,46 +2751,6 @@ export type Manga_ProviderDownloadMapChapterInfo = {
     chapterId: string
     chapterNumber: string
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Mediaplayer
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/mediaplayers/mediaplayer/repository.go
- * - Filename: repository.go
- * - Package: mediaplayer
- */
-export type PlaybackStatus = {
-    completionPercentage: number
-    playing: boolean
-    filename: string
-    path: string
-    /**
-     * in ms
-     */
-    duration: number
-    filepath: string
-    /**
-     * in seconds
-     */
-    currentTimeInSeconds: number
-    /**
-     * in seconds
-     */
-    durationInSeconds: number
-    /**
-     * "file", "stream"
-     */
-    playbackType: PlaybackType
-}
-
-/**
- * - Filepath: internal/mediaplayers/mediaplayer/repository.go
- * - Filename: repository.go
- * - Package: mediaplayer
- */
-export type PlaybackType = "file" | "stream"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Mediastream
@@ -3395,23 +3148,6 @@ export type Models_ChapterDownloadQueueItem = {
  * - Filename: models.go
  * - Package: models
  */
-export type Models_DebridSettings = {
-    enabled: boolean
-    provider: string
-    apiKey: string
-    includeDebridStreamInLibrary: boolean
-    streamAutoSelect: boolean
-    streamPreferredResolution: string
-    id: number
-    createdAt?: string
-    updatedAt?: string
-}
-
-/**
- * - Filepath: internal/database/models/models.go
- * - Filename: models.go
- * - Package: models
- */
 export type Models_DiscordSettings = {
     enableRichPresence: boolean
     enableAnimeRichPresence: boolean
@@ -3420,6 +3156,41 @@ export type Models_DiscordSettings = {
     richPresenceShowAniListMediaButton: boolean
     richPresenceShowAniListProfileButton: boolean
     richPresenceUseMediaTitleStatus: boolean
+}
+
+/**
+ * - Filepath: internal/database/models/models.go
+ * - Filename: models.go
+ * - Package: models
+ * @description
+ *  GlobalAnimeFileMapping stores global AniList ID to local file path mappings
+ */
+export type Models_GlobalAnimeFileMapping = {
+    anilistId: number
+    localFilePath: string
+    /**
+     * Primary title for display
+     */
+    title: string
+    /**
+     * Romaji title variant
+     */
+    romajiTitle: string
+    /**
+     * English title variant
+     */
+    englishTitle: string
+    /**
+     * JSON array of synonyms
+     */
+    synonyms: string
+    year: number
+    episodeNumber: number
+    fileSize: number
+    lastScanned?: string
+    id: number
+    createdAt?: string
+    updatedAt?: string
 }
 
 /**
@@ -3572,6 +3343,14 @@ export type Models_Settings = {
      * Foreign key to User
      */
     userId: number
+    /**
+     * Tracks if initial setup is complete
+     */
+    setupCompleted: boolean
+    /**
+     * Whitelisted AniList usernames
+     */
+    anilistWhitelist: Models_StringSlice
     library?: Models_LibrarySettings
     mediaPlayer?: Models_MediaPlayerSettings
     torrent?: Models_TorrentSettings
@@ -3690,21 +3469,27 @@ export type Models_TorrentSettings = {
  * - Filepath: internal/database/models/models.go
  * - Filename: models.go
  * - Package: models
+ * @description
+ *  UnmappedFile stores files that couldn't be automatically matched to AniList entries
  */
-export type Models_TorrentstreamSettings = {
-    enabled: boolean
-    autoSelect: boolean
-    preferredResolution: string
-    disableIPV6: boolean
-    downloadDir: string
-    addToLibrary: boolean
-    torrentClientHost: string
-    torrentClientPort: number
-    streamingServerHost: string
-    streamingServerPort: number
-    includeInLibrary: boolean
-    streamUrlAddress: string
-    slowSeeding: boolean
+export type Models_UnmappedFile = {
+    localFilePath: string
+    /**
+     * Parsed anime title from filename
+     */
+    parsedTitle: string
+    /**
+     * Alternative detected title
+     */
+    detectedTitle: string
+    fileSize: number
+    lastDetected?: string
+    /**
+     * "PENDING", "IGNORED", "ASSIGNED"
+     */
+    status: string
+    ignoredByUserId: number
+    ignoredAt?: string
     id: number
     createdAt?: string
     updatedAt?: string
@@ -3718,6 +3503,9 @@ export type Models_TorrentstreamSettings = {
  *  User represents a user account in the multi-user system
  */
 export type Models_User = {
+    /**
+     * AniList username
+     */
     username: string
     /**
      * "admin", "user"
@@ -3730,169 +3518,54 @@ export type Models_User = {
     updatedAt?: string
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Nakama
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /**
- * - Filepath: internal/nakama/nakama.go
- * - Filename: nakama.go
- * - Package: nakama
+ * - Filepath: internal/database/models/models.go
+ * - Filename: models.go
+ * - Package: models
  * @description
- *  HostConnectionStatus represents the status of the host connection
+ *  UserEpisodeProgress tracks per-user episode watch progress with resume functionality
  */
-export type Nakama_HostConnectionStatus = {
-    connected: boolean
-    authenticated: boolean
-    url: string
-    lastPing?: string
-    peerId: string
-    username: string
-}
-
-/**
- * - Filepath: internal/nakama/nakama.go
- * - Filename: nakama.go
- * - Package: nakama
- * @description
- *  MessageResponse represents a response to message sending requests
- */
-export type Nakama_MessageResponse = {
-    success: boolean
-    message: string
-}
-
-/**
- * - Filepath: internal/nakama/share.go
- * - Filename: share.go
- * - Package: nakama
- */
-export type Nakama_NakamaAnimeLibrary = {
-    localFiles?: Array<Anime_LocalFile>
-    animeCollection?: AL_AnimeCollection
-}
-
-/**
- * - Filepath: internal/nakama/nakama.go
- * - Filename: nakama.go
- * - Package: nakama
- * @description
- *  NakamaStatus represents the overall status of Nakama connections
- */
-export type Nakama_NakamaStatus = {
-    isHost: boolean
-    connectedPeers?: Array<string>
-    isConnectedToHost: boolean
-    hostConnectionStatus?: Nakama_HostConnectionStatus
-    currentWatchPartySession?: Nakama_WatchPartySession
-}
-
-/**
- * - Filepath: internal/nakama/watch_party.go
- * - Filename: watch_party.go
- * - Package: nakama
- */
-export type Nakama_OnlineStreamParams = {
-    mediaId: number
-    provider: string
-    server: string
-    dubbed: boolean
-    episodeNumber: number
-    quality: string
-}
-
-/**
- * - Filepath: internal/nakama/watch_party.go
- * - Filename: watch_party.go
- * - Package: nakama
- */
-export type Nakama_WatchPartySession = {
-    id: string
-    participants?: Record<string, Nakama_WatchPartySessionParticipant>
-    settings?: Nakama_WatchPartySessionSettings
-    createdAt?: string
-    /**
-     * can be nil if not set
-     */
-    currentMediaInfo?: Nakama_WatchPartySessionMediaInfo
-    /**
-     * Whether this session is in relay mode
-     */
-    isRelayMode: boolean
-}
-
-/**
- * - Filepath: internal/nakama/watch_party.go
- * - Filename: watch_party.go
- * - Package: nakama
- */
-export type Nakama_WatchPartySessionMediaInfo = {
+export type Models_UserEpisodeProgress = {
+    userId: number
     mediaId: number
     episodeNumber: number
     aniDbEpisode: string
     /**
-     * "file", "torrent", "debrid", "online"
+     * Current watch position
      */
-    streamType: string
+    watchTimeSeconds: number
     /**
-     * URL for stream playback (e.g. /api/v1/nakama/stream?type=file&path=...)
+     * Total episode duration
      */
-    streamPath: string
-    onlineStreamParams?: Nakama_OnlineStreamParams
-    optionalTorrentStreamStartOptions?: Torrentstream_StartStreamOptions
-}
-
-/**
- * - Filepath: internal/nakama/watch_party.go
- * - Filename: watch_party.go
- * - Package: nakama
- */
-export type Nakama_WatchPartySessionParticipant = {
+    durationSeconds: number
     /**
-     * PeerID (UUID) for unique identification
+     * Calculated percentage
      */
-    id: string
+    completionPercent: number
     /**
-     * Display name
+     * Marked as watched
      */
-    username: string
-    isHost: boolean
-    canControl: boolean
-    isReady: boolean
-    lastSeen?: string
+    isCompleted: boolean
+    lastWatchedAt?: string
     /**
-     * in milliseconds
+     * Which file was being watched
      */
-    latency: number
-    isBuffering: boolean
+    localFilePath: string
     /**
-     * 0.0 to 1.0, how much buffer is available
+     * For file integrity checking
      */
-    bufferHealth: number
+    localFileHash: string
     /**
-     * Current playback status
+     * "mpv", "vlc", etc.
      */
-    playbackStatus?: PlaybackStatus
+    mediaPlayerUsed: string
     /**
-     * Whether this peer is the origin for relay mode
+     * Optional device identifier
      */
-    isRelayOrigin: boolean
-}
-
-/**
- * - Filepath: internal/nakama/watch_party.go
- * - Filename: watch_party.go
- * - Package: nakama
- */
-export type Nakama_WatchPartySessionSettings = {
-    /**
-     * Seconds of desync before forcing sync
-     */
-    syncThreshold: number
-    /**
-     * Max time to wait for buffering peers (seconds)
-     */
-    maxBufferWaitTime: number
+    deviceInfo: string
+    id: number
+    createdAt?: string
+    updatedAt?: string
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3969,75 +3642,6 @@ export type NativePlayer_ServerEvent = "open-and-await" |
  * - Package: nativeplayer
  */
 export type NativePlayer_StreamType = "torrent" | "localfile" | "debrid"
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Onlinestream
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/onlinestream/repository.go
- * - Filename: repository.go
- * - Package: onlinestream
- */
-export type Onlinestream_Episode = {
-    number: number
-    title?: string
-    image?: string
-    description?: string
-    isFiller?: boolean
-}
-
-/**
- * - Filepath: internal/onlinestream/repository.go
- * - Filename: repository.go
- * - Package: onlinestream
- */
-export type Onlinestream_EpisodeListResponse = {
-    episodes?: Array<Onlinestream_Episode>
-    media?: AL_BaseAnime
-}
-
-/**
- * - Filepath: internal/onlinestream/repository.go
- * - Filename: repository.go
- * - Package: onlinestream
- */
-export type Onlinestream_EpisodeSource = {
-    number: number
-    videoSources?: Array<Onlinestream_VideoSource>
-    subtitles?: Array<Onlinestream_Subtitle>
-}
-
-/**
- * - Filepath: internal/onlinestream/manual_mapping.go
- * - Filename: manual_mapping.go
- * - Package: onlinestream
- */
-export type Onlinestream_MappingResponse = {
-    animeId?: string
-}
-
-/**
- * - Filepath: internal/onlinestream/repository.go
- * - Filename: repository.go
- * - Package: onlinestream
- */
-export type Onlinestream_Subtitle = {
-    url: string
-    language: string
-}
-
-/**
- * - Filepath: internal/onlinestream/repository.go
- * - Filename: repository.go
- * - Package: onlinestream
- */
-export type Onlinestream_VideoSource = {
-    server: string
-    headers?: Record<string, string>
-    url: string
-    quality: string
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Report
@@ -4133,6 +3737,29 @@ export type Report_UnlockedLocalFile = {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Scanner
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * - Filepath: internal/library/scanner/system_scanner.go
+ * - Filename: system_scanner.go
+ * - Package: scanner
+ * @description
+ *  SystemScanResult contains the results of a system scan
+ */
+export type Scanner_SystemScanResult = {
+    filesProcessed: number
+    newMappings: number
+    updatedMappings: number
+    errors?: Array<string>
+    duration: string
+    /**
+     * For admin queue
+     */
+    unmappedFilePaths?: Array<string>
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Summary
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -4198,6 +3825,27 @@ export type Summary_ScanSummaryLog = {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sync
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * - Filepath: internal/library/sync/progress_manager.go
+ * - Filename: progress_manager.go
+ * - Package: sync
+ * @description
+ *  ResumePoint represents an available resume point for an episode
+ */
+export type ResumePoint = {
+    mediaId: number
+    episodeNumber: number
+    resumeTimeSeconds: number
+    durationSeconds: number
+    completionPercent: number
+    lastWatchedAt?: string
+    localFilePath: string
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Torrent
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -4232,10 +3880,6 @@ export type Torrent_SearchData = {
      * Torrent metadata
      */
     torrentMetadata?: Record<string, Torrent_TorrentMetadata>
-    /**
-     * Debrid instant availability
-     */
-    debridInstantAvailability?: Record<string, Debrid_TorrentItemInstantAvailability>
     /**
      * Animap media
      */
@@ -4280,88 +3924,6 @@ export type TorrentClient_Torrent = {
  * - Package: torrent_client
  */
 export type TorrentClient_TorrentStatus = "downloading" | "seeding" | "paused" | "other" | "stopped"
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Torrentstream
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/torrentstream/history.go
- * - Filename: history.go
- * - Package: torrentstream
- */
-export type Torrentstream_BatchHistoryResponse = {
-    torrent?: HibikeTorrent_AnimeTorrent
-}
-
-/**
- * - Filepath: internal/torrentstream/previews.go
- * - Filename: previews.go
- * - Package: torrentstream
- */
-export type Torrentstream_FilePreview = {
-    path: string
-    displayPath: string
-    displayTitle: string
-    episodeNumber: number
-    relativeEpisodeNumber: number
-    isLikely: boolean
-    index: number
-}
-
-/**
- * - Filepath: internal/torrentstream/stream.go
- * - Filename: stream.go
- * - Package: torrentstream
- */
-export type Torrentstream_PlaybackType = "default" | "externalPlayerLink" | "nativeplayer" | "none" | "noneAndAwait"
-
-/**
- * - Filepath: internal/torrentstream/stream.go
- * - Filename: stream.go
- * - Package: torrentstream
- */
-export type Torrentstream_StartStreamOptions = {
-    MediaId: number
-    /**
-     * RELATIVE Episode number to identify the file
-     */
-    EpisodeNumber: number
-    /**
-     * Animap episode
-     */
-    AniDBEpisode: string
-    /**
-     * Automatically select the best file to stream
-     */
-    AutoSelect: boolean
-    /**
-     * Selected torrent (Manual selection)
-     */
-    Torrent?: HibikeTorrent_AnimeTorrent
-    /**
-     * Index of the file to stream (Manual selection)
-     */
-    FileIndex?: number
-    UserAgent: string
-    ClientId: string
-    PlaybackType: Torrentstream_PlaybackType
-}
-
-/**
- * - Filepath: internal/torrentstream/client.go
- * - Filename: client.go
- * - Package: torrentstream
- */
-export type Torrentstream_TorrentStatus = {
-    uploadProgress: number
-    downloadProgress: number
-    progressPercentage: number
-    downloadSpeed: string
-    uploadSpeed: string
-    size: string
-    seeders: number
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Updater

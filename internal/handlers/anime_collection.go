@@ -5,7 +5,6 @@ import (
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/library/anime"
-	"seanime/internal/torrentstream"
 	"seanime/internal/util"
 	"seanime/internal/util/result"
 	"time"
@@ -41,63 +40,24 @@ func (h *Handler) HandleGetLibraryCollection(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	// Auto-populate user subscriptions for global media pool system
+	if animeCollection != nil {
+		err = h.trackUserSubscriptionsFromCollection(user.ID, animeCollection)
+		if err != nil {
+			// Log error but don't fail library request
+			h.App.Logger.Error().Err(err).Msg("Failed to track user subscriptions from library collection")
+		}
+	}
+
 	if animeCollection == nil {
 		return h.RespondWithData(c, &anime.LibraryCollection{})
 	}
 
-	originalAnimeCollection := animeCollection
-
-	var lfs []*anime.LocalFile
-	nakamaLibrary, fromNakama := h.App.NakamaManager.GetHostAnimeLibrary()
-	if fromNakama {
-		// Save the original anime collection to restore it later
-		originalAnimeCollection = animeCollection.Copy()
-		lfs = nakamaLibrary.LocalFiles
-		// Merge missing media entries into the collection
-		currentMediaIds := make(map[int]struct{})
-		for _, list := range animeCollection.MediaListCollection.GetLists() {
-			for _, entry := range list.GetEntries() {
-				currentMediaIds[entry.GetMedia().GetID()] = struct{}{}
-			}
-		}
-
-		nakamaMediaIds := make(map[int]struct{})
-		for _, lf := range lfs {
-			if lf.MediaId > 0 {
-				nakamaMediaIds[lf.MediaId] = struct{}{}
-			}
-		}
-
-		missingMediaIds := make(map[int]struct{})
-		for _, lf := range lfs {
-			if lf.MediaId > 0 {
-				if _, ok := currentMediaIds[lf.MediaId]; !ok {
-					missingMediaIds[lf.MediaId] = struct{}{}
-				}
-			}
-		}
-
-		for _, list := range nakamaLibrary.AnimeCollection.MediaListCollection.GetLists() {
-			for _, entry := range list.GetEntries() {
-				if _, ok := missingMediaIds[entry.GetMedia().GetID()]; ok {
-					// create a new entry with blank list data
-					newEntry := &anilist.AnimeListEntry{
-						ID:     entry.GetID(),
-						Media:  entry.GetMedia(),
-						Status: &[]anilist.MediaListStatus{anilist.MediaListStatusPlanning}[0],
-					}
-					animeCollection.MediaListCollection.AddEntryToList(newEntry, anilist.MediaListStatusPlanning)
-				}
-			}
-		}
-
-	} else {
-		// Get user-specific local files
-		lfs, _, err = db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
-		if err != nil {
-			// If no local files exist for this user, use empty slice
-			lfs = []*anime.LocalFile{}
-		}
+	// Get user-specific local files
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
+	if err != nil {
+		// If no local files exist for this user, use empty slice
+		lfs = []*anime.LocalFile{}
 	}
 
 	// Use existing GetUserPlatform method instead of global platform
@@ -116,41 +76,7 @@ func (h *Handler) HandleGetLibraryCollection(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Restore the original anime collection if it was modified
-	if fromNakama {
-		*animeCollection = *originalAnimeCollection
-	}
 
-	if !fromNakama {
-		if (h.App.SecondarySettings.Torrentstream != nil && h.App.SecondarySettings.Torrentstream.Enabled && h.App.SecondarySettings.Torrentstream.IncludeInLibrary) ||
-			(h.App.Settings.GetLibrary() != nil && h.App.Settings.GetLibrary().EnableOnlinestream && h.App.Settings.GetLibrary().IncludeOnlineStreamingInLibrary) ||
-			(h.App.SecondarySettings.Debrid != nil && h.App.SecondarySettings.Debrid.Enabled && h.App.SecondarySettings.Debrid.IncludeDebridStreamInLibrary) {
-			h.App.TorrentstreamRepository.HydrateStreamCollection(&torrentstream.HydrateStreamCollectionOptions{
-				AnimeCollection:   animeCollection,
-				LibraryCollection: libraryCollection,
-				MetadataProvider:  h.App.MetadataProvider,
-			})
-		}
-	}
-
-	// Add and remove necessary metadata when hydrating from Nakama
-	if fromNakama {
-		for _, ep := range libraryCollection.ContinueWatchingList {
-			ep.IsNakamaEpisode = true
-		}
-		for _, list := range libraryCollection.Lists {
-			for _, entry := range list.Entries {
-				if entry.EntryLibraryData == nil {
-					continue
-				}
-				entry.NakamaEntryLibraryData = &anime.NakamaEntryLibraryData{
-					UnwatchedCount: entry.EntryLibraryData.UnwatchedCount,
-					MainFileCount:  entry.EntryLibraryData.MainFileCount,
-				}
-				entry.EntryLibraryData = nil
-			}
-		}
-	}
 
 	// Hydrate total library size
 	if libraryCollection != nil && libraryCollection.Stats != nil {
@@ -257,4 +183,50 @@ func (h *Handler) HandleAddUnknownMedia(c echo.Context) error {
 
 	return h.RespondWithData(c, animeCollection)
 
+}
+
+// trackUserSubscriptionsFromCollection records which anime a user has in their AniList collection
+// This enables the global media pool system by populating subscription data when users view their library
+func (h *Handler) trackUserSubscriptionsFromCollection(userID uint, animeCollection *anilist.AnimeCollection) error {
+	if animeCollection == nil {
+		return nil
+	}
+
+	// Extract anime media from collection - use BaseAnime since that's what AnimeCollection returns
+	collectionMedia := make([]*anilist.BaseAnime, 0)
+	for _, list := range animeCollection.GetMediaListCollection().GetLists() {
+		for _, entry := range list.GetEntries() {
+			collectionMedia = append(collectionMedia, entry.GetMedia())
+		}
+	}
+
+	if len(collectionMedia) == 0 {
+		return nil
+	}
+
+	h.App.Logger.Debug().
+		Int("userID", int(userID)).
+		Int("animeCount", len(collectionMedia)).
+		Msg("Tracking user anime subscriptions from library collection")
+
+	// Track subscriptions for each anime in user's collection
+	for _, anime := range collectionMedia {
+		err := h.App.Database.UpsertUserAnimeSubscription(userID, anime.GetID(), "active")
+		if err != nil {
+			// Log error but don't fail the entire process for a single subscription error
+			h.App.Logger.Warn().
+				Err(err).
+				Int("aniListID", anime.GetID()).
+				Str("title", anime.GetTitleSafe()).
+				Msg("Failed to upsert user anime subscription")
+			continue
+		}
+	}
+
+	h.App.Logger.Debug().
+		Int("userID", int(userID)).
+		Int("animeCount", len(collectionMedia)).
+		Msg("User anime subscriptions tracked successfully from library collection")
+
+	return nil
 }

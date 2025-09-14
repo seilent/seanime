@@ -7,7 +7,7 @@ import (
 )
 
 // initLibraryWatcher will initialize the library watcher.
-//   - Used by AutoScanner
+//   - Used by SystemScanService for file change notifications
 func (a *App) initLibraryWatcher(paths []string) {
 	// Create a new watcher
 	watcher, err := scanner.NewWatcher(&scanner.NewWatcherOptions{
@@ -52,8 +52,8 @@ func (a *App) initLibraryWatcher(paths []string) {
 	// Start watching
 	a.Watcher.StartWatching(
 		func() {
-			// Notify the auto scanner when a file action occurs
-			a.AutoScanner.Notify()
+			// Notify the system scan service when a file action occurs
+			a.SystemScanService.NotifyFileChange()
 		})
 
 }

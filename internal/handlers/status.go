@@ -36,8 +36,6 @@ type Status struct {
 	ThemeSettings         *models.Theme                 `json:"themeSettings"`
 	IsOffline             bool                          `json:"isOffline"`
 	MediastreamSettings   *models.MediastreamSettings   `json:"mediastreamSettings"`
-	TorrentstreamSettings *models.TorrentstreamSettings `json:"torrentstreamSettings"`
-	DebridSettings        *models.DebridSettings        `json:"debridSettings"`
 	AnilistClientID       string                        `json:"anilistClientId"`
 	Updating              bool                          `json:"updating"`         // If true, a new screen will be displayed
 	IsDesktopSidecar      bool                          `json:"isDesktopSidecar"` // The server is running as a desktop sidecar
@@ -76,14 +74,15 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 	}
 
 	// Get settings - merge global and user settings
+	// Always get global settings first for setup detection
+	globalSettings, _ := h.App.Database.GetSettings()
+	
 	if contextUser := h.getCurrentUser(c); contextUser != nil {
 		// Get user-specific settings
 		userSettings, _ := h.App.Database.GetSettingsForUser(contextUser.ID)
-		// Get global settings
-		globalSettings, _ := h.App.Database.GetSettings()
 		
 		// Merge settings: global for shared resources, user for personal preferences
-		if userSettings != nil && (userSettings.ID != 0 && userSettings.MediaPlayer != nil) {
+		if userSettings != nil && userSettings.ID != 0 {
 			settings = userSettings
 			
 			// Override with global settings for shared resources (admin-controlled)
@@ -97,11 +96,17 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 				if globalSettings.AutoDownloader != nil {
 					settings.AutoDownloader = globalSettings.AutoDownloader
 				}
+				// Always include whitelist and setup completion from global settings
+				settings.AnilistWhitelist = globalSettings.AnilistWhitelist
+				settings.SetupCompleted = globalSettings.SetupCompleted
 			}
 		} else if globalSettings != nil {
 			// If no user settings exist, fall back to global settings
 			settings = globalSettings
 		}
+	} else {
+		// If no user is authenticated, still return global settings for setup detection
+		settings = globalSettings
 	}
 
 	clientInfo, found := clientInfoCache.Get(c.Request().UserAgent())
@@ -125,36 +130,9 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 		ThemeSettings:         theme,
 		IsOffline:             h.App.Config.Server.Offline,
 		MediastreamSettings:   h.App.SecondarySettings.Mediastream,
-		TorrentstreamSettings: h.App.SecondarySettings.Torrentstream,
-		DebridSettings:        h.App.SecondarySettings.Debrid,
 		AnilistClientID:       h.App.Config.Anilist.ClientID,
-		Updating:              false,
-		IsDesktopSidecar:      h.App.IsDesktopSidecar,
-		FeatureFlags:          h.App.FeatureFlags,
 		ServerReady:           h.App.ServerReady,
-		ServerHasPassword:     false, // Always false since server password is removed
-	}
-
-	// Check if any users exist
-	users, err := h.App.Database.GetAllUsers()
-	if err == nil {
-		status.HasUsers = len(users) > 0
-	}
-
-	if c.Get("unauthenticated") != nil && c.Get("unauthenticated").(bool) {
-		status.OS = ""
-		status.DataDir = ""
-		status.User = user.NewSimulatedUser()
-		status.ThemeSettings = nil
-		status.MediastreamSettings = nil
-		status.TorrentstreamSettings = nil
-		status.DebridSettings = nil
-		status.FeatureFlags = core.FeatureFlags{}
-		if status.Settings != nil {
-			status.Settings = &models.Settings{
-				BaseModel: models.BaseModel{ID: status.Settings.ID},
-			}
-		}
+		Updating:              false, // Set to false for now
 	}
 
 	return status

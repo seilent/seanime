@@ -9,26 +9,34 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Modal } from '@/components/ui/modal'
 import { Checkbox } from '@/components/ui/checkbox'
 import { PageWrapper } from '@/components/shared/page-wrapper'
+import { useServerStatus } from '@/app/(main)/_hooks/use-server-status'
+import { useSaveSettings } from '@/api/hooks/settings.hooks'
 
 interface User {
     id: number
     username: string
-    isAdmin: boolean
+    role: string
+    isActive: boolean
+    displayName: string
     createdAt: string
     updatedAt: string
 }
 
+interface AniListWhitelistUser {
+    username: string
+    isAdmin: boolean
+}
+
 export default function UsersManagementPage() {
     const [users, setUsers] = useState<User[]>([])
+    const [whitelistUsers, setWhitelistUsers] = useState<AniListWhitelistUser[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState('')
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-    const [isCreating, setIsCreating] = useState(false)
-    const [newUser, setNewUser] = useState({
-        username: '',
-        password: '',
-        isAdmin: false
-    })
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [isAdding, setIsAdding] = useState(false)
+    const [newUsername, setNewUsername] = useState('')
+    const serverStatus = useServerStatus()
+    const { mutate: saveSettings, isPending: isSavingSettings } = useSaveSettings()
 
     // Fetch users
     const fetchUsers = async () => {
@@ -36,7 +44,7 @@ export default function UsersManagementPage() {
             const response = await fetch('/api/v1/admin/users', {
                 credentials: 'include'
             })
-            
+
             if (response.ok) {
                 const data = await response.json() as { data?: User[] }
                 setUsers(data.data || [])
@@ -50,40 +58,67 @@ export default function UsersManagementPage() {
         }
     }
 
-    // Create user
-    const handleCreateUser = async (e: React.FormEvent) => {
+    // Load whitelist from server status
+    useEffect(() => {
+        if (serverStatus?.settings?.anilistWhitelist) {
+            const whitelist = serverStatus.settings.anilistWhitelist.map((username, index) => ({
+                username,
+                isAdmin: index === 0 // First user in whitelist is admin
+            }))
+            setWhitelistUsers(whitelist)
+        }
+    }, [serverStatus])
+
+    // Add user to whitelist
+    const handleAddToWhitelist = async (e: React.FormEvent) => {
         e.preventDefault()
-        setIsCreating(true)
+        setIsAdding(true)
         setError('')
 
-        try {
-            const response = await fetch('/api/v1/admin/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newUser),
-                credentials: 'include'
-            })
+        if (!newUsername.trim()) {
+            setError('AniList username is required')
+            setIsAdding(false)
+            return
+        }
 
-            if (response.ok) {
-                setIsCreateModalOpen(false)
-                setNewUser({ username: '', password: '', isAdmin: false })
-                fetchUsers() // Refresh the list
-            } else {
-                const errorData = await response.json() as { error?: string }
-                setError(errorData.error || 'Failed to create user')
-            }
+        // Check if user already in whitelist
+        if (whitelistUsers.some(u => u.username === newUsername.trim())) {
+            setError('User already in whitelist')
+            setIsAdding(false)
+            return
+        }
+
+        try {
+            // For now, show a message that this functionality needs backend support
+            setError('AniList whitelist management requires backend endpoint implementation. This feature is not yet fully connected.')
+            setIsAdding(false)
         } catch (err) {
-            setError('Network error')
-        } finally {
-            setIsCreating(false)
+            setError('Failed to update whitelist')
+            setIsAdding(false)
         }
     }
 
-    // Delete user
+    // Remove user from whitelist
+    const handleRemoveFromWhitelist = async (username: string, isAdmin: boolean) => {
+        if (isAdmin && !confirm('Removing the admin user will revoke their admin access. Are you sure?')) {
+            return
+        }
+
+        if (!confirm(`Are you sure you want to remove ${username} from the whitelist?`)) {
+            return
+        }
+
+        try {
+            // For now, show a message that this functionality needs backend support
+            setError('AniList whitelist management requires backend endpoint implementation. This feature is not yet fully connected.')
+        } catch (err) {
+            setError('Failed to update whitelist')
+        }
+    }
+
+    // Delete user account
     const handleDeleteUser = async (userId: number) => {
-        if (!confirm('Are you sure you want to delete this user?')) {
+        if (!confirm('Are you sure you want to delete this user account? This will remove all their data.')) {
             return
         }
 
@@ -122,11 +157,11 @@ export default function UsersManagementPage() {
                     <div>
                         <h1 className="text-2xl font-bold">User Management</h1>
                         <p className="text-gray-600 dark:text-gray-400">
-                            Manage user accounts and permissions
+                            Manage AniList users and permissions. Users must be in the whitelist to access the server.
                         </p>
                     </div>
-                    <Button onClick={() => setIsCreateModalOpen(true)}>
-                        Create User
+                    <Button onClick={() => setIsAddModalOpen(true)}>
+                        Add to Whitelist
                     </Button>
                 </div>
 
@@ -138,15 +173,18 @@ export default function UsersManagementPage() {
 
                 <Card className="p-6">
                     <div className="space-y-4">
-                        <h2 className="text-lg font-semibold">Users</h2>
-                        
-                        {users.length === 0 ? (
-                            <p className="text-gray-500">No users found</p>
+                        <h2 className="text-lg font-semibold">AniList Whitelist</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Only AniList users in this whitelist can access the server. The first user is automatically an admin.
+                        </p>
+
+                        {whitelistUsers.length === 0 ? (
+                            <p className="text-gray-500">No users in whitelist</p>
                         ) : (
                             <div className="space-y-3">
-                                {users.map((user) => (
+                                {whitelistUsers.map((user, index) => (
                                     <div
-                                        key={user.id}
+                                        key={user.username}
                                         className="flex items-center justify-between p-4 border rounded-lg"
                                     >
                                         <div className="space-y-1">
@@ -157,18 +195,24 @@ export default function UsersManagementPage() {
                                                         Admin
                                                     </span>
                                                 )}
+                                                {index === 0 && (
+                                                    <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
+                                                        First User
+                                                    </span>
+                                                )}
                                             </div>
                                             <p className="text-sm text-gray-500">
-                                                Created: {new Date(user.createdAt).toLocaleDateString()}
+                                                AniList Username
                                             </p>
                                         </div>
-                                        
+
                                         <Button
                                             intent="alert-subtle"
                                             size="sm"
-                                            onClick={() => handleDeleteUser(user.id)}
+                                            onClick={() => handleRemoveFromWhitelist(user.username, user.isAdmin)}
+                                            disabled={isSavingSettings}
                                         >
-                                            Delete
+                                            Remove
                                         </Button>
                                     </div>
                                 ))}
@@ -176,56 +220,92 @@ export default function UsersManagementPage() {
                         )}
                     </div>
                 </Card>
+
+                {users.length > 0 && (
+                    <Card className="p-6">
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold">Registered Users</h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Users who have logged in at least once. You can delete their accounts and data here.
+                            </p>
+
+                            <div className="space-y-3">
+                                {users.map((user) => (
+                                    <div
+                                        key={user.id}
+                                        className="flex items-center justify-between p-4 border rounded-lg"
+                                    >
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">{user.displayName || user.username}</span>
+                                                <span className="text-sm text-gray-500">@{user.username}</span>
+                                                {user.role === 'admin' && (
+                                                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                                                        Admin
+                                                    </span>
+                                                )}
+                                                {!user.isActive && (
+                                                    <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
+                                                        Inactive
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-gray-500">
+                                                Created: {new Date(user.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+
+                                        <Button
+                                            intent="alert-subtle"
+                                            size="sm"
+                                            onClick={() => handleDeleteUser(user.id)}
+                                        >
+                                            Delete Account
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </Card>
+                )}
             </div>
 
-            {/* Create User Modal */}
+            {/* Add to Whitelist Modal */}
             <Modal
-                open={isCreateModalOpen}
-                onOpenChange={setIsCreateModalOpen}
-                title="Create New User"
+                open={isAddModalOpen}
+                onOpenChange={setIsAddModalOpen}
+                title="Add User to Whitelist"
             >
-                <form onSubmit={handleCreateUser} className="space-y-4">
-                    <TextInput
-                        label="Username"
-                        placeholder="Enter username"
-                        value={newUser.username}
-                        onValueChange={(value) => setNewUser(prev => ({ ...prev, username: value }))}
-                        required
-                        disabled={isCreating}
-                    />
-                    
-                    <TextInput
-                        label="Password"
-                        type="password"
-                        placeholder="Enter password"
-                        value={newUser.password}
-                        onValueChange={(value) => setNewUser(prev => ({ ...prev, password: value }))}
-                        required
-                        disabled={isCreating}
-                    />
-                    
-                    <Checkbox
-                        label="Admin User"
-                        value={newUser.isAdmin}
-                        onValueChange={(checked: boolean | "indeterminate") => setNewUser(prev => ({ ...prev, isAdmin: !!checked }))}
-                        disabled={isCreating}
-                    />
-                    
+                <form onSubmit={handleAddToWhitelist} className="space-y-4">
+                    <div className="space-y-2">
+                        <TextInput
+                            label="AniList Username"
+                            placeholder="Enter AniList username"
+                            value={newUsername}
+                            onValueChange={setNewUsername}
+                            required
+                            disabled={isAdding}
+                        />
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            The user must have this exact username on AniList to be able to log in.
+                        </p>
+                    </div>
+
                     <div className="flex gap-2 pt-4">
                         <Button
                             type="button"
                             intent="gray-subtle"
-                            onClick={() => setIsCreateModalOpen(false)}
-                            disabled={isCreating}
+                            onClick={() => setIsAddModalOpen(false)}
+                            disabled={isAdding}
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
-                            disabled={isCreating}
-                            leftIcon={isCreating ? <LoadingSpinner className="w-4 h-4" /> : undefined}
+                            disabled={isAdding}
+                            leftIcon={isAdding ? <LoadingSpinner className="w-4 h-4" /> : undefined}
                         >
-                            {isCreating ? 'Creating...' : 'Create User'}
+                            {isAdding ? 'Adding...' : 'Add to Whitelist'}
                         </Button>
                     </div>
                 </form>

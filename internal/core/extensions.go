@@ -4,7 +4,6 @@ import (
 	"seanime/internal/extension"
 	"seanime/internal/extension_repo"
 	manga_providers "seanime/internal/manga/providers"
-	onlinestream_providers "seanime/internal/onlinestream/providers"
 	"seanime/internal/torrents/animetosho"
 	"seanime/internal/torrents/nyaa"
 	"seanime/internal/torrents/seadex"
@@ -133,18 +132,6 @@ func LoadExtensions(extensionRepository *extension_repo.Repository, logger *zero
 	//	Icon:        "https://raw.githubusercontent.com/5rahim/hibike/main/icons/hianime.png",
 	//}, onlinestream_providers.NewZoro(logger))
 
-	extensionRepository.ReloadBuiltInExtension(extension.Extension{
-		ID:          "animepahe",
-		Name:        "Animepahe",
-		Version:     "",
-		ManifestURI: "builtin",
-		Language:    extension.LanguageTypescript,
-		Type:        extension.TypeOnlinestreamProvider,
-		Author:      "Seanime",
-		Lang:        "en",
-		Icon:        "https://raw.githubusercontent.com/5rahim/hibike/main/icons/animepahe.png",
-		Payload:     onlinestream_providers.AnimepahePayload,
-	}, nil)
 
 	//
 	// Built-in torrent providers
@@ -253,7 +240,6 @@ func (a *App) AddExtensionBankToConsumers() {
 
 	var consumers = []extension.Consumer{
 		a.MangaRepository,
-		a.OnlinestreamRepository,
 		a.TorrentRepository,
 	}
 

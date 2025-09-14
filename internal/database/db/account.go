@@ -11,7 +11,7 @@ var accountCache *models.Account
 
 func (db *Database) UpsertAccount(acc *models.Account) (*models.Account, error) {
 	err := db.gormdb.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}},
+		Columns:   []clause.Column{{Name: "user_id"}},
 		UpdateAll: true,
 	}).Create(acc).Error
 

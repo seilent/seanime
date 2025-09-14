@@ -7,8 +7,6 @@ import (
 	"seanime/internal/database/db"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/database/models"
-	debrid_client "seanime/internal/debrid/client"
-	"seanime/internal/debrid/debrid"
 	"seanime/internal/events"
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
 	"seanime/internal/hook"
@@ -40,7 +38,6 @@ type (
 		logger                  *zerolog.Logger
 		torrentClientRepository *torrent_client.Repository
 		torrentRepository       *torrent.Repository
-		debridClientRepository  *debrid_client.Repository
 		database                *db.Database
 		animeCollection         mo.Option[*anilist.AnimeCollection]
 		wsEventManager          events.WSEventManagerInterface
@@ -61,7 +58,6 @@ type (
 		WSEventManager          events.WSEventManagerInterface
 		Database                *db.Database
 		MetadataProvider        metadata.Provider
-		DebridClientRepository  *debrid_client.Repository
 		IsOffline               *bool
 	}
 
@@ -80,7 +76,6 @@ func New(opts *NewAutoDownloaderOptions) *AutoDownloader {
 		wsEventManager:          opts.WSEventManager,
 		animeCollection:         mo.None[*anilist.AnimeCollection](),
 		metadataProvider:        opts.MetadataProvider,
-		debridClientRepository:  opts.DebridClientRepository,
 		settings: &models.AutoDownloaderSettings{
 			Provider:              torrent.ProviderAnimeTosho, // Default provider, will be updated after the settings are fetched
 			Interval:              20,
@@ -561,17 +556,7 @@ func (ad *AutoDownloader) downloadTorrent(t *NormalizedTorrent, rule *anime.Auto
 		return false
 	}
 
-	useDebrid := false
 
-	if ad.settings.UseDebrid {
-		// Check if the debrid provider is enabled
-		if !ad.debridClientRepository.HasProvider() || !ad.debridClientRepository.GetSettings().Enabled {
-			ad.logger.Error().Msg("autodownloader: Debrid provider not found or not enabled")
-			// We return instead of falling back to torrent client
-			return false
-		}
-		useDebrid = true
-	}
 
 	// Get torrent magnet
 	magnet, err := t.GetMagnet(providerExtension.GetProvider())
@@ -582,40 +567,7 @@ func (ad *AutoDownloader) downloadTorrent(t *NormalizedTorrent, rule *anime.Auto
 
 	downloaded := false
 
-	if useDebrid {
-		//
-		// Debrid
-		//
-
-		if ad.settings.DownloadAutomatically {
-			// Add the torrent to the debrid provider and queue it
-			_, err := ad.debridClientRepository.AddAndQueueTorrent(debrid.AddTorrentOptions{
-				MagnetLink:   magnet,
-				SelectFileId: "all", // RD-only, select all files
-			}, rule.Destination, rule.MediaId)
-			if err != nil {
-				ad.logger.Error().Err(err).Str("link", t.Link).Str("name", t.Name).Msg("autodownloader: Failed to add torrent to debrid")
-				return false
-			}
-		} else {
-			debridProvider, err := ad.debridClientRepository.GetProvider()
-			if err != nil {
-				ad.logger.Error().Err(err).Msg("autodownloader: Failed to get debrid provider")
-				return false
-			}
-
-			// Add the torrent to the debrid provider
-			_, err = debridProvider.AddTorrent(debrid.AddTorrentOptions{
-				MagnetLink:   magnet,
-				SelectFileId: "all", // RD-only, select all files
-			})
-			if err != nil {
-				ad.logger.Error().Err(err).Str("link", t.Link).Str("name", t.Name).Msg("autodownloader: Failed to add torrent to debrid")
-				return false
-			}
-		}
-
-	} else {
+	{
 		// Pause the torrent when it's added
 		if ad.settings.DownloadAutomatically {
 

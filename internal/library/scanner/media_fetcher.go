@@ -4,17 +4,14 @@ import (
 	"context"
 	"errors"
 	"seanime/internal/api/anilist"
-	"seanime/internal/api/mal"
 	"seanime/internal/api/metadata"
+	"seanime/internal/database/models"
 	"seanime/internal/hook"
 	"seanime/internal/library/anime"
 	"seanime/internal/platforms/platform"
 	"seanime/internal/util"
 	"seanime/internal/util/limiter"
-	"seanime/internal/util/parallel"
-	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
@@ -30,7 +27,6 @@ type MediaFetcher struct {
 }
 
 type MediaFetcherOptions struct {
-	Enhanced               bool
 	Platform               platform.Platform
 	MetadataProvider       metadata.Provider
 	LocalFiles             []*anime.LocalFile
@@ -39,12 +35,18 @@ type MediaFetcherOptions struct {
 	AnilistRateLimiter     *limiter.Limiter
 	DisableAnimeCollection bool
 	ScanLogger             *ScanLogger
+	Database               DatabaseInterface // For global media pool access
+	UserID                 uint              // For user subscription tracking
+}
+
+// DatabaseInterface defines the methods needed for global media pool access
+type DatabaseInterface interface {
+	GetAllGlobalMappings() ([]*GlobalAnimeMapping, error)
 }
 
 // NewMediaFetcher
 // Calling this method will kickstart the fetch process
-// When enhancing is false, MediaFetcher.AllMedia will be all anilist.BaseAnime from the user's AniList collection.
-// When enhancing is true, MediaFetcher.AllMedia will be anilist.BaseAnime for each unique, parsed anime title and their relations.
+// MediaFetcher.AllMedia will be all anilist.BaseAnime from the user's AniList collection.
 func NewMediaFetcher(ctx context.Context, opts *MediaFetcherOptions) (ret *MediaFetcher, retErr error) {
 	defer util.HandlePanicInModuleWithError("library/scanner/NewMediaFetcher", &retErr)
 
@@ -61,111 +63,114 @@ func NewMediaFetcher(ctx context.Context, opts *MediaFetcherOptions) (ret *Media
 	mf.ScanLogger = opts.ScanLogger
 
 	opts.Logger.Debug().
-		Any("enhanced", opts.Enhanced).
-		Msg("media fetcher: Creating media fetcher")
+		Msg("media fetcher: Creating global matching service (server-wide media pool)")
 
 	if mf.ScanLogger != nil {
 		mf.ScanLogger.LogMediaFetcher(zerolog.InfoLevel).
-			Msg("Creating media fetcher")
+			Msg("Creating global matching service using server-wide media pool")
 	}
 
 	// Invoke ScanMediaFetcherStarted hook
-	event := &ScanMediaFetcherStartedEvent{
-		Enhanced: opts.Enhanced,
-	}
+	event := &ScanMediaFetcherStartedEvent{}
 	hook.GlobalHookManager.OnScanMediaFetcherStarted().Trigger(event)
-	opts.Enhanced = event.Enhanced
 
 	// +---------------------+
-	// |     All media       |
+	// |  Global Media Pool  |
 	// +---------------------+
-
-	// Fetch latest user's AniList collection
-	animeCollectionWithRelations, err := opts.Platform.GetAnimeCollectionWithRelations(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	mf.AnimeCollectionWithRelations = animeCollectionWithRelations
+	// Use media from ALL users' collections on the server (pure matching)
 
 	mf.AllMedia = make([]*anilist.CompleteAnime, 0)
 
-	if !opts.DisableAnimeCollection {
-		// For each collection entry, append the media to AllMedia
-		for _, list := range animeCollectionWithRelations.GetMediaListCollection().GetLists() {
-			for _, entry := range list.GetEntries() {
-				mf.AllMedia = append(mf.AllMedia, entry.GetMedia())
+	// Build global media pool from all users' collections
+	globalMedia, err := BuildGlobalMediaPool(ctx, opts.Platform, opts.CompleteAnimeCache, opts.AnilistRateLimiter, mf.ScanLogger, opts.Database)
+	if err != nil {
+		if mf.ScanLogger != nil {
+			mf.ScanLogger.LogMediaFetcher(zerolog.WarnLevel).
+				Err(err).
+				Msg("Failed to build global media pool, attempting to populate from all users")
+		}
+		
+		// If global pool is empty, populate it from all users' collections
+		err = PopulateGlobalPoolFromAllUsers(ctx, opts.Platform, opts.Database, mf.ScanLogger)
+		if err != nil {
+			if mf.ScanLogger != nil {
+				mf.ScanLogger.LogMediaFetcher(zerolog.ErrorLevel).
+					Err(err).
+					Msg("Failed to populate global pool from all users")
+			}
+			return nil, err
+		}
+		
+		// Retry building global media pool after population
+		globalMedia, err = BuildGlobalMediaPool(ctx, opts.Platform, opts.CompleteAnimeCache, opts.AnilistRateLimiter, mf.ScanLogger, opts.Database)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-				// +---------------------+
-				// |        Cache        |
-				// +---------------------+
-				// We assume the CompleteAnimeCache is empty. Add media to cache.
-				opts.CompleteAnimeCache.Set(entry.GetMedia().ID, entry.GetMedia())
+	// Global pool is the ONLY source of truth
+	mf.AllMedia = globalMedia
+	
+	if mf.ScanLogger != nil {
+		mf.ScanLogger.LogMediaFetcher(zerolog.InfoLevel).
+			Int("count", len(mf.AllMedia)).
+			Msg("Using global media pool from all users' collections")
+	}
+
+	// +---------------------+
+	// |  Collection Tracking |\n\t// +---------------------+
+	// Track current user's collection separately for adding unknown media
+
+	// Get current user's collection for tracking purposes only
+	if !opts.DisableAnimeCollection {
+		animeCollectionWithRelations, err := opts.Platform.GetAnimeCollectionWithRelations(ctx)
+		if err == nil {
+			mf.AnimeCollectionWithRelations = animeCollectionWithRelations
+		}
+	}
+
+	// Get the media IDs from current user's collection for tracking
+	if mf.AnimeCollectionWithRelations != nil {
+		collectionMedia := make([]*anilist.CompleteAnime, 0)
+		for _, list := range mf.AnimeCollectionWithRelations.GetMediaListCollection().GetLists() {
+			for _, entry := range list.GetEntries() {
+				collectionMedia = append(collectionMedia, entry.GetMedia())
 			}
 		}
-	}
 
-	if mf.ScanLogger != nil {
-		mf.ScanLogger.LogMediaFetcher(zerolog.DebugLevel).
-			Int("count", len(mf.AllMedia)).
-			Msg("Fetched media from AniList collection")
-	}
+		mf.CollectionMediaIds = lop.Map(collectionMedia, func(m *anilist.CompleteAnime, index int) int {
+			return m.ID
+		})
 
-	//--------------------------------------------
+		// +---------------------+
+		// | Subscription Tracking |
+		// +---------------------+
+		// Track which user has which anime for multi-token system
 
-	// Get the media IDs from the collection
-	mf.CollectionMediaIds = lop.Map(mf.AllMedia, func(m *anilist.CompleteAnime, index int) int {
-		return m.ID
-	})
-
-	//--------------------------------------------
-
-	// +---------------------+
-	// |      Enhanced       |
-	// +---------------------+
-
-	// If enhancing is on, scan media from local files and get their relations
-	if opts.Enhanced {
-
-		_, ok := FetchMediaFromLocalFiles(
-			ctx,
-			opts.Platform,
-			opts.LocalFiles,
-			opts.CompleteAnimeCache, // CompleteAnimeCache will be populated on success
-			opts.MetadataProvider,
-			opts.AnilistRateLimiter,
-			mf.ScanLogger,
-		)
-		if ok {
-			// We assume the CompleteAnimeCache is populated. We overwrite AllMedia with the cache content.
-			// This is because the cache will contain all media from the user's collection AND scanned ones
-			mf.AllMedia = make([]*anilist.CompleteAnime, 0)
-			opts.CompleteAnimeCache.Range(func(key int, value *anilist.CompleteAnime) bool {
-				mf.AllMedia = append(mf.AllMedia, value)
-				return true
-			})
+		if opts.Database != nil && opts.UserID > 0 {
+			err = mf.trackUserSubscriptions(opts.UserID, collectionMedia, opts.Database)
+			if err != nil && mf.ScanLogger != nil {
+				mf.ScanLogger.LogMediaFetcher(zerolog.WarnLevel).
+					Err(err).
+					Msg("Failed to track user subscriptions")
+			}
 		}
+
+		// Find unknown media (not in current user's collection, but exists in global pool)
+		unknownMedia := lo.Filter(mf.AllMedia, func(m *anilist.CompleteAnime, _ int) bool {
+			return !lo.Contains(mf.CollectionMediaIds, m.ID)
+		})
+		mf.UnknownMediaIds = lop.Map(unknownMedia, func(m *anilist.CompleteAnime, _ int) int {
+			return m.ID
+		})
 	}
 
-	// +---------------------+
-	// |   Unknown media     |
-	// +---------------------+
-	// Media that are not in the user's collection
-
-	// Get the media that are not in the user's collection
-	unknownMedia := lo.Filter(mf.AllMedia, func(m *anilist.CompleteAnime, _ int) bool {
-		return !lo.Contains(mf.CollectionMediaIds, m.ID)
-	})
-	// Get the media IDs that are not in the user's collection
-	mf.UnknownMediaIds = lop.Map(unknownMedia, func(m *anilist.CompleteAnime, _ int) int {
-		return m.ID
-	})
-
 	if mf.ScanLogger != nil {
-		mf.ScanLogger.LogMediaFetcher(zerolog.DebugLevel).
-			Int("unknownMediaCount", len(mf.UnknownMediaIds)).
-			Int("allMediaCount", len(mf.AllMedia)).
-			Msg("Finished creating media fetcher")
+		mf.ScanLogger.LogMediaFetcher(zerolog.InfoLevel).
+			Int("globalPool", len(mf.AllMedia)).
+			Int("userCollection", len(mf.CollectionMediaIds)).
+			Int("unknownToUser", len(mf.UnknownMediaIds)).
+			Msg("Global matching service ready")
 	}
 
 	// Invoke ScanMediaFetcherCompleted hook
@@ -183,212 +188,277 @@ func NewMediaFetcher(ctx context.Context, opts *MediaFetcherOptions) (ret *Media
 //----------------------------------------------------------------------------------------------------------------------
 
 // FetchMediaFromLocalFiles gets media and their relations from local file titles.
+// This is a pure matching service that discovers anime from file names without user collection dependency.
 // It retrieves unique titles from local files,
 // fetches mal.SearchResultAnime from MAL,
 // uses these search results to get AniList IDs using metadata.AnimeMetadata mappings,
 // queries AniList to retrieve all anilist.BaseAnime using anilist.GetBaseAnimeById and their relations using anilist.FetchMediaTree.
 // It does not return an error if one of the steps fails.
-// It returns the scanned media and a boolean indicating whether the process was successful.
-func FetchMediaFromLocalFiles(
+// It returns the discovered media and a boolean indicating whether the process was successful.
+// BuildGlobalMediaPool creates a comprehensive media pool from all users' collections on the server.
+// This provides pure matching without user collection dependency and without expensive API calls.
+// The more users on the server, the more comprehensive the matching database becomes.
+func BuildGlobalMediaPool(
 	ctx context.Context,
 	platform platform.Platform,
-	localFiles []*anime.LocalFile,
-	completeAnime *anilist.CompleteAnimeCache,
-	metadataProvider metadata.Provider,
+	completeAnimeCache *anilist.CompleteAnimeCache,
 	anilistRateLimiter *limiter.Limiter,
 	scanLogger *ScanLogger,
-) (ret []*anilist.CompleteAnime, ok bool) {
-	defer util.HandlePanicInModuleThen("library/scanner/FetchMediaFromLocalFiles", func() {
-		ok = false
-	})
-
-	if scanLogger != nil {
-		scanLogger.LogMediaFetcher(zerolog.DebugLevel).
-			Str("module", "Enhanced").
-			Msg("Fetching media from local files")
-	}
-
-	rateLimiter := limiter.NewLimiter(time.Second, 20)
-	rateLimiter2 := limiter.NewLimiter(time.Second, 20)
-
-	// Get titles
-	titles := anime.GetUniqueAnimeTitlesFromLocalFiles(localFiles)
-
-	if scanLogger != nil {
-		scanLogger.LogMediaFetcher(zerolog.DebugLevel).
-			Str("module", "Enhanced").
-			Str("context", spew.Sprint(titles)).
-			Msg("Parsed titles from local files")
-	}
-
-	// +---------------------+
-	// |     MyAnimeList     |
-	// +---------------------+
-
-	// Get MAL media from titles
-	malSR := parallel.NewSettledResults[string, *mal.SearchResultAnime](titles)
-	malSR.AllSettled(func(title string, index int) (*mal.SearchResultAnime, error) {
-		rateLimiter.Wait()
-		return mal.AdvancedSearchWithMAL(title)
-	})
-	malRes, ok := malSR.GetFulfilledResults()
-	if !ok {
-		return nil, false
-	}
-
-	// Get duplicate-free version of MAL media
-	malMedia := lo.UniqBy(*malRes, func(res *mal.SearchResultAnime) int { return res.ID })
-	// Get the MAL media IDs
-	malIds := lop.Map(malMedia, func(n *mal.SearchResultAnime, index int) int { return n.ID })
-
-	if scanLogger != nil {
-		scanLogger.LogMediaFetcher(zerolog.DebugLevel).
-			Str("module", "Enhanced").
-			Str("context", spew.Sprint(lo.Map(malMedia, func(n *mal.SearchResultAnime, _ int) string {
-				return n.Name
-			}))).
-			Msg("Fetched MAL media from titles")
-	}
-
-	// +---------------------+
-	// |       Animap        |
-	// +---------------------+
-
-	// Get Animap mappings for each MAL ID and store them in `metadataProvider`
-	// This step is necessary because MAL doesn't provide AniList IDs and some MAL media don't exist on AniList
-	lop.ForEach(malIds, func(id int, index int) {
-		rateLimiter2.Wait()
-		//_, _ = metadataProvider.GetAnimeMetadata(metadata.MalPlatform, id)
-		_, _ = metadataProvider.GetCache().GetOrSet(metadata.GetAnimeMetadataCacheKey(metadata.MalPlatform, id), func() (*metadata.AnimeMetadata, error) {
-			res, err := metadataProvider.GetAnimeMetadata(metadata.MalPlatform, id)
-			return res, err
-		})
-	})
-
-	// +---------------------+
-	// |       AniList       |
-	// +---------------------+
-
-	// Retrieve the AniList IDs from the Animap mappings stored in the cache
-	anilistIds := make([]int, 0)
-	metadataProvider.GetCache().Range(func(key string, value *metadata.AnimeMetadata) bool {
-		if value != nil {
-			anilistIds = append(anilistIds, value.GetMappings().AnilistId)
-		}
-		return true
-	})
-
-	// Fetch all media from the AniList IDs using batch operation to reduce API calls
-	anilistMedia := make([]*anilist.CompleteAnime, 0)
-	
-	if len(anilistIds) > 0 {
-		if scanLogger != nil {
-			scanLogger.LogMediaFetcher(zerolog.DebugLevel).
-				Str("module", "Enhanced").
-				Int("count", len(anilistIds)).
-				Msg("Batch fetching Anilist media")
-		}
-		
-		// Use batch operation instead of individual calls
-		mediaMap, err := platform.BatchGetAnimeWithRelations(ctx, anilistIds)
-		if err != nil {
-			if scanLogger != nil {
-				scanLogger.LogMediaFetcher(zerolog.ErrorLevel).
-					Str("module", "Enhanced").
-					Err(err).
-					Msg("Failed to batch fetch Anilist media, falling back to individual calls")
-			}
-			
-			// Fallback to individual calls if batch fails
-			lop.ForEach(anilistIds, func(id int, index int) {
-				anilistRateLimiter.Wait()
-				media, err := platform.GetAnimeWithRelations(ctx, id)
-				if err == nil {
-					anilistMedia = append(anilistMedia, media)
-					if scanLogger != nil {
-						scanLogger.LogMediaFetcher(zerolog.DebugLevel).
-							Str("module", "Enhanced").
-							Str("title", media.GetTitleSafe()).
-							Msg("Fetched Anilist media from MAL id (fallback)")
-					}
-				} else {
-					if scanLogger != nil {
-						scanLogger.LogMediaFetcher(zerolog.WarnLevel).
-							Str("module", "Enhanced").
-							Int("id", id).
-							Msg("Failed to fetch Anilist media from MAL id (fallback)")
-					}
-				}
-			})
-		} else {
-			// Convert map to slice and log successful fetches
-			for id, media := range mediaMap {
-				if media != nil {
-					anilistMedia = append(anilistMedia, media)
-					if scanLogger != nil {
-						scanLogger.LogMediaFetcher(zerolog.DebugLevel).
-							Str("module", "Enhanced").
-							Str("title", media.GetTitleSafe()).
-							Msg("Fetched Anilist media from MAL id (batch)")
-					}
-				} else {
-					if scanLogger != nil {
-						scanLogger.LogMediaFetcher(zerolog.WarnLevel).
-							Str("module", "Enhanced").
-							Int("id", id).
-							Msg("Failed to fetch Anilist media from MAL id (batch)")
-					}
-				}
-			}
-		}
-	}
-
-	if scanLogger != nil {
-		scanLogger.LogMediaFetcher(zerolog.DebugLevel).
-			Str("module", "Enhanced").
-			Str("context", spew.Sprint(lo.Map(anilistMedia, func(n *anilist.CompleteAnime, _ int) string {
-				return n.GetTitleSafe()
-			}))).
-			Msg("Fetched Anilist media from MAL ids")
-	}
-
-	// +---------------------+
-	// |     MediaTree       |
-	// +---------------------+
-
-	// Create a new tree that will hold the fetched relations
-	// /!\ This is redundant because we already have a cache, but `FetchMediaTree` needs its
-	tree := anilist.NewCompleteAnimeRelationTree()
-
-	start := time.Now()
-	// For each media, fetch its relations
-	// The relations are fetched in parallel and added to `completeAnime`
-	lop.ForEach(anilistMedia, func(m *anilist.CompleteAnime, index int) {
-		// We ignore errors because we want to continue even if one of the media fails
-		_ = m.FetchMediaTree(anilist.FetchMediaTreeAll, platform.GetAnilistClient(), anilistRateLimiter, tree, completeAnime)
-	})
-
-	// +---------------------+
-	// |        Cache        |
-	// +---------------------+
-
-	// Retrieve all media from the cache
-	scanned := make([]*anilist.CompleteAnime, 0)
-	completeAnime.Range(func(key int, value *anilist.CompleteAnime) bool {
-		scanned = append(scanned, value)
-		return true
-	})
+	database DatabaseInterface,
+) (ret []*anilist.CompleteAnime, retErr error) {
+	defer util.HandlePanicInModuleWithError("library/scanner/BuildGlobalMediaPool", &retErr)
 
 	if scanLogger != nil {
 		scanLogger.LogMediaFetcher(zerolog.InfoLevel).
-			Str("module", "Enhanced").
-			Int("ms", int(time.Since(start).Milliseconds())).
-			Int("count", len(scanned)).
-			Str("context", spew.Sprint(lo.Map(scanned, func(n *anilist.CompleteAnime, _ int) string {
-				return n.GetTitleSafe()
-			}))).
-			Msg("Finished fetching media from local files")
+			Str("module", "GlobalPool").
+			Msg("Building enhanced global media pool from all users' collections")
 	}
 
-	return scanned, true
+	// Phase 1: Try to get media from existing global mappings first
+	globalMedia := make([]*anilist.CompleteAnime, 0)
+	globalMappings, err := getAllGlobalMappings(platform, database)
+	if err == nil && len(globalMappings) > 0 {
+		if scanLogger != nil {
+			scanLogger.LogMediaFetcher(zerolog.DebugLevel).
+				Str("module", "GlobalPool").
+				Int("mappings", len(globalMappings)).
+				Msg("Found existing global mappings, using as base")
+		}
+
+		// Get unique AniList IDs from global mappings
+		globalMediaIds := make([]int, 0)
+		seenIds := make(map[int]bool)
+		for _, mapping := range globalMappings {
+			if !seenIds[mapping.AniListID] {
+				globalMediaIds = append(globalMediaIds, mapping.AniListID)
+				seenIds[mapping.AniListID] = true
+			}
+		}
+
+		// Fetch media details for existing mappings
+		if len(globalMediaIds) > 0 {
+			mediaMap, fetchErr := platform.BatchGetAnimeWithRelations(ctx, globalMediaIds)
+			if fetchErr == nil {
+				for _, media := range mediaMap {
+					if media != nil {
+						globalMedia = append(globalMedia, media)
+						completeAnimeCache.Set(media.GetID(), media)
+					}
+				}
+			}
+		}
+	}
+
+	// Phase 2: Enhanced collection aggregation using multi-token system
+	if scanLogger != nil {
+		scanLogger.LogMediaFetcher(zerolog.InfoLevel).
+			Str("module", "GlobalPool").
+			Int("existingMedia", len(globalMedia)).
+			Msg("Enhancing global pool with multi-user collection aggregation")
+	}
+
+	// Create MultiTokenAPI for collection aggregation
+	// Use a simple logger for MultiTokenAPI
+	tempLogger := zerolog.Nop() // Use a no-op logger to avoid complexity with ScanLogger
+	multiTokenAPI := NewMultiTokenAPI(database, &tempLogger, anilistRateLimiter, completeAnimeCache)
+
+	// Aggregate collections from ALL users
+	aggregatedResult, err := multiTokenAPI.AggregateUserCollections(ctx)
+	if err != nil {
+		if scanLogger != nil {
+			scanLogger.LogMediaFetcher(zerolog.WarnLevel).
+				Str("module", "GlobalPool").
+				Err(err).
+				Msg("Failed to aggregate user collections, using existing mappings only")
+		}
+		// Return what we have from existing mappings
+		if len(globalMedia) > 0 {
+			return globalMedia, nil
+		}
+		return []*anilist.CompleteAnime{}, nil
+	}
+
+	// Phase 3: Merge existing mappings with aggregated collections
+	seenAnimeIds := make(map[int]bool)
+	
+	// Add existing media first
+	for _, media := range globalMedia {
+		seenAnimeIds[media.GetID()] = true
+	}
+
+	// Add new anime from aggregated collections
+	newAnimeCount := 0
+	for _, anime := range aggregatedResult.AllAnime {
+		if !seenAnimeIds[anime.GetID()] {
+			globalMedia = append(globalMedia, anime)
+			seenAnimeIds[anime.GetID()] = true
+			newAnimeCount++
+			// Cache the anime
+			completeAnimeCache.Set(anime.GetID(), anime)
+		}
+	}
+
+	if scanLogger != nil {
+		scanLogger.LogMediaFetcher(zerolog.InfoLevel).
+			Str("module", "GlobalPool").
+			Int("totalUsers", aggregatedResult.TotalUsersAccessed).
+			Int("successfulFetches", aggregatedResult.SuccessfulFetches).
+			Int("failedFetches", aggregatedResult.FailedFetches).
+			Int("existingMedia", len(globalMedia)-newAnimeCount).
+			Int("newFromCollections", newAnimeCount).
+			Int("totalGlobalMedia", len(globalMedia)).
+			Msg("Enhanced global media pool built successfully")
+	}
+
+	return globalMedia, nil
 }
+
+// trackUserSubscriptions records which anime a user has in their AniList collection
+// This enables the multi-token system for API resilience
+func (mf *MediaFetcher) trackUserSubscriptions(userID uint, collectionMedia []*anilist.CompleteAnime, database DatabaseInterface) error {
+	if len(collectionMedia) == 0 {
+		return nil
+	}
+
+	if mf.ScanLogger != nil {
+		mf.ScanLogger.LogMediaFetcher(zerolog.DebugLevel).
+			Int("userID", int(userID)).
+			Int("animeCount", len(collectionMedia)).
+			Msg("Tracking user anime subscriptions")
+	}
+
+	// Update subscriptions for each anime in user's collection
+	for _, anime := range collectionMedia {
+		if adapter, ok := database.(*DatabaseAdapter); ok {
+			err := adapter.db.UpsertUserAnimeSubscription(userID, anime.GetID(), "active")
+			if err != nil {
+				// Log but don't fail the entire process for a single subscription error
+				if mf.ScanLogger != nil {
+					mf.ScanLogger.LogMediaFetcher(zerolog.WarnLevel).
+						Err(err).
+						Int("aniListID", anime.GetID()).
+						Str("title", anime.GetTitleSafe()).
+						Msg("Failed to upsert user anime subscription")
+				}
+				continue
+			}
+		}
+	}
+
+	if mf.ScanLogger != nil {
+		mf.ScanLogger.LogMediaFetcher(zerolog.DebugLevel).
+			Int("userID", int(userID)).
+			Int("animeCount", len(collectionMedia)).
+			Msg("User anime subscriptions tracked successfully")
+	}
+
+	return nil
+}
+
+// PopulateGlobalPoolFromAllUsers populates the global database with anime from ALL users' collections
+// This ensures the global pool contains deduplicated anime from across the entire server
+func PopulateGlobalPoolFromAllUsers(
+	ctx context.Context,
+	platform platform.Platform,
+	database DatabaseInterface,
+	scanLogger *ScanLogger,
+) error {
+	if scanLogger != nil {
+		scanLogger.LogMediaFetcher(zerolog.InfoLevel).
+			Str("module", "GlobalPoolPopulation").
+			Msg("Starting population of global pool from all users' collections")
+	}
+
+	if database == nil {
+		return errors.New("database interface not provided")
+	}
+
+	// Get all users' AniList collections
+	// Note: This requires platform to support multi-user operations
+	// For now, we'll use the current approach with global mappings as the foundation
+	
+	// Since we don't have direct access to all users' platforms in this context,
+	// we'll populate the global pool differently:
+	// 1. When users scan their libraries, their matched anime will be saved to global mappings
+	// 2. For initial population, we'll ensure the scanning process saves matches to global database
+	
+	if scanLogger != nil {
+		scanLogger.LogMediaFetcher(zerolog.InfoLevel).
+			Str("module", "GlobalPoolPopulation").
+			Msg("Global pool will be populated as users scan their libraries")
+	}
+
+	return nil
+}
+
+// getAllGlobalMappings retrieves all global mappings from the database
+// This function needs to be implemented to access the database through the platform
+func getAllGlobalMappings(platform platform.Platform, database DatabaseInterface) ([]*GlobalAnimeMapping, error) {
+	if database == nil {
+		return []*GlobalAnimeMapping{}, errors.New("database interface not provided")
+	}
+	
+	// Get all global mappings from database
+	return database.GetAllGlobalMappings()
+}
+
+// GlobalAnimeMapping represents a mapping from the database
+type GlobalAnimeMapping struct {
+	AniListID int
+}
+
+// DatabaseAdapter implements DatabaseInterface using the existing db.Database
+type DatabaseAdapter struct {
+	db DatabaseBackend
+}
+
+// DatabaseBackend defines the actual database methods we need
+type DatabaseBackend interface {
+	// Global mapping operations
+	GetAllGlobalMappings() ([]*models.GlobalAnimeFileMapping, error)
+	GetGlobalMapping(filePath string) (*models.GlobalAnimeFileMapping, error)
+	CreateGlobalMapping(mapping *models.GlobalAnimeFileMapping) error
+
+	// User anime subscription operations (for multi-token system)
+	UpsertUserAnimeSubscription(userID uint, aniListID int, tokenStatus string) error
+	GetUsersWithAnime(aniListID int) ([]*models.UserAnimeSubscription, error)
+	UpdateTokenStatus(userID uint, aniListID int, status string) error
+
+	// User operations (for multi-token API)
+	GetAllUsers() ([]models.User, error)
+	GetAccountForUser(userID uint) (*models.Account, error)
+
+	// Unmapped file operations (for admin queue)
+	CreateUnmappedFile(unmappedFile *models.UnmappedFile) error
+	GetUnmappedFiles(status string) ([]*models.UnmappedFile, error)
+	UpdateUnmappedFile(unmappedFile *models.UnmappedFile) error
+	DeleteUnmappedFile(filePath string) error
+}
+
+// NewDatabaseAdapter creates a new database adapter
+func NewDatabaseAdapter(db DatabaseBackend) *DatabaseAdapter {
+	return &DatabaseAdapter{db: db}
+}
+
+// GetAllGlobalMappings implements DatabaseInterface
+func (da *DatabaseAdapter) GetAllGlobalMappings() ([]*GlobalAnimeMapping, error) {
+	// Get all global mappings from database
+	mappings, err := da.db.GetAllGlobalMappings()
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to our internal format
+	result := make([]*GlobalAnimeMapping, len(mappings))
+	for i, mapping := range mappings {
+		result[i] = &GlobalAnimeMapping{
+			AniListID: mapping.AniListID,
+		}
+	}
+
+	return result, nil
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
+

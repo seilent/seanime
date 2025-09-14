@@ -5,7 +5,7 @@ import { __bulkAction_modalAtomIsOpen } from "@/app/(main)/(library)/_containers
 import { __ignoredFileManagerIsOpen } from "@/app/(main)/(library)/_containers/ignored-file-manager"
 import { PlayRandomEpisodeButton } from "@/app/(main)/(library)/_containers/play-random-episode-button"
 import { __playlists_modalOpenAtom } from "@/app/(main)/(library)/_containers/playlists/playlists-modal"
-import { __scanner_modalIsOpen } from "@/app/(main)/(library)/_containers/scanner-modal"
+import { useSmartLibraryScan } from "@/app/(main)/(library)/_hooks/use-smart-library-scan"
 import { __unknownMedia_drawerIsOpen } from "@/app/(main)/(library)/_containers/unknown-media-manager"
 import { __unmatchedFileManagerIsOpen } from "@/app/(main)/(library)/_containers/unmatched-file-manager"
 import { __library_viewAtom } from "@/app/(main)/(library)/_lib/library-view.atoms"
@@ -53,7 +53,7 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
     const setBulkActionIsOpen = useSetAtom(__bulkAction_modalAtomIsOpen)
 
     const status = useServerStatus()
-    const setScannerModalOpen = useSetAtom(__scanner_modalIsOpen)
+    const { scanLibrary, refreshLibrary, isPending: isScanning } = useSmartLibraryScan()
     const setUnmatchedFileManagerOpen = useSetAtom(__unmatchedFileManagerIsOpen)
     const setIgnoredFileManagerOpen = useSetAtom(__ignoredFileManagerIsOpen)
     const setUnknownMediaManagerOpen = useSetAtom(__unknownMedia_drawerIsOpen)
@@ -105,7 +105,8 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
                             data-library-toolbar-scan-button
                             intent={hasEntries ? "primary-subtle" : "primary"}
                             leftIcon={hasEntries ? <TbReload className="text-xl" /> : <FiSearch className="text-xl" />}
-                            onClick={() => setScannerModalOpen(true)}
+                            onClick={() => hasEntries ? refreshLibrary() : scanLibrary()}
+                            loading={isScanning}
                             hideTextOnSmallScreen
                         >
                             {hasEntries ? "Refresh library" : "Scan your library"}

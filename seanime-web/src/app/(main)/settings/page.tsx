@@ -2,7 +2,6 @@
 import { useOpenInExplorer } from "@/api/hooks/explorer.hooks"
 import { useAnimeListTorrentProviderExtensions } from "@/api/hooks/extensions.hooks"
 import { useSaveSettings } from "@/api/hooks/settings.hooks"
-import { useGetTorrentstreamSettings } from "@/api/hooks/torrentstream.hooks"
 import { CustomLibraryBanner } from "@/app/(main)/(library)/_containers/custom-library-banner"
 import { __issueReport_overlayOpenAtom } from "@/app/(main)/_features/issue-report/issue-report"
 import { useServerStatus, useSetServerStatus } from "@/app/(main)/_hooks/use-server-status"
@@ -10,14 +9,11 @@ import { ExternalPlayerLinkSettings, MediaplayerSettings } from "@/app/(main)/se
 import { PlaybackSettings } from "@/app/(main)/settings/_components/playback-settings"
 import { __settings_tabAtom } from "@/app/(main)/settings/_components/settings-page.atoms"
 import { SettingsIsDirty, SettingsSubmitButton } from "@/app/(main)/settings/_components/settings-submit-button"
-import { DebridSettings } from "@/app/(main)/settings/_containers/debrid-settings"
 import { FilecacheSettings } from "@/app/(main)/settings/_containers/filecache-settings"
 import { LibrarySettings } from "@/app/(main)/settings/_containers/library-settings"
 import { LogsSettings } from "@/app/(main)/settings/_containers/logs-settings"
 import { MangaSettings } from "@/app/(main)/settings/_containers/manga-settings"
-import { MediastreamSettings } from "@/app/(main)/settings/_containers/mediastream-settings"
 import { ServerSettings } from "@/app/(main)/settings/_containers/server-settings"
-import { TorrentstreamSettings } from "@/app/(main)/settings/_containers/torrentstream-settings"
 import { UISettings } from "@/app/(main)/settings/_containers/ui-settings"
 import { PageWrapper } from "@/components/shared/page-wrapper"
 import { SeaLink } from "@/components/shared/sea-link"
@@ -39,6 +35,7 @@ import { UseFormReturn } from "react-hook-form"
 import { BiDonateHeart } from "react-icons/bi"
 import { CgMediaPodcast, CgPlayListSearch } from "react-icons/cg"
 import { FaBookReader, FaDiscord } from "react-icons/fa"
+import { FiUsers } from "react-icons/fi"
 import { GrTest } from "react-icons/gr"
 import { HiOutlineServerStack } from "react-icons/hi2"
 import { ImDownload } from "react-icons/im"
@@ -46,13 +43,13 @@ import { IoLibrary, IoPlayBackCircleSharp } from "react-icons/io5"
 import { LuBookKey, LuExternalLink, LuLaptop, LuLibrary, LuPalette, LuWandSparkles } from "react-icons/lu"
 import { MdOutlineBroadcastOnHome, MdOutlineConnectWithoutContact, MdOutlineDownloading, MdOutlinePalette } from "react-icons/md"
 import { RiFolderDownloadFill } from "react-icons/ri"
-import { SiBittorrent } from "react-icons/si"
 import { TbDatabaseExclamation } from "react-icons/tb"
 import { VscDebugAlt } from "react-icons/vsc"
 import { SettingsCard, SettingsNavCard, SettingsPageHeader } from "./_components/settings-card"
 import { DiscordRichPresenceSettings } from "./_containers/discord-rich-presence-settings"
 import { LocalSettings } from "./_containers/local-settings"
 import { NakamaSettings } from "./_containers/nakama-settings"
+import { UserManagementSettings } from "./_containers/user-management-settings"
 
 const tabsRootClass = cn("w-full grid grid-cols-1 lg:grid lg:grid-cols-[300px,1fr] gap-4")
 
@@ -87,7 +84,6 @@ export default function Page() {
 
     const { data: torrentProviderExtensions } = useAnimeListTorrentProviderExtensions()
 
-    const { data: torrentstreamSettings } = useGetTorrentstreamSettings()
 
     const { mutate: openInExplorer, isPending: isOpening } = useOpenInExplorer()
 
@@ -130,7 +126,7 @@ export default function Page() {
     return (
         <>
             <CustomLibraryBanner discrete />
-            <PageWrapper data-settings-page-container className="p-4 sm:p-8 space-y-4">
+            <PageWrapper className="p-4 sm:p-8 space-y-4">
                 {/*<Separator/>*/}
 
 
@@ -177,6 +173,12 @@ export default function Page() {
                                         className="group"
                                     ><IoLibrary className="text-lg mr-3 transition-transform duration-200" /> Anime Library</TabsTrigger>
                                 )}
+                                {isAdmin && (
+                                    <TabsTrigger
+                                        value="user-management"
+                                        className="group"
+                                    ><FiUsers className="text-lg mr-3 transition-transform duration-200" /> User Management</TabsTrigger>
+                                )}
 
                                 <div className="text-xs lg:text-[--muted] text-center py-1.5 uppercase px-3 border-gray-800 tracking-wide font-medium">
                                     Anime playback
@@ -217,10 +219,6 @@ export default function Page() {
                                             value="torrent-client"
                                             className="group"
                                         ><MdOutlineDownloading className="text-lg mr-3 transition-transform duration-200" /> Torrent Client</TabsTrigger>
-                                        <TabsTrigger
-                                            value="torrentstream"
-                                            className="relative group"
-                                        ><SiBittorrent className="text-lg mr-3 transition-transform duration-200" /> Torrent Streaming</TabsTrigger>
                                         <TabsTrigger
                                             value="debrid"
                                             className="group"
@@ -324,18 +322,6 @@ export default function Page() {
                                         scannerMatchingAlgorithm: data.scannerMatchingAlgorithm === "-" ? "" : data.scannerMatchingAlgorithm,
                                         autoSyncToLocalAccount: data.autoSyncToLocalAccount ?? false,
                                         autoSaveCurrentMediaOffline: data.autoSaveCurrentMediaOffline ?? false,
-                                    },
-                                    nakama: {
-                                        enabled: data.nakamaEnabled ?? false,
-                                        username: data.nakamaUsername,
-                                        isHost: data.nakamaIsHost ?? false,
-                                        remoteServerURL: data.nakamaRemoteServerURL,
-                                        remoteServerPassword: data.nakamaRemoteServerPassword,
-                                        hostShareLocalAnimeLibrary: data.nakamaHostShareLocalAnimeLibrary ?? false,
-                                        hostPassword: data.nakamaHostPassword,
-                                        includeNakamaAnimeLibrary: data.includeNakamaAnimeLibrary ?? false,
-                                        hostUnsharedAnimeIds: data?.nakamaHostUnsharedAnimeIds ?? [],
-                                        hostEnablePortForwarding: data.nakamaHostEnablePortForwarding ?? false,
                                     },
                                     manga: {
                                         defaultMangaProvider: data.defaultMangaProvider === "-" ? "" : data.defaultMangaProvider,
@@ -511,17 +497,6 @@ export default function Page() {
                                             >
                                                 Record an issue
                                             </Button>
-                                            {isAdmin && (
-                                                <Button
-                                                    size="sm"
-                                                    intent="primary-outline"
-                                                    onClick={() => router.push('/admin/users')}
-                                                    leftIcon={<HiOutlineServerStack className="transition-transform duration-200 group-hover:scale-110" />}
-                                                    className="transition-all duration-200 hover:scale-105 hover:shadow-md group"
-                                                >
-                                                    User Management
-                                                </Button>
-                                            )}
                                         </div>
 
                                         <ServerSettings isPending={isPending} />
@@ -538,6 +513,20 @@ export default function Page() {
                                             />
 
                                             <LibrarySettings isPending={isPending} />
+
+                                        </TabsContent>
+                                    )}
+
+                                    {isAdmin && (
+                                        <TabsContent value="user-management" className={tabContentClass}>
+
+                                            <SettingsPageHeader
+                                                title="User Management"
+                                                description="Manage AniList users and permissions"
+                                                icon={FiUsers}
+                                            />
+
+                                            <UserManagementSettings />
 
                                         </TabsContent>
                                     )}
@@ -818,7 +807,6 @@ export default function Page() {
                                     icon={MdOutlineBroadcastOnHome}
                                 />
 
-                                <MediastreamSettings />
 
                             </TabsContent>
                         )}
@@ -835,19 +823,6 @@ export default function Page() {
 
                         </TabsContent>
 
-                        {isAdmin && (
-                            <TabsContent value="torrentstream" className={tabContentClass}>
-
-                                <SettingsPageHeader
-                                    title="Torrent Streaming"
-                                    description="Configure torrent streaming settings"
-                                    icon={SiBittorrent}
-                                />
-
-                                <TorrentstreamSettings settings={torrentstreamSettings} />
-
-                            </TabsContent>
-                        )}
 
                         {isAdmin && (
                             <TabsContent value="logs" className={tabContentClass}>
@@ -890,7 +865,6 @@ export default function Page() {
                                     icon={HiOutlineServerStack}
                                 />
 
-                                <DebridSettings />
 
                             </TabsContent>
                         )}

@@ -64,10 +64,7 @@ const (
 	SyncLocalFinished   = "sync-local-finished"
 	SyncAnilistFinished = "sync-anilist-finished"
 
-	TorrentStreamState = "torrentstream-state"
 
-	DebridDownloadProgress = "debrid-download-progress"
-	DebridStreamState      = "debrid-stream-state"
 
 	InvalidateQueries = "invalidate-queries"
 	ConsoleLog        = "console-log"

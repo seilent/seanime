@@ -4,7 +4,6 @@ import (
 	"seanime/internal/events"
 	"seanime/internal/extension"
 	"seanime/internal/manga/providers"
-	"seanime/internal/onlinestream/providers"
 	"seanime/internal/torrents/animetosho"
 	"seanime/internal/torrents/nyaa"
 	"seanime/internal/torrents/seadex"
@@ -85,33 +84,6 @@ func GetMockExtensionRepository(t *testing.T) *Repository {
 		Icon:        "https://raw.githubusercontent.com/5rahim/hibike/main/icons/manganato.png",
 	}, manga_providers.NewManganato(logger))
 
-	//
-	// Built-in online stream providers
-	//
-
-	extensionRepository.ReloadBuiltInExtension(extension.Extension{
-		ID:          "gogoanime",
-		Name:        "Gogoanime",
-		Version:     "",
-		ManifestURI: "builtin",
-		Language:    extension.LanguageGo,
-		Type:        extension.TypeOnlinestreamProvider,
-		Author:      "Seanime",
-		Lang:        "en",
-		Icon:        "https://raw.githubusercontent.com/5rahim/hibike/main/icons/gogoanime.png",
-	}, onlinestream_providers.NewGogoanime(logger))
-
-	extensionRepository.ReloadBuiltInExtension(extension.Extension{
-		ID:          "zoro",
-		Name:        "Hianime",
-		Version:     "",
-		ManifestURI: "builtin",
-		Language:    extension.LanguageGo,
-		Type:        extension.TypeOnlinestreamProvider,
-		Author:      "Seanime",
-		Lang:        "en",
-		Icon:        "https://raw.githubusercontent.com/5rahim/hibike/main/icons/hianime.png",
-	}, onlinestream_providers.NewZoro(logger))
 
 	//
 	// Built-in torrent providers

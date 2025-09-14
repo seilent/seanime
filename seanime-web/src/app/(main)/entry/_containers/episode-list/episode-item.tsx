@@ -111,25 +111,23 @@ export const EpisodeItem = memo(({ episode, media, isWatched, onPlay, percentage
                             Copy stream URL
                         </DropdownMenuItem>}
 
-                        {!episode._isNakamaEpisode && <>
-                            <PluginEpisodeGridItemMenuItems isDropdownMenu={false} type="library" episode={episode} />
+                        <PluginEpisodeGridItemMenuItems isDropdownMenu={false} type="library" episode={episode} />
 
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                className="text-[--orange]"
-                                onClick={() => {
-                                    if (episode.localFile) {
-                                        updateLocalFile(episode.localFile, {
-                                            mediaId: 0,
-                                            locked: false,
-                                            ignored: false,
-                                        })
-                                    }
-                                }}
-                            >
-                                <MdOutlineRemoveDone /> Unmatch
-                            </DropdownMenuItem>
-                        </>}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            className="text-[--orange]"
+                            onClick={() => {
+                                if (episode.localFile) {
+                                    updateLocalFile(episode.localFile, {
+                                        mediaId: 0,
+                                        locked: false,
+                                        ignored: false,
+                                    })
+                                }
+                            }}
+                        >
+                            <MdOutlineRemoveDone /> Unmatch
+                        </DropdownMenuItem>
                     </DropdownMenu>
 
                     {(!!episode.episodeMetadata && (episode.type === "main" || episode.type === "special")) && !!episode.episodeMetadata?.anidbId &&

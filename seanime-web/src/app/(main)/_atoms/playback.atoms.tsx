@@ -61,20 +61,16 @@ export const playbackTorrentStreamingOptions = [
 ]
 
 
-export const __playback_torrentStreamingAtom = atomWithStorage<string>("sea-playback-torrentstream", PlaybackTorrentStreaming.Default)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export function useCurrentDevicePlaybackSettings() {
 
     const [downloadedMediaPlayback, setDownloadedMediaPlayback] = useAtom(__playback_downloadedMediaAtom)
-    const [torrentStreamingPlayback, setTorrentStreamingPlayback] = useAtom(__playback_torrentStreamingAtom)
     const [electronPlaybackMethod, setElectronPlaybackMethod] = useAtom(__playback_electronPlaybackMethodAtom)
     return {
         downloadedMediaPlayback,
         setDownloadedMediaPlayback,
-        torrentStreamingPlayback,
-        setTorrentStreamingPlayback,
         electronPlaybackMethod,
         setElectronPlaybackMethod,
     }

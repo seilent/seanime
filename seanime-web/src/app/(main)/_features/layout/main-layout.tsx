@@ -1,7 +1,6 @@
 "use client"
 import { PlaylistsModal } from "@/app/(main)/(library)/_containers/playlists/playlists-modal"
 import { ScanProgressBar } from "@/app/(main)/(library)/_containers/scan-progress-bar"
-import { ScannerModal } from "@/app/(main)/(library)/_containers/scanner-modal"
 import { ErrorExplainer } from "@/app/(main)/_features/error-explainer/error-explainer"
 import { GlobalSearch } from "@/app/(main)/_features/global-search/global-search"
 import { IssueReport } from "@/app/(main)/_features/issue-report/issue-report"
@@ -23,8 +22,6 @@ import { useExternalPlayerLinkListener } from "@/app/(main)/_listeners/external-
 import { useMangaListener } from "@/app/(main)/_listeners/manga.listeners"
 import { useMiscEventListeners } from "@/app/(main)/_listeners/misc-events.listeners"
 import { useSyncListener } from "@/app/(main)/_listeners/sync.listeners"
-import { DebridStreamOverlay } from "@/app/(main)/entry/_containers/debrid-stream/debrid-stream-overlay"
-import { TorrentStreamOverlay } from "@/app/(main)/entry/_containers/torrent-stream/torrent-stream-overlay"
 import { ChapterDownloadsDrawer } from "@/app/(main)/manga/_containers/chapter-downloads/chapter-downloads-drawer"
 import { LoadingOverlayWithLogo } from "@/components/shared/loading-overlay-with-logo"
 import { AppLayout, AppLayoutContent, AppLayoutSidebar, AppSidebarProvider } from "@/components/ui/app-layout"
@@ -34,7 +31,6 @@ import React from "react"
 import { useServerStatus } from "../../_hooks/use-server-status"
 import { useInvalidateQueriesListener } from "../../_listeners/invalidate-queries.listeners"
 import { Announcements } from "../announcements"
-import { NakamaManager } from "../nakama/nakama-manager"
 import { NativePlayer } from "../native-player/native-player"
 import { TopIndefiniteLoader } from "../top-indefinite-loader"
 
@@ -78,11 +74,8 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
             <GlobalSearch />
             <ScanProgressBar />
             <LibraryWatcher />
-            <ScannerModal />
             <PlaylistsModal />
             <ChapterDownloadsDrawer />
-            <TorrentStreamOverlay />
-            <DebridStreamOverlay />
             <MediaPreviewModal />
             <PlaybackManagerProgressTracking />
             <ManualProgressTracking />
@@ -93,7 +86,6 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
             {__isElectronDesktop__ && <VideoCoreProvider>
                 <NativePlayer />
             </VideoCoreProvider>}
-            <NakamaManager />
             <TopIndefiniteLoader />
             <Announcements />
 

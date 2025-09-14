@@ -9,6 +9,8 @@ import { Card, CardProps } from "@/components/ui/card"
 import { cn } from "@/components/ui/core/styling"
 import { Field, Form } from "@/components/ui/form"
 import { useAuth } from "@/contexts/auth-context"
+import { TextInput } from "@/components/ui/text-input"
+import Link from "next/link"
 import {
     DEFAULT_TORRENT_PROVIDER,
     getDefaultIinaSocket,
@@ -85,8 +87,8 @@ const stepVariants = {
 const STEPS = [
     {
         id: "admin",
-        title: "Admin Account",
-        description: "Create your administrator account",
+        title: "Admin Setup",
+        description: "Configure your administrator AniList account",
         icon: BiCog,
         gradient: "from-emerald-500 to-teal-500",
     },
@@ -273,39 +275,39 @@ function AdminStep({ form }: { form: any }) {
                             <h3 className="text-xl font-semibold">Server Administrator</h3>
                         </div>
                         <p className="text-sm text-[--muted]">
-                            As an admin, you'll be able to create additional user accounts for your friends.
+                            Connect your AniList account to set up administrator access. You'll be able to add other users later.
                         </p>
                     </div>
 
                     <div className="space-y-4">
-                        <Field.Text
-                            name="adminUsername"
-                            label="Admin Username"
-                            placeholder="Enter admin username"
-                            help="This will be your login username"
-                            required
-                        />
-                        <Field.Text
-                            name="adminPassword"
-                            label="Admin Password"
-                            type="password"
-                            placeholder="Enter a secure password"
-                            help="Choose a strong password for security"
-                            required
-                        />
-                        <Field.Text
-                            name="adminDisplayName"
-                            label="Display Name (Optional)"
-                            placeholder="Enter display name"
-                            help="How your name will appear in the interface"
-                        />
+                        <div className="text-center">
+                            <Link
+                                href="https://anilist.co/api/v2/oauth/authorize?client_id=13985&response_type=token"
+                                target="_blank"
+                            >
+                                <Button
+                                    leftIcon={<svg
+                                        xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="24" height="24"
+                                        viewBox="0 0 24 24" role="img"
+                                    >
+                                        <path
+                                            d="M6.361 2.943 0 21.056h4.942l1.077-3.133H11.4l1.052 3.133H22.9c.71 0 1.1-.392 1.1-1.101V17.53c0-.71-.39-1.101-1.1-1.101h-6.483V4.045c0-.71-.392-1.102-1.101-1.102h-2.422c-.71 0-1.101.392-1.101 1.102v1.064l-.758-2.166zm2.324 5.948 1.688 5.018H7.144z"
+                                        />
+                                    </svg>}
+                                    intent="white"
+                                    size="md"
+                                >Get AniList token</Button>
+                            </Link>
+                        </div>
+
+                        <AdminTokenField />
                     </div>
 
                     <Alert
                         intent="info-basic"
                         description={
                             <p>
-                                You'll use these credentials to log in to Seanime. After setup, you can create additional user accounts from the settings page.
+                                After authorizing on AniList, copy the token from the URL and paste it above. You'll be logged in immediately as the administrator.
                             </p>
                         }
                     />
@@ -785,34 +787,16 @@ export function GettingStartedPage({ status }: { status: Status }) {
     const [adminCredentials, setAdminCredentials] = React.useState<{ username: string; password: string } | null>(null)
 
     /**
-     * If the settings are returned, auto-login with admin credentials and redirect to the home page
+     * Only redirect after form submission (when user clicks "Launch Seanime")
+     * This prevents auto-redirect when admin token is entered during setup
      */
     React.useEffect(() => {
-        if (!isPending && !!data?.settings && adminCredentials) {
-            const performAutoLogin = async () => {
-                try {
-                    const loginResult = await login(adminCredentials.username, adminCredentials.password)
-                    if (loginResult.success) {
-                        setServerStatus(data)
-                        router.push("/")
-                    } else {
-                        console.error('Auto-login failed:', loginResult.error)
-                        // Fallback: redirect to login page
-                        router.push("/login")
-                    }
-                } catch (error) {
-                    console.error('Auto-login error:', error)
-                    router.push("/login")
-                }
-            }
-            
-            performAutoLogin()
-        } else if (!isPending && !!data?.settings && !adminCredentials) {
-            // Fallback if no admin credentials stored
+        if (!isPending && !!data?.settings && isSuccess) {
+            // Only redirect when setup is complete (after form submission)
             setServerStatus(data)
             router.push("/")
         }
-    }, [data, isPending, adminCredentials, login, setServerStatus, router])
+    }, [data, isPending, isSuccess, setServerStatus, router])
 
     const vlcDefaultPath = React.useMemo(() => getDefaultVlcPath(status.os), [status.os])
     const qbittorrentDefaultPath = React.useMemo(() => getDefaultQBittorrentPath(status.os), [status.os])
@@ -856,13 +840,6 @@ export function GettingStartedPage({ status }: { status: Status }) {
                     schema={gettingStartedSchema}
                     onSubmit={data => {
                         if (currentStep === STEPS.length - 1) {
-                            // Store admin credentials for auto-login
-                            if (data.adminUsername && data.adminPassword) {
-                                setAdminCredentials({
-                                    username: data.adminUsername,
-                                    password: data.adminPassword
-                                })
-                            }
                             mutate(getDefaultSettings(data))
                         } else {
                             nextStep()
@@ -981,6 +958,68 @@ export function GettingStartedPage({ status }: { status: Status }) {
                     Made by 5rahim
                 </motion.p>
             </div>
+        </div>
+    )
+}
+
+function AdminTokenField() {
+    const { loginWithToken } = useAuth()
+    const setServerStatus = useSetServerStatus()
+    const [token, setToken] = React.useState("")
+    const [isLoading, setIsLoading] = React.useState(false)
+    const [error, setError] = React.useState("")
+
+    const handleTokenChange = async (value: string) => {
+        setToken(value)
+        setError("")
+        
+        // Only attempt login if token looks valid (has some length)
+        if (value.trim().length > 50) { // AniList tokens are typically longer
+            setIsLoading(true)
+            try {
+                const result = await loginWithToken(value.trim())
+                if (result.success) {
+                    // Refresh server status after successful login
+                    const statusResponse = await fetch('/api/v1/status')
+                    if (statusResponse.ok) {
+                        const statusData = await statusResponse.json() as any
+                        setServerStatus(statusData.data)
+                    }
+                    // Auth context will handle redirect
+                } else {
+                    setError(result.error || "Invalid token")
+                }
+            } catch (err) {
+                setError("Failed to validate token")
+            } finally {
+                setIsLoading(false)
+            }
+        }
+    }
+
+    return (
+        <div className="space-y-2">
+            <label className="text-base font-semibold">AniList Token</label>
+            <textarea
+                value={token}
+                onChange={(e) => handleTokenChange(e.target.value)}
+                placeholder="Paste your AniList token here"
+                className="w-full h-32 p-3 rounded-lg bg-[--paper] border border-[--border] placeholder-gray-400 dark:placeholder-gray-500 focus:border-brand focus:ring-1 focus:ring-[--ring] outline-0 transition duration-150 resize-none"
+                disabled={isLoading}
+            />
+            <div className="text-sm text-[--muted]">
+                Copy the token from the URL after authorizing on AniList
+            </div>
+            {error && (
+                <div className="text-sm text-red-500">
+                    {error}
+                </div>
+            )}
+            {isLoading && (
+                <div className="text-sm text-[--muted]">
+                    Validating token and logging you in...
+                </div>
+            )}
         </div>
     )
 }

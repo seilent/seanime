@@ -15,15 +15,12 @@ import {
     MediaPageHeaderEntryDetails,
 } from "@/app/(main)/_features/media/_components/media-page-header-components"
 import { MediaSyncTrackButton } from "@/app/(main)/_features/media/_containers/media-sync-track-button"
-import { useHasDebridService, useHasTorrentProvider, useServerStatus } from "@/app/(main)/_hooks/use-server-status"
-import { AnimeOnlinestreamButton } from "@/app/(main)/entry/_components/anime-onlinestream-button"
+import { useHasTorrentProvider, useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { NextAiringEpisode } from "@/app/(main)/entry/_components/next-airing-episode"
 import { useAnimeEntryPageView } from "@/app/(main)/entry/_containers/anime-entry-page"
-import { DebridStreamButton } from "@/app/(main)/entry/_containers/debrid-stream/debrid-stream-button"
 import { AnimeEntryDropdownMenu } from "@/app/(main)/entry/_containers/entry-actions/anime-entry-dropdown-menu"
 import { AnimeEntrySilenceToggle } from "@/app/(main)/entry/_containers/entry-actions/anime-entry-silence-toggle"
 import { TorrentSearchButton } from "@/app/(main)/entry/_containers/torrent-search/torrent-search-button"
-import { TorrentStreamButton } from "@/app/(main)/entry/_containers/torrent-stream/torrent-stream-button"
 import { SeaLink } from "@/components/shared/sea-link"
 import { Button, ButtonProps, IconButton } from "@/components/ui/button"
 import { cn } from "@/components/ui/core/styling"
@@ -33,7 +30,6 @@ import React from "react"
 import { IoInformationCircle } from "react-icons/io5"
 import { MdOutlineConnectWithoutContact } from "react-icons/md"
 import { SiAnilist } from "react-icons/si"
-import { useNakamaStatus } from "../../_features/nakama/nakama-manager"
 import { PluginAnimePageButtons } from "../../_features/plugin/actions/plugin-actions"
 
 export function AnimeMetaActionButton({ className, ...rest }: ButtonProps) {
@@ -53,13 +49,11 @@ export function MetaSection(props: { entry: Anime_Entry, details: AL_AnimeDetail
     const serverStatus = useServerStatus()
     const { entry, details } = props
     const ts = useThemeSettings()
-    const nakamaStatus = useNakamaStatus()
 
     if (!entry.media) return null
 
     const { hasTorrentProvider } = useHasTorrentProvider()
-    const { hasDebridService } = useHasDebridService()
-    const { currentView, isTorrentStreamingView, isDebridStreamingView, isOnlineStreamingView } = useAnimeEntryPageView()
+    const { currentView, isLibraryView } = useAnimeEntryPageView()
 
     const ActionButtons = () => (
         <div
@@ -173,32 +167,16 @@ export function MetaSection(props: { entry: Anime_Entry, details: AL_AnimeDetail
                         entry.media.status !== "NOT_YET_RELEASED"
                         && currentView === "library"
                         && hasTorrentProvider
-                        && (
-                            serverStatus?.settings?.torrent?.defaultTorrentClient !== TORRENT_CLIENT.NONE
-                            || hasDebridService
-                        )
-                        && !entry._isNakamaEntry
+                        && serverStatus?.settings?.torrent?.defaultTorrentClient !== TORRENT_CLIENT.NONE
                     ) && (
                         <TorrentSearchButton
                             entry={entry}
                         />
                     )}
 
-                    {entry._isNakamaEntry && currentView === "library" &&
-                        <div className="flex items-center gap-2 h-10 px-4 border rounded-md flex-none">
-                        <MdOutlineConnectWithoutContact className="size-6 animate-pulse text-[--blue]" />
-                        <span className="text-sm tracking-wide">Shared by {nakamaStatus?.hostConnectionStatus?.username}</span>
-                    </div>}
 
-                    <TorrentStreamButton
-                        entry={entry}
-                    />
 
-                    <DebridStreamButton
-                        entry={entry}
-                    />
 
-                    <AnimeOnlinestreamButton entry={entry} />
 
                 </div>
 

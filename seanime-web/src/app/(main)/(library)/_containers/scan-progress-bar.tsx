@@ -1,5 +1,5 @@
 "use client"
-import { __scanner_isScanningAtom } from "@/app/(main)/(library)/_containers/scanner-modal"
+import { __scanner_isScanningAtom } from "@/app/(main)/(library)/_hooks/use-smart-library-scan"
 
 import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
 import { PageWrapper } from "@/components/shared/page-wrapper"

@@ -1,9 +1,14 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
+	"seanime/internal/api/anilist"
 	"seanime/internal/database/models"
 	"seanime/internal/torrents/torrent"
 	"seanime/internal/util"
@@ -61,15 +66,12 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		Discord                models.DiscordSettings      `json:"discord"`
 		Manga                  models.MangaSettings        `json:"manga"`
 		Notifications          models.NotificationSettings `json:"notifications"`
-		Nakama                 models.NakamaSettings       `json:"nakama"`
 		EnableTranscode        bool                        `json:"enableTranscode"`
 		EnableTorrentStreaming bool                        `json:"enableTorrentStreaming"`
 		DebridProvider         string                      `json:"debridProvider"`
 		DebridApiKey           string                      `json:"debridApiKey"`
-		// Admin user creation fields
-		AdminUsername    string `json:"adminUsername,omitempty"`
-		AdminPassword    string `json:"adminPassword,omitempty"`
-		AdminDisplayName string `json:"adminDisplayName,omitempty"`
+		// Admin AniList token for authentication
+		AdminAnilistToken string `json:"adminAnilistToken,omitempty"`
 	}
 	var b body
 
@@ -77,20 +79,63 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Check if admin user creation is needed during first-time setup
-	if b.AdminUsername != "" && b.AdminPassword != "" {
-		// Create the first admin user
-		displayName := b.AdminDisplayName
-		if displayName == "" {
-			displayName = b.AdminUsername
+	// Set up AniList whitelist and admin user during first-time setup
+	var anilistWhitelist models.StringSlice
+	var adminUsername string
+	if b.AdminAnilistToken != "" {
+		// Validate the AniList token and get user info
+		authenticatedClient := anilist.NewAnilistClient(b.AdminAnilistToken)
+		getViewer, err := authenticatedClient.GetViewer(context.Background())
+		if err != nil {
+			return h.RespondWithError(c, fmt.Errorf("invalid AniList token: %w", err))
 		}
 		
-		_, err := h.App.Database.CreateFirstTimeSetup(b.AdminUsername, b.AdminPassword, displayName)
+		adminUsername = getViewer.Viewer.Name
+		anilistWhitelist = models.StringSlice{adminUsername}
+		h.App.Logger.Info().Str("adminUsername", adminUsername).Msg("Set admin AniList username in whitelist during setup")
+		
+		// Create admin user account and authenticate them
+		dbUser := &models.User{
+			Username:    adminUsername,
+			DisplayName: getViewer.Viewer.Name,
+			Role:        "admin",
+			IsActive:    true,
+		}
+		
+		dbUser, err = h.App.Database.CreateUser(dbUser)
 		if err != nil {
-			// Log the error but don't fail the setup if users already exist
-			h.App.Logger.Warn().Err(err).Str("username", b.AdminUsername).Msg("Could not create admin user during setup")
+			h.App.Logger.Error().Err(err).Msg("Failed to create admin user")
 		} else {
-			h.App.Logger.Info().Str("username", b.AdminUsername).Msg("Created first-time admin user during setup")
+			// Create AniList account entry
+			viewerBytes, _ := json.Marshal(getViewer.Viewer)
+			_, err = h.App.Database.UpsertAccount(&models.Account{
+				UserID:   dbUser.ID,
+				Username: getViewer.Viewer.Name,
+				Token:    b.AdminAnilistToken,
+				Viewer:   viewerBytes,
+			})
+			if err != nil {
+				h.App.Logger.Error().Err(err).Msg("Failed to create admin AniList account")
+			}
+			
+			// Create user session and set cookie (7 days expiration)
+			session, err := h.App.Database.CreateUserSession(dbUser.ID, 24*7)
+			if err != nil {
+				h.App.Logger.Error().Err(err).Msg("Failed to create admin user session")
+			} else {
+				// Set session cookie
+				cookie := &http.Cookie{
+					Name:     "seanime-session",
+					Value:    session.Token,
+					Path:     "/",
+					HttpOnly: true,
+					Secure:   false,
+					SameSite: http.SameSiteLaxMode,
+					MaxAge:   24 * 7 * 60 * 60, // 7 days
+				}
+				c.SetCookie(cookie)
+				h.App.Logger.Info().Str("username", adminUsername).Msg("Admin user logged in during setup")
+			}
 		}
 	}
 
@@ -105,14 +150,15 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 			ID:        1,
 			UpdatedAt: time.Now(),
 		},
-		Library:       &b.Library,
-		MediaPlayer:   &b.MediaPlayer,
-		Torrent:       &b.Torrent,
-		Anilist:       &b.Anilist,
-		Discord:       &b.Discord,
-		Manga:         &b.Manga,
-		Notifications: &b.Notifications,
-		Nakama:        &b.Nakama,
+		SetupCompleted:   true,
+		AnilistWhitelist: anilistWhitelist,
+		Library:          &b.Library,
+		MediaPlayer:      &b.MediaPlayer,
+		Torrent:          &b.Torrent,
+		Anilist:          &b.Anilist,
+		Discord:          &b.Discord,
+		Manga:            &b.Manga,
+		Notifications:    &b.Notifications,
 		AutoDownloader: &models.AutoDownloaderSettings{
 			Provider:              b.Library.TorrentProvider,
 			Interval:              20,
@@ -190,7 +236,6 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		Discord       models.DiscordSettings      `json:"discord"`
 		Manga         models.MangaSettings        `json:"manga"`
 		Notifications models.NotificationSettings `json:"notifications"`
-		Nakama        models.NakamaSettings       `json:"nakama"`
 	}
 	var b body
 
@@ -295,7 +340,6 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		Discord:       &b.Discord,
 		Manga:         &b.Manga,
 		Notifications: &b.Notifications,
-		Nakama:        &b.Nakama,
 	}
 
 	// Non-admins cannot modify library/torrent settings, so keep existing values

@@ -1,6 +1,5 @@
 import {
     Anime_Entry,
-    Debrid_TorrentItemInstantAvailability,
     HibikeTorrent_AnimeTorrent,
     Metadata_AnimeMetadata,
     Torrent_TorrentMetadata,
@@ -13,7 +12,6 @@ import {
     useTorrentSorting,
 } from "@/app/(main)/entry/_containers/torrent-search/_components/torrent-common-helpers"
 import {
-    TorrentDebridInstantAvailabilityBadge,
     TorrentParsedMetadata,
     TorrentResolutionBadge,
     TorrentSeedersBadge,
@@ -39,7 +37,6 @@ type TorrentTable = {
     isLoading: boolean
     isFetching: boolean
     onToggleTorrent: (t: HibikeTorrent_AnimeTorrent) => void
-    debridInstantAvailability: Record<string, Debrid_TorrentItemInstantAvailability>
     animeMetadata: Metadata_AnimeMetadata | undefined
     torrentMetadata: Record<string, Torrent_TorrentMetadata> | undefined
 }
@@ -56,7 +53,6 @@ export const TorrentTable = memo((
         isFetching,
         isLoading,
         onToggleTorrent,
-        debridInstantAvailability,
         animeMetadata,
         torrentMetadata,
     }: TorrentTable) => {
@@ -157,9 +153,6 @@ export const TorrentTable = memo((
                                             </Badge>
                                         )}
                                         <TorrentResolutionBadge resolution={torrent.resolution} />
-                                        {(!!torrent.infoHash && debridInstantAvailability[torrent.infoHash]) && (
-                                            <TorrentDebridInstantAvailabilityBadge />
-                                        )}
                                         <TorrentSeedersBadge seeders={torrent.seeders} />
                                         {!!torrent.size && <p className="text-gray-300 text-sm flex items-center gap-1">
                                             {torrent.formattedSize}</p>}

@@ -551,10 +551,10 @@ declare namespace $ui {
         newEpisodeGridItemMenuItem(props: {
             label: string,
             style?: Record<string, string>,
-            type: "library" | "torrentstream" | "debridstream" | "onlinestream" | "undownloaded" | "medialinks" | "mediastream"
+            type: "library" | "onlinestream" | "undownloaded" | "medialinks" | "mediastream"
         }): ActionObject<{
             episode: $app.Anime_Episode | $app.Onlinestream_Episode,
-            type: "library" | "torrentstream" | "debridstream" | "onlinestream" | "undownloaded" | "medialinks" | "mediastream"
+            type: "library" | "onlinestream" | "undownloaded" | "medialinks" | "mediastream"
         }>
     }
 
