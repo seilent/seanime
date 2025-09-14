@@ -524,6 +524,7 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1AdminSystemScan := v1.Group("/admin/system-scan")
 	v1AdminSystemScan.POST("/start", h.HandleStartSystemScan)
 	v1AdminSystemScan.GET("/status", h.HandleGetSystemScanStatus)
+	v1AdminSystemScan.POST("/trigger", h.HandleTriggerLibraryScan)
 
 	//
 	// Global Mapping
