@@ -16,11 +16,13 @@ import type {
     ChapterDownloader_DownloadID,
     Continuity_UpdateWatchHistoryItemOptions,
     HibikeTorrent_AnimeTorrent,
+    Mediastream_StreamType,
     Models_AnilistSettings,
     Models_DiscordSettings,
     Models_LibrarySettings,
     Models_MangaSettings,
     Models_MediaPlayerSettings,
+    Models_MediastreamSettings,
     Models_NotificationSettings,
     Models_Theme,
     Models_TorrentSettings,
@@ -1110,6 +1112,48 @@ export type DeleteMangaDownloadedChapters_Variables = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // mediaplayer
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// mediastream
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * - Filepath: internal/handlers/mediastream.go
+ * - Filename: mediastream.go
+ * - Endpoint: /api/v1/mediastream/settings
+ * @description
+ * Route save mediastream settings.
+ */
+export type SaveMediastreamSettings_Variables = {
+    settings: Models_MediastreamSettings
+}
+
+/**
+ * - Filepath: internal/handlers/mediastream.go
+ * - Filename: mediastream.go
+ * - Endpoint: /api/v1/mediastream/request
+ * @description
+ * Route request media stream.
+ */
+export type RequestMediastreamMediaContainer_Variables = {
+    path: string
+    streamType: Mediastream_StreamType
+    audioStreamIndex: number
+    clientId: string
+}
+
+/**
+ * - Filepath: internal/handlers/mediastream.go
+ * - Filename: mediastream.go
+ * - Endpoint: /api/v1/mediastream/preload
+ * @description
+ * Route preloads media stream for playback.
+ */
+export type PreloadMediastreamMediaContainer_Variables = {
+    path: string
+    streamType: Mediastream_StreamType
+    audioStreamIndex: number
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // metadata

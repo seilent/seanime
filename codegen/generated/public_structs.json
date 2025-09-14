@@ -27402,6 +27402,17 @@
         "comments": []
       },
       {
+        "name": "MediastreamRepository",
+        "jsonName": "MediastreamRepository",
+        "goType": "mediastream.Repository",
+        "typescriptType": "Mediastream_Repository",
+        "usedTypescriptType": "Mediastream_Repository",
+        "usedStructName": "mediastream.Repository",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
         "name": "MetadataProvider",
         "jsonName": "MetadataProvider",
         "goType": "metadata.Provider",

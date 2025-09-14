@@ -432,6 +432,22 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 
 	//
+	// Media Stream
+	//
+	v1.GET("/mediastream/settings", h.HandleGetMediastreamSettings)
+	v1.PATCH("/mediastream/settings", h.HandleSaveMediastreamSettings)
+	v1.POST("/mediastream/request", h.HandleRequestMediastreamMediaContainer)
+	v1.POST("/mediastream/preload", h.HandlePreloadMediastreamMediaContainer)
+	// Transcode
+	v1.POST("/mediastream/shutdown-transcode", h.HandleMediastreamShutdownTranscodeStream)
+	v1.GET("/mediastream/transcode/*", h.HandleMediastreamTranscode)
+	v1.GET("/mediastream/subs/*", h.HandleMediastreamGetSubtitles)
+	v1.GET("/mediastream/att/*", h.HandleMediastreamGetAttachments)
+	v1.GET("/mediastream/direct", h.HandleMediastreamDirectPlay)
+	v1.HEAD("/mediastream/direct", h.HandleMediastreamDirectPlay)
+	v1.GET("/mediastream/file", h.HandleMediastreamFile)
+
+	//
 	// Direct Stream
 	//
 	v1.POST("/directstream/play/localfile", h.HandleDirectstreamPlayLocalFile)

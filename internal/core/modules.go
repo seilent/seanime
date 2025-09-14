@@ -5,6 +5,7 @@ import (
 	"seanime/internal/continuity"
 	"seanime/internal/database/db"
 	"seanime/internal/database/db_bridge"
+	"seanime/internal/database/models"
 	"seanime/internal/directstream"
 	discordrpc_presence "seanime/internal/discordrpc/presence"
 	"seanime/internal/events"
@@ -14,6 +15,7 @@ import (
 	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/manga"
+	"seanime/internal/mediastream"
 	"seanime/internal/mediaplayers/iina"
 	"seanime/internal/mediaplayers/mediaplayer"
 	"seanime/internal/mediaplayers/mpchc"
@@ -150,7 +152,19 @@ func (a *App) initModulesOnce() {
 		NativePlayer: a.NativePlayer,
 	})
 
+	// +---------------------+
+	// |    Media Stream     |
+	// +---------------------+
 
+	a.MediastreamRepository = mediastream.NewRepository(&mediastream.NewRepositoryOptions{
+		Logger:         a.Logger,
+		WSEventManager: a.WSEventManager,
+		FileCacher:     a.FileCacher,
+	})
+
+	a.AddCleanupFunction(func() {
+		a.MediastreamRepository.OnCleanup()
+	})
 
 	plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
 		PlaybackManager: a.PlaybackManager,
@@ -507,4 +521,45 @@ func (a *App) performActionsOnce() {
 		}
 	}()
 
+}
+
+// InitOrRefreshMediastreamSettings will initialize or refresh the mediastream settings.
+// It is called after the App instance is created and after settings are updated.
+func (a *App) InitOrRefreshMediastreamSettings() {
+
+	var settings *models.MediastreamSettings
+	var found bool
+	settings, found = a.Database.GetMediastreamSettings()
+	if !found {
+
+		var err error
+		settings, err = a.Database.UpsertMediastreamSettings(&models.MediastreamSettings{
+			BaseModel: models.BaseModel{
+				ID: 1,
+			},
+			TranscodeEnabled:    false,
+			TranscodeHwAccel:    "cpu",
+			TranscodePreset:     "fast",
+			PreTranscodeEnabled: false,
+		})
+		if err != nil {
+			a.Logger.Error().Err(err).Msg("app: Failed to initialize mediastream module")
+			return
+		}
+	}
+
+	a.MediastreamRepository.InitializeModules(settings, a.Config.Cache.Dir, a.Config.Cache.TranscodeDir)
+
+	// Cleanup cache
+	go func() {
+		if settings.TranscodeEnabled {
+			// If transcoding is enabled, trim files
+			_ = a.FileCacher.TrimMediastreamVideoFiles()
+		} else {
+			// If transcoding is disabled, clear all files
+			_ = a.FileCacher.ClearMediastreamVideoFiles()
+		}
+	}()
+
+	a.SecondarySettings.Mediastream = settings
 }

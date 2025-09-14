@@ -1290,6 +1290,60 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/media-player/start",
         },
     },
+    MEDIASTREAM: {
+        /**
+         *  @description
+         *  Route get mediastream settings.
+         *  This returns the mediastream settings.
+         */
+        GetMediastreamSettings: {
+            key: "MEDIASTREAM-get-mediastream-settings",
+            methods: ["GET"],
+            endpoint: "/api/v1/mediastream/settings",
+        },
+        /**
+         *  @description
+         *  Route save mediastream settings.
+         *  This saves the mediastream settings.
+         */
+        SaveMediastreamSettings: {
+            key: "MEDIASTREAM-save-mediastream-settings",
+            methods: ["PATCH"],
+            endpoint: "/api/v1/mediastream/settings",
+        },
+        /**
+         *  @description
+         *  Route request media stream.
+         *  This requests a media stream and returns the media container to start the playback.
+         */
+        RequestMediastreamMediaContainer: {
+            key: "MEDIASTREAM-request-mediastream-media-container",
+            methods: ["POST"],
+            endpoint: "/api/v1/mediastream/request",
+        },
+        /**
+         *  @description
+         *  Route preloads media stream for playback.
+         *  This preloads a media stream by extracting the media information and attachments.
+         */
+        PreloadMediastreamMediaContainer: {
+            key: "MEDIASTREAM-preload-mediastream-media-container",
+            methods: ["POST"],
+            endpoint: "/api/v1/mediastream/preload",
+        },
+        /**
+         *  @description
+         *  Route shuts down the transcode stream
+         *  This requests the transcoder to shut down. It should be called when unmounting the player (playback is no longer needed).
+         *  This will also send an events.MediastreamShutdownStream event.
+         *  It will not return any error and is safe to call multiple times.
+         */
+        MediastreamShutdownTranscodeStream: {
+            key: "MEDIASTREAM-mediastream-shutdown-transcode-stream",
+            methods: ["POST"],
+            endpoint: "/api/v1/mediastream/shutdown-transcode",
+        },
+    },
     METADATA: {
         /**
          *  @description

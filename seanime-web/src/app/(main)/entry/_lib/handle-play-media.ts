@@ -8,6 +8,7 @@ import {
     useExternalPlayerLink,
 } from "@/app/(main)/_atoms/playback.atoms"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
+import { useMediastreamActiveOnDevice, useMediastreamCurrentFile } from "@/app/(main)/mediastream/_lib/mediastream.atoms"
 import { clientIdAtom } from "@/app/websocket-provider"
 import { ExternalPlayerLink } from "@/lib/external-player-link/external-player-link"
 import { openTab } from "@/lib/helpers/browser"
@@ -23,6 +24,8 @@ export function useHandlePlayMedia() {
     const serverStatus = useServerStatus()
     const clientId = useAtomValue(clientIdAtom)
 
+    const { activeOnDevice: mediastreamActiveOnDevice } = useMediastreamActiveOnDevice()
+    const { setFilePath: setMediastreamFilePath } = useMediastreamCurrentFile()
 
     const { mutate: startManualTracking, isPending: isStarting } = usePlaybackStartManualTracking()
 
@@ -59,13 +62,21 @@ export function useHandlePlayMedia() {
 
             logger("PLAY MEDIA").info("Opening media file in external player", externalPlayerLink, path)
 
+            setMediastreamFilePath(path)
             React.startTransition(() => {
                 router.push(`/medialinks?id=${mediaId}`)
             })
             return
         }
 
-        // Media streaming removed
+        // Handle media streaming
+        if (serverStatus?.mediastreamSettings?.transcodeEnabled && mediastreamActiveOnDevice) {
+            setMediastreamFilePath(path)
+            React.startTransition(() => {
+                router.push(`/mediastream?id=${mediaId}`)
+            })
+            return
+        }
 
         return playVideo({ path })
     }

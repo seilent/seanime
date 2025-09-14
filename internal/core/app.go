@@ -26,6 +26,7 @@ import (
 	"seanime/internal/util/limiter"
 	"seanime/internal/local"
 	"seanime/internal/manga"
+	"seanime/internal/mediastream"
 	"seanime/internal/mediaplayers/iina"
 	"seanime/internal/mediaplayers/mediaplayer"
 	"seanime/internal/mediaplayers/mpchc"
@@ -83,6 +84,7 @@ type (
 	PlaybackManager                 *playbackmanager.PlaybackManager
 	FileCacher                      *filecache.Cacher
 	MangaRepository                 *manga.Repository
+	MediastreamRepository           *mediastream.Repository
 	MetadataProvider                metadata.Provider
 	DiscordPresence                 *discordrpc_presence.Presence
 	MangaDownloader                 *manga.Downloader
@@ -427,8 +429,9 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		app.ServerReady = true
 	}
 
+	// Initialize mediastream settings (for streaming media)
+	app.InitOrRefreshMediastreamSettings()
 
-	
 	// Register sync manager cleanup
 	if app.SyncManager != nil {
 		app.AddCleanupFunction(app.SyncManager.Stop)
