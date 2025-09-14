@@ -25,9 +25,14 @@ export function useGettingStarted() {
         method: API_ENDPOINTS.SETTINGS.GettingStarted.methods[0],
         mutationKey: [API_ENDPOINTS.SETTINGS.GettingStarted.key],
         onSuccess: async () => {
+            console.log("Getting Started - API call succeeded")
             await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.SETTINGS.GetSettings.key] })
             await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.STATUS.GetStatus.key] })
             setLoginModalOpen(true)
+        },
+        onError: (error) => {
+            console.error("Getting Started - API call failed:", error)
+            toast.error(`Setup failed: ${error.message || 'Unknown error'}`)
         },
     })
 }

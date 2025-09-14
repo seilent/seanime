@@ -530,7 +530,7 @@ export function GettingStartedPage({ status }: { status: Status }) {
     const setServerStatus = useSetServerStatus()
     const { login } = useAuth()
 
-    const { mutate, data, isPending, isSuccess } = useGettingStarted()
+    const { mutate, data, isPending, isSuccess, isError, error } = useGettingStarted()
 
     const [currentStep, setCurrentStep] = React.useState(0)
     const [direction, setDirection] = React.useState(0)
@@ -590,7 +590,14 @@ export function GettingStartedPage({ status }: { status: Status }) {
                     schema={gettingStartedSchema}
                     onSubmit={data => {
                         if (currentStep === STEPS.length - 1) {
-                            mutate(getDefaultSettings(data))
+                            console.log("Getting Started - Form data:", data)
+                            try {
+                                const settings = getDefaultSettings(data)
+                                console.log("Getting Started - Transformed settings:", settings)
+                                mutate(settings)
+                            } catch (error) {
+                                console.error("Getting Started - Error transforming settings:", error)
+                            }
                         } else {
                             nextStep()
                         }
