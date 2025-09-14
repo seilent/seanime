@@ -40,12 +40,10 @@ import { FaBookReader } from "react-icons/fa"
 import { FiLogIn, FiSearch, FiSettings } from "react-icons/fi"
 import { GrTest } from "react-icons/gr"
 import { HiOutlineServerStack } from "react-icons/hi2"
-import { IoCloudOfflineOutline, IoLibrary } from "react-icons/io5"
+import { IoLibrary } from "react-icons/io5"
 import { MdOutlineConnectWithoutContact } from "react-icons/md"
-import { PiArrowCircleLeftDuotone, PiArrowCircleRightDuotone, PiClockCounterClockwiseFill, PiListChecksFill } from "react-icons/pi"
+import { PiArrowCircleLeftDuotone, PiArrowCircleRightDuotone, PiListChecksFill } from "react-icons/pi"
 import { SiAnilist } from "react-icons/si"
-import { TbWorldDownload } from "react-icons/tb"
-import { PluginSidebarTray } from "../plugin/tray/plugin-sidebar-tray"
 
 // User profile info component
 function UserProfileInfo() {
@@ -183,17 +181,6 @@ export function MainSidebar() {
             href: "/anilist",
             isCurrent: pathname === "/anilist",
         },
-        ...serverStatus?.settings?.library?.torrentProvider !== TORRENT_PROVIDER.NONE ? [{
-            id: "auto-downloader",
-            iconType: TbWorldDownload,
-            name: "Auto Downloader",
-            href: "/auto-downloader",
-            isCurrent: pathname === "/auto-downloader",
-            addon: autoDownloaderQueueCount > 0 ? <Badge
-                className="absolute right-0 top-0" size="sm"
-                intent="alert-solid"
-            >{autoDownloaderQueueCount}</Badge> : undefined,
-        }] : [],
         ...(
             serverStatus?.settings?.library?.torrentProvider !== TORRENT_PROVIDER.NONE
             && !serverStatus?.settings?.torrent?.hideTorrentList
@@ -213,13 +200,6 @@ export function MainSidebar() {
                     >{activeTorrentCount.downloading + activeTorrentCount.paused}</Badge>
                     : undefined,
             }] : [],
-        {
-            id: "scan-summaries",
-            iconType: PiClockCounterClockwiseFill,
-            name: "Scan summaries",
-            href: "/scan-summaries",
-            isCurrent: pathname === "/scan-summaries",
-        },
         {
             id: "search",
             iconType: FiSearch,
@@ -315,7 +295,6 @@ export function MainSidebar() {
                         </HoverCard>
                     </div>}
 
-                    <PluginSidebarTray place="sidebar" />
 
                 </div>
                 <div className="flex w-full gap-2 flex-col px-4">
@@ -338,7 +317,7 @@ export function MainSidebar() {
                                 //         setSeaCommandOpen(true)
                                 //     }
                                 // },
-                                {
+                                ...(isAdmin ? [{
                                     iconType: BiExtension,
                                     name: "Extensions",
                                     href: "/extensions",
@@ -351,21 +330,7 @@ export function MainSidebar() {
                                             {updateData?.length || 1}
                                         </Badge>
                                         : undefined,
-                                },
-                                {
-                                    iconType: IoCloudOfflineOutline,
-                                    name: "Offline",
-                                    href: "/sync",
-                                    isCurrent: pathname.includes("/sync"),
-                                    addon: (syncIsActive)
-                                        ? <Badge
-                                            className="absolute right-0 top-0 bg-blue-500" size="sm"
-                                            intent="alert-solid"
-                                        >
-                                            1
-                                        </Badge>
-                                        : undefined,
-                                },
+                                }] : []),
                                 {
                                     iconType: FiSettings,
                                     name: "Settings",
