@@ -12,6 +12,7 @@ import (
 // SSEConnection represents an active SSE connection
 type SSEConnection struct {
 	ID       string
+	UserID   uint // User ID associated with this connection
 	Writer   http.ResponseWriter
 	Flusher  http.Flusher
 	Request  *http.Request
@@ -122,10 +123,71 @@ func (m *SSEManager) GetConnectionCount() int {
 	return len(m.connections)
 }
 
+// BroadcastEventToUser sends an event to connections from a specific user
+func (m *SSEManager) BroadcastEventToUser(userID uint, eventType string, data interface{}) {
+	m.mutex.RLock()
+	connections := make([]*SSEConnection, 0)
+	for _, conn := range m.connections {
+		if conn.UserID == userID {
+			connections = append(connections, conn)
+		}
+	}
+	m.mutex.RUnlock()
+
+	for _, conn := range connections {
+		select {
+		case <-conn.Done:
+			// Connection is closed, skip
+			continue
+		default:
+			m.sendEventToConnection(conn, eventType, data)
+		}
+	}
+
+	m.logger.Debug().Str("event_type", eventType).Uint("user_id", userID).Int("connections", len(connections)).Msg("sse: Event broadcasted to user")
+}
+
+// BroadcastEventToUsers sends an event to connections from multiple specific users
+func (m *SSEManager) BroadcastEventToUsers(userIDs []uint, eventType string, data interface{}) {
+	userIDSet := make(map[uint]bool)
+	for _, userID := range userIDs {
+		userIDSet[userID] = true
+	}
+
+	m.mutex.RLock()
+	connections := make([]*SSEConnection, 0)
+	for _, conn := range m.connections {
+		if userIDSet[conn.UserID] {
+			connections = append(connections, conn)
+		}
+	}
+	m.mutex.RUnlock()
+
+	for _, conn := range connections {
+		select {
+		case <-conn.Done:
+			// Connection is closed, skip
+			continue
+		default:
+			m.sendEventToConnection(conn, eventType, data)
+		}
+	}
+
+	m.logger.Debug().Str("event_type", eventType).Interface("user_ids", userIDs).Int("connections", len(connections)).Msg("sse: Event broadcasted to users")
+}
+
 // SendEventToSSE is a method that can be called from anywhere to send events via SSE
 func (m *SSEManager) SendEventToSSE(eventType string, data interface{}) {
 	if m == nil {
 		return
 	}
 	m.BroadcastEvent(eventType, data)
+}
+
+// SendEventToUser sends event to specific user (convenience method)
+func (m *SSEManager) SendEventToUser(userID uint, eventType string, data interface{}) {
+	if m == nil {
+		return
+	}
+	m.BroadcastEventToUser(userID, eventType, data)
 }

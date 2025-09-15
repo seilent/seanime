@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"context"
 	"errors"
+	"strconv"
+
 	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/library/anime"
 	"seanime/internal/util"
-	"strconv"
 )
 
 // HandleCreatePlaylist
@@ -34,8 +37,8 @@ func (h *Handler) HandleCreatePlaylist(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("authentication required"))
 	}
 
-	// Get the local files (shared across all users)
-	dbLfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get the user's local files
+	dbLfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -111,8 +114,8 @@ func (h *Handler) HandleUpdatePlaylist(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("authentication required"))
 	}
 
-	// Get the local files (shared across all users)
-	dbLfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get the user's local files
+	dbLfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -182,29 +185,53 @@ func (h *Handler) HandleDeletePlaylist(c echo.Context) error {
 //	@returns []anime.LocalFile
 func (h *Handler) HandleGetPlaylistEpisodes(c echo.Context) error {
 
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get current user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	lfw := anime.NewLocalFileWrapper(lfs)
+	mediaId, _ := strconv.Atoi(c.Param("id"))
+	progress, _ := strconv.Atoi(c.Param("progress"))
 
-	// Params
-	mId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-	progress, err := strconv.Atoi(c.Param("progress"))
+	// Get the media collection for the user
+	userPlatform, err := h.GetUserPlatform(c)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	group, found := lfw.GetLocalEntryById(mId)
+	animeCollection, err := userPlatform.GetAnimeCollectionWithRelations(context.Background())
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Check if media exists (not strictly necessary for this endpoint)
+	_, found := animeCollection.GetListEntryFromMediaId(mediaId)
 	if !found {
-		return h.RespondWithError(c, errors.New("media entry not found"))
+		return h.RespondWithError(c, errors.New("media not found"))
 	}
 
-	toWatch := group.GetUnwatchedLocalFiles(progress)
+	// Group local files by media id
+	groupedLfs := anime.GroupLocalFilesByMediaID(lfs)
 
-	return h.RespondWithData(c, toWatch)
+	// Get the local files for the media
+	var ret []*anime.LocalFile
+	if _lfs, ok := groupedLfs[mediaId]; ok {
+		ret = lo.Filter(_lfs, func(lf *anime.LocalFile, _ int) bool {
+			ep := lf.GetEpisodeNumber()
+			return ep > progress
+		})
+	}
+
+	// If no local files are found, return empty slice
+	if len(ret) == 0 {
+		return h.RespondWithData(c, make([]*anime.LocalFile, 0))
+	}
+
+	return h.RespondWithData(c, ret)
 }

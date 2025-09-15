@@ -37,6 +37,11 @@ func (m *MockWSEventManager) SendEventTo(clientId string, t string, payload inte
 	}
 }
 
+func (m *MockWSEventManager) SendEventToUser(userID uint, t string, payload interface{}) {
+	// Mock implementation - just log the event
+	m.Logger.Debug().Str("type", t).Uint("user_id", userID).Msg("mock ws: SendEventToUser called")
+}
+
 func (m *MockWSEventManager) SubscribeToClientEvents(id string) *ClientEventSubscriber {
 	subscriber := &ClientEventSubscriber{
 		Channel: make(chan *WebsocketClientEvent),

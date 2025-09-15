@@ -628,7 +628,7 @@ func (pm *PlaybackManager) StartPlaylist(playlist *anime.Playlist) (err error) {
 			case <-ctx.Done():
 				pm.Logger.Debug().Msg("playback manager: Playlist context cancelled")
 				// Send event to the client -- nil signals that no playlist is being played
-				pm.wsEventManager.SendEvent(events.PlaybackManagerPlaylistState, nil)
+				pm.wsEventManager.SendEventToUser(pm.currentUserID, events.PlaybackManagerPlaylistState, nil)
 				return
 			case path := <-pm.playlistHub.requestNewFileCh:
 				// requestNewFileCh receives the path of the next video to play
@@ -636,7 +636,7 @@ func (pm *PlaybackManager) StartPlaylist(playlist *anime.Playlist) (err error) {
 				// see: RequestNextPlaylistFile, playlistHub code
 				pm.Logger.Debug().Str("path", path).Msg("playback manager: Playing next file")
 				// Send notification to the client
-				pm.wsEventManager.SendEvent(events.InfoToast, "Playing next file in playlist")
+				pm.wsEventManager.SendEventToUser(pm.currentUserID, events.InfoToast, "Playing next file in playlist")
 				// Play the requested video
 				err := pm.MediaPlayerRepository.Play(path)
 				if err != nil {
@@ -648,9 +648,9 @@ func (pm *PlaybackManager) StartPlaylist(playlist *anime.Playlist) (err error) {
 				pm.MediaPlayerRepository.StartTracking()
 			case <-pm.playlistHub.endOfPlaylistCh:
 				pm.Logger.Debug().Msg("playback manager: End of playlist")
-				pm.wsEventManager.SendEvent(events.InfoToast, "End of playlist")
+				pm.wsEventManager.SendEventToUser(pm.currentUserID, events.InfoToast, "End of playlist")
 				// Send event to the client -- nil signals that no playlist is being played
-				pm.wsEventManager.SendEvent(events.PlaybackManagerPlaylistState, nil)
+				pm.wsEventManager.SendEventToUser(pm.currentUserID, events.PlaybackManagerPlaylistState, nil)
 				go pm.MediaPlayerRepository.Stop()
 				pm.playlistHub.cancel()
 				return

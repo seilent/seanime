@@ -12,6 +12,12 @@ import (
 
 // HandleSSEEvents handles SSE connection requests
 func (h *Handler) HandleSSEEvents(c echo.Context) error {
+	// Authenticate user for SSE connection
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Authentication required for SSE connection")
+	}
+
 	// Check if client supports SSE
 	w := c.Response().Writer
 	flusher, ok := w.(http.Flusher)
@@ -29,12 +35,13 @@ func (h *Handler) HandleSSEEvents(c echo.Context) error {
 	// Get connection ID from query parameter or generate one
 	connectionID := c.QueryParam("id")
 	if connectionID == "" {
-		connectionID = fmt.Sprintf("sse_%d", h.App.SSEManager.GetConnectionCount()+1)
+		connectionID = fmt.Sprintf("sse_user_%d_%d", user.ID, h.App.SSEManager.GetConnectionCount()+1)
 	}
 
-	// Create connection
+	// Create connection with user ID
 	conn := &events.SSEConnection{
 		ID:      connectionID,
+		UserID:  user.ID,
 		Writer:  w,
 		Flusher: flusher,
 		Request: c.Request(),
@@ -46,11 +53,12 @@ func (h *Handler) HandleSSEEvents(c echo.Context) error {
 	h.App.SSEManager.AddConnection(connectionID, conn)
 	defer h.App.SSEManager.RemoveConnection(connectionID)
 
-	h.App.Logger.Debug().Str("connection_id", connectionID).Msg("sse: Client connected")
+	h.App.Logger.Debug().Str("connection_id", connectionID).Uint("user_id", user.ID).Msg("sse: Client connected")
 
-	// Send initial connection event
-	h.App.SSEManager.SendEventToSSE("connected", map[string]string{
+	// Send initial connection event to the user only
+	h.App.SSEManager.SendEventToUser(user.ID, "connected", map[string]interface{}{
 		"connection_id": connectionID,
+		"user_id":       user.ID,
 		"message":       "SSE connection established",
 	})
 
@@ -73,19 +81,20 @@ func (h *Handler) HandleSSEEvents(c echo.Context) error {
 		syncCheckPayload["cache_stale"] = true
 	}
 
-	h.App.SSEManager.SendEventToSSE("sync-check", syncCheckPayload)
+	h.App.SSEManager.SendEventToUser(user.ID, "sync-check", syncCheckPayload)
 
 	h.App.Logger.Debug().
 		Str("connection_id", connectionID).
+		Uint("user_id", user.ID).
 		Bool("cache_stale", syncCheckPayload["cache_stale"].(bool)).
 		Msg("sse: Sync check event sent")
 
 	// Keep connection alive until client disconnects or context is done
 	select {
 	case <-c.Request().Context().Done():
-		h.App.Logger.Debug().Str("connection_id", connectionID).Msg("sse: Client disconnected (context done)")
+		h.App.Logger.Debug().Str("connection_id", connectionID).Uint("user_id", user.ID).Msg("sse: Client disconnected (context done)")
 	case <-conn.Done:
-		h.App.Logger.Debug().Str("connection_id", connectionID).Msg("sse: Client disconnected (connection closed)")
+		h.App.Logger.Debug().Str("connection_id", connectionID).Uint("user_id", user.ID).Msg("sse: Client disconnected (connection closed)")
 	}
 
 	return nil

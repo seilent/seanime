@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/library/anime"
@@ -19,6 +20,11 @@ import (
 //	@returns bool
 func (h *Handler) HandleSaveIssueReport(c echo.Context) error {
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	type body struct {
 		ClickLogs           []*report.ClickLog      `json:"clickLogs"`
 		NetworkLogs         []*report.NetworkLog    `json:"networkLogs"`
@@ -34,9 +40,9 @@ func (h *Handler) HandleSaveIssueReport(c echo.Context) error {
 
 	var localFiles []*anime.LocalFile
 	if b.IsAnimeLibraryIssue {
-		// Get local files
+		// Get the user's local files
 		var err error
-		localFiles, _, err = db_bridge.GetLocalFiles(h.App.Database)
+		localFiles, _, err = db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}

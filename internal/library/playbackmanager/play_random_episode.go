@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/library/anime"
+	"seanime/internal/platforms/platform"
 
 	"github.com/samber/lo"
 )
@@ -12,6 +13,8 @@ import (
 type StartRandomVideoOptions struct {
 	UserAgent string
 	ClientId  string
+	UserID    uint
+	Platform  platform.Platform
 }
 
 // StartRandomVideo starts a random video from the collection.
@@ -22,7 +25,7 @@ func (pm *PlaybackManager) StartRandomVideo(opts *StartRandomVideoOptions) error
 		return err
 	}
 
-	animeCollection, err := pm.platform.GetAnimeCollection(context.Background(), false)
+	animeCollection, err := opts.Platform.GetAnimeCollection(context.Background(), false)
 	if err != nil {
 		return err
 	}
@@ -31,8 +34,8 @@ func (pm *PlaybackManager) StartRandomVideo(opts *StartRandomVideoOptions) error
 	// Retrieve random episode
 	//
 
-	// Get lfs
-	lfs, _, err := db_bridge.GetLocalFiles(pm.Database)
+	// Get lfs for the specific user
+	lfs, _, err := db_bridge.GetLocalFilesForUser(pm.Database, opts.UserID)
 	if err != nil {
 		return fmt.Errorf("error getting local files: %s", err.Error())
 	}
@@ -89,6 +92,7 @@ func (pm *PlaybackManager) StartRandomVideo(opts *StartRandomVideoOptions) error
 		Payload:   lfs[0].GetPath(),
 		UserAgent: opts.UserAgent,
 		ClientId:  opts.ClientId,
+		UserID:    opts.UserID,
 	})
 	if err != nil {
 		return err

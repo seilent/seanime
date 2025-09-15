@@ -24,7 +24,12 @@ import (
 //	@returns []anime.LocalFile
 func (h *Handler) HandleGetLocalFiles(c echo.Context) error {
 
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -34,7 +39,12 @@ func (h *Handler) HandleGetLocalFiles(c echo.Context) error {
 
 func (h *Handler) HandleDumpLocalFilesToFile(c echo.Context) error {
 
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -59,6 +69,11 @@ func (h *Handler) HandleDumpLocalFilesToFile(c echo.Context) error {
 //	@desc The response is ignored, the client should refetch the entire library collection and media entry.
 //	@route /api/v1/library/local-files/import [POST]
 func (h *Handler) HandleImportLocalFiles(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	type body struct {
 		DataFilePath string `json:"dataFilePath"`
 	}
@@ -110,8 +125,13 @@ func (h *Handler) HandleLocalFileBulkAction(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get all the local files
-	lfs, lfsId, err := db_bridge.GetLocalFiles(h.App.Database)
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Get the user's local files
+	lfs, lfsId, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -162,8 +182,13 @@ func (h *Handler) HandleUpdateLocalFileData(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get all the local files
-	lfs, lfsId, err := db_bridge.GetLocalFiles(h.App.Database)
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Get the user's local files
+	lfs, lfsId, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -196,6 +221,11 @@ func (h *Handler) HandleUpdateLocalFileData(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandleUpdateLocalFiles(c echo.Context) error {
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	type body struct {
 		Paths   []string `json:"paths"`
 		Action  string   `json:"action"`
@@ -207,8 +237,8 @@ func (h *Handler) HandleUpdateLocalFiles(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get all the local files
-	lfs, lfsId, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get the user's local files
+	lfs, lfsId, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -262,6 +292,11 @@ func (h *Handler) HandleUpdateLocalFiles(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandleDeleteLocalFiles(c echo.Context) error {
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	type body struct {
 		Paths []string `json:"paths"`
 	}
@@ -271,8 +306,8 @@ func (h *Handler) HandleDeleteLocalFiles(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get all the local files
-	lfs, lfsId, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get the user's local files
+	lfs, lfsId, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -315,6 +350,11 @@ func (h *Handler) HandleDeleteLocalFiles(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandleRemoveEmptyDirectories(c echo.Context) error {
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	libraryPaths, err := h.App.Database.GetAllLibraryPathsFromSettings()
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -335,13 +375,18 @@ func (h *Handler) HandleRemoveEmptyDirectories(c echo.Context) error {
 //	@route /api/v1/library/media-availability/{id} [GET]
 //	@returns []anime.LocalFile
 func (h *Handler) HandleGetMediaAvailability(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	mId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get all LocalFiles from global database
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get the user's LocalFiles from database
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

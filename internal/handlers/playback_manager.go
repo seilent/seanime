@@ -52,9 +52,21 @@ func (h *Handler) HandlePlaybackPlayVideo(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandlePlaybackPlayRandomVideo(c echo.Context) error {
 
-	err := h.App.PlaybackManager.StartRandomVideo(&playbackmanager.StartRandomVideoOptions{
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	userPlatform, err := h.GetUserPlatform(c)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	err = h.App.PlaybackManager.StartRandomVideo(&playbackmanager.StartRandomVideoOptions{
 		UserAgent: c.Request().Header.Get("User-Agent"),
 		ClientId:  "",
+		UserID:    user.ID,
+		Platform:  userPlatform,
 	})
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -71,6 +83,11 @@ func (h *Handler) HandlePlaybackPlayRandomVideo(c echo.Context) error {
 //	@route /api/v1/playback-manager/sync-current-progress [POST]
 //	@returns int
 func (h *Handler) HandlePlaybackSyncCurrentProgress(c echo.Context) error {
+
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
 
 	err := h.App.PlaybackManager.SyncCurrentProgress()
 	if err != nil {
@@ -91,6 +108,11 @@ func (h *Handler) HandlePlaybackSyncCurrentProgress(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandlePlaybackPlayNextEpisode(c echo.Context) error {
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	err := h.App.PlaybackManager.PlayNextEpisode()
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -107,6 +129,11 @@ func (h *Handler) HandlePlaybackPlayNextEpisode(c echo.Context) error {
 //	@returns *anime.LocalFile
 func (h *Handler) HandlePlaybackGetNextEpisode(c echo.Context) error {
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	lf := h.App.PlaybackManager.GetNextEpisode()
 	return h.RespondWithData(c, lf)
 }
@@ -118,6 +145,11 @@ func (h *Handler) HandlePlaybackGetNextEpisode(c echo.Context) error {
 //	@route /api/v1/playback-manager/autoplay-next-episode [POST]
 //	@returns bool
 func (h *Handler) HandlePlaybackAutoPlayNextEpisode(c echo.Context) error {
+
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
 
 	err := h.App.PlaybackManager.AutoPlayNextEpisode()
 	if err != nil {
@@ -174,6 +206,11 @@ func (h *Handler) HandlePlaybackStartPlaylist(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandlePlaybackCancelCurrentPlaylist(c echo.Context) error {
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	err := h.App.PlaybackManager.CancelCurrentPlaylist()
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -189,6 +226,11 @@ func (h *Handler) HandlePlaybackCancelCurrentPlaylist(c echo.Context) error {
 //	@route /api/v1/playback-manager/playlist-next [POST]
 //	@returns bool
 func (h *Handler) HandlePlaybackPlaylistNext(c echo.Context) error {
+
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
 
 	err := h.App.PlaybackManager.RequestNextPlaylistFile()
 	if err != nil {
@@ -209,6 +251,11 @@ func (h *Handler) HandlePlaybackPlaylistNext(c echo.Context) error {
 //	@route /api/v1/playback-manager/manual-tracking/start [POST]
 //	@returns bool
 func (h *Handler) HandlePlaybackStartManualTracking(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	type body struct {
 		MediaId       int    `json:"mediaId"`
 		EpisodeNumber int    `json:"episodeNumber"`
@@ -238,6 +285,11 @@ func (h *Handler) HandlePlaybackStartManualTracking(c echo.Context) error {
 //	@route /api/v1/playback-manager/manual-tracking/cancel [POST]
 //	@returns bool
 func (h *Handler) HandlePlaybackCancelManualTracking(c echo.Context) error {
+
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
 
 	h.App.PlaybackManager.CancelManualProgressTracking()
 

@@ -15,6 +15,7 @@ import (
 type WSEventManagerInterface interface {
 	SendEvent(t string, payload interface{})
 	SendEventTo(clientId string, t string, payload interface{}, noLog ...bool)
+	SendEventToUser(userID uint, t string, payload interface{}) // New method for user-specific events
 	SubscribeToClientEvents(id string) *ClientEventSubscriber
 	SubscribeToClientNativePlayerEvents(id string) *ClientEventSubscriber
 	UnsubscribeFromClientEvents(id string)
@@ -40,6 +41,13 @@ func (w *GlobalWSEventManagerWrapper) SendEventTo(clientId string, t string, pay
 	w.WSEventManager.SendEventTo(clientId, t, payload, noLog...)
 }
 
+func (w *GlobalWSEventManagerWrapper) SendEventToUser(userID uint, t string, payload interface{}) {
+	if w.WSEventManager == nil {
+		return
+	}
+	w.WSEventManager.SendEventToUser(userID, t, payload)
+}
+
 type (
 	// WSEventManager holds the websocket connection instance.
 	// It is attached to the App instance, so it is available to other handlers.
@@ -60,8 +68,9 @@ type (
 	}
 
 	WSConn struct {
-		ID   string
-		Conn *websocket.Conn
+		ID     string
+		UserID uint // User ID associated with this WebSocket connection
+		Conn   *websocket.Conn
 	}
 
 	WSEvent struct {
@@ -122,11 +131,12 @@ func (m *WSEventManager) ExitIfNoConnsAsDesktopSidecar() {
 	}()
 }
 
-func (m *WSEventManager) AddConn(id string, conn *websocket.Conn) {
+func (m *WSEventManager) AddConn(id string, userID uint, conn *websocket.Conn) {
 	m.hasHadConnection = true
 	m.Conns = append(m.Conns, &WSConn{
-		ID:   id,
-		Conn: conn,
+		ID:     id,
+		UserID: userID,
+		Conn:   conn,
 	})
 }
 
@@ -172,6 +182,33 @@ func (m *WSEventManager) SendEvent(t string, payload interface{}) {
 	//	m.Logger.Err(err).Msg("ws: Failed to send message")
 	//}
 	//m.Logger.Trace().Str("type", t).Msg("ws: Sent message")
+}
+
+// SendEventToUser sends a websocket event to connections from a specific user.
+func (m *WSEventManager) SendEventToUser(userID uint, t string, payload interface{}) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if t != PlaybackManagerProgressPlaybackState && payload == nil {
+		m.Logger.Trace().Str("type", t).Uint("user_id", userID).Msg("ws: Sending user-specific message")
+	}
+
+	userConnCount := 0
+	for _, conn := range m.Conns {
+		if conn.UserID == userID {
+			userConnCount++
+			err := conn.Conn.WriteJSON(WSEvent{
+				Type:    t,
+				Payload: payload,
+			})
+			if err != nil {
+				// Note: NaN error coming from [progress_tracking.go]
+				//m.Logger.Err(err).Msg("ws: Failed to send message")
+			}
+		}
+	}
+
+	m.Logger.Debug().Str("type", t).Uint("user_id", userID).Int("connections", userConnCount).Msg("ws: Event sent to user")
 }
 
 // SendEventTo sends a websocket event to the specified client.

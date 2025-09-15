@@ -19,29 +19,35 @@ var (
 
 // webSocketEventHandler creates a new websocket handler for real-time event communication
 func (h *Handler) webSocketEventHandler(c echo.Context) error {
+	// Authenticate user for WebSocket connection
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Authentication required for WebSocket connection")
+	}
+
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		return err
 	}
 	defer ws.Close()
 
-	// Get connection ID from query parameter
+	// Get connection ID from query parameter or generate user-specific one
 	id := c.QueryParam("id")
 	if id == "" {
-		id = "0"
+		id = "ws_user_" + string(rune(user.ID))
 	}
 
-	// Add connection to manager
-	h.App.WSEventManager.AddConn(id, ws)
-	h.App.Logger.Debug().Str("id", id).Msg("ws: Client connected")
+	// Add connection to manager with user ID
+	h.App.WSEventManager.AddConn(id, user.ID, ws)
+	h.App.Logger.Debug().Str("id", id).Uint("user_id", user.ID).Msg("ws: Client connected")
 
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
-				h.App.Logger.Debug().Str("id", id).Msg("ws: Client disconnected")
+				h.App.Logger.Debug().Str("id", id).Uint("user_id", user.ID).Msg("ws: Client disconnected")
 			} else {
-				h.App.Logger.Debug().Str("id", id).Msg("ws: Client disconnection")
+				h.App.Logger.Debug().Str("id", id).Uint("user_id", user.ID).Msg("ws: Client disconnection")
 			}
 			h.App.WSEventManager.RemoveConn(id)
 			break

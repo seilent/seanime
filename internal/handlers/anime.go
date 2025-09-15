@@ -33,8 +33,8 @@ func (h *Handler) HandleGetAnimeEpisodeCollection(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("user not authenticated"))
 	}
 
-	// Get all the local files
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get the user's local files
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

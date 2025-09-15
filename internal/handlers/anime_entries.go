@@ -110,6 +110,11 @@ func (h *Handler) HandleGetAnimeEntry(c echo.Context) error {
 //	@returns []anime.LocalFile
 func (h *Handler) HandleAnimeEntryBulkAction(c echo.Context) error {
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	type body struct {
 		MediaId int    `json:"mediaId"`
 		Action  string `json:"action"` // "unmatch" or "toggle-lock"
@@ -120,8 +125,8 @@ func (h *Handler) HandleAnimeEntryBulkAction(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get all the local files
-	lfs, lfsId, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get the user's local files
+	lfs, lfsId, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -176,6 +181,11 @@ func (h *Handler) HandleAnimeEntryBulkAction(c echo.Context) error {
 //	@returns bool
 func (h *Handler) HandleOpenAnimeEntryInExplorer(c echo.Context) error {
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	type body struct {
 		MediaId int `json:"mediaId"`
 	}
@@ -185,8 +195,8 @@ func (h *Handler) HandleOpenAnimeEntryInExplorer(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get all the local files
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Get the user's local files
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -262,8 +272,8 @@ func (h *Handler) HandleFetchAnimeEntrySuggestions(c echo.Context) error {
 		return h.RespondWithData(c, suggestions)
 	}
 
-	// Retrieve local files
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	// Retrieve the user's local files
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -335,7 +345,12 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get user-specific AniList platform
+	// Get current user and user-specific AniList platform
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	var userPlatform platform.Platform
 	var err error
 	userPlatform, err = h.GetUserPlatform(c)
@@ -349,10 +364,10 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Retrieve local files
+	// Retrieve the user's local files
 	var lfs []*anime.LocalFile
 	var lfsId uint
-	lfs, lfsId, err = db_bridge.GetLocalFiles(h.App.Database)
+	lfs, lfsId, err = db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -495,7 +510,7 @@ func (h *Handler) HandleGetMissingEpisodes(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
