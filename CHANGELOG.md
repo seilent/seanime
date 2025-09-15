@@ -1220,4 +1220,5 @@ This release introduced a major bug, skip to v1.1.2+
 ## 0.1.0
 
 - 🎉 Alpha release
+Note: Debrid functionality has been removed from the codebase. Historical entries mentioning Debrid no longer apply.
 

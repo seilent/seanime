@@ -10,7 +10,7 @@ import {
     MediaEntryGenresList,
 } from "@/app/(main)/_features/media/_components/media-entry-metadata-components"
 import { MediaPageHeaderEntryDetails } from "@/app/(main)/_features/media/_components/media-page-header-components"
-import { useHasDebridService, useHasTorrentProvider, useServerStatus } from "@/app/(main)/_hooks/use-server-status"
+import { useHasTorrentProvider, useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { RelationsRecommendationsSection } from "@/app/(main)/entry/_components/relations-recommendations-section"
 import { TorrentSearchButton } from "@/app/(main)/entry/_containers/torrent-search/torrent-search-button"
 import { __torrentSearch_selectedTorrentsAtom } from "@/app/(main)/entry/_containers/torrent-search/torrent-search-container"
@@ -137,7 +137,7 @@ function Content({ entry, entryLoading, detailsLoading, details, type }: {
     const bannerImage = media?.bannerImage || media?.coverImage?.extraLarge
 
     const { hasTorrentProvider } = useHasTorrentProvider()
-    const { hasDebridService } = useHasDebridService()
+    
 
     return (
         <ScopeProvider atoms={[__torrentSearch_selectionAtom, __torrentSearch_selectionEpisodeAtom, __torrentSearch_selectedTorrentsAtom]}>
@@ -281,7 +281,7 @@ function Content({ entry, entryLoading, detailsLoading, details, type }: {
                             && hasTorrentProvider
                             && (
                                 serverStatus?.settings?.torrent?.defaultTorrentClient !== TORRENT_CLIENT.NONE
-                                || hasDebridService
+                                
                             )
                         ) && (
                             <TorrentSearchButton

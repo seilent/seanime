@@ -92,11 +92,10 @@ type (
 	FeatureFlags                    FeatureFlags
 	Settings                        *models.Settings
 	GlobalSettings                  *models.GlobalSettings
-	SecondarySettings               struct {
-		Mediastream   *models.MediastreamSettings
-		Torrentstream *models.TorrentstreamSettings
-		Debrid        *models.DebridSettings
-	} // Struct for other settings sent to clientN
+        SecondarySettings               struct {
+            Mediastream   *models.MediastreamSettings
+            Torrentstream *models.TorrentstreamSettings
+        } // Struct for other settings sent to client
 	SelfUpdater        *updater.SelfUpdater
 	ReportRepository   *report.Repository
 	TotalLibrarySize   uint64 // Initialized in modules.go
@@ -345,11 +344,10 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		previousVersion:               previousVersion,
 		FeatureFlags:                  NewFeatureFlags(cfg, logger),
 		IsDesktopSidecar:              configOpts.IsDesktopSidecar,
-		SecondarySettings: struct {
-			Mediastream   *models.MediastreamSettings
-			Torrentstream *models.TorrentstreamSettings
-			Debrid        *models.DebridSettings
-		}{Mediastream: nil, Torrentstream: nil},
+        SecondarySettings: struct {
+            Mediastream   *models.MediastreamSettings
+            Torrentstream *models.TorrentstreamSettings
+        }{Mediastream: nil, Torrentstream: nil},
 		SelfUpdater:                     selfupdater,
 		moduleMu:                        sync.Mutex{},
 		OnRefreshAnilistCollectionFuncs: result.NewResultMap[string, func()](),

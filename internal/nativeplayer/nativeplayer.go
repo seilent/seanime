@@ -18,7 +18,7 @@ type StreamType string
 const (
 	StreamTypeTorrent StreamType = "torrent"
 	StreamTypeFile    StreamType = "localfile"
-	StreamTypeDebrid  StreamType = "debrid"
+    // Debrid stream type removed
 )
 
 type (

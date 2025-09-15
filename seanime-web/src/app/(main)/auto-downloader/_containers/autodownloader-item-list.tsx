@@ -66,7 +66,7 @@ export function AutoDownloaderItemList(props: AutoDownloaderItemListProps) {
                         <div className="flex gap-2 items-center">
                             {!item.downloaded && (
                                 <>
-                                    {!serverStatus?.settings?.autoDownloader?.useDebrid ? (
+                                    {false ? (
                                         <Button
                                             leftIcon={<BiDownload />}
                                             size="sm"
@@ -84,7 +84,7 @@ export function AutoDownloaderItemList(props: AutoDownloaderItemListProps) {
                                             Download
                                         </Button>
                                     ) : (
-                                        <SeaLink href="/debrid">
+                                        <SeaLink href="#">
                                             <Button
                                                 leftIcon={<BiDownload />}
                                                 size="sm"

@@ -89,11 +89,4 @@ func (g *GlobalSettings) GetSensitiveValues() []string {
 	}
 }
 
-func (s *DebridSettings) GetSensitiveValues() []string {
-	if s == nil {
-		return []string{}
-	}
-	return []string{
-		s.ApiKey,
-	}
-}
+// Debrid feature removed: (*DebridSettings).GetSensitiveValues deleted

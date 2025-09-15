@@ -47,8 +47,8 @@ Seanime is a **media server** with a **web interface** and **desktop app** for w
 - Offline mode for both anime and manga
 - Scan your local library in seconds, no renaming needed
 - Integrated torrent search engine
-- Stream torrents directly to your media player without downloading using Bittorrent, Torbox and Real-Debrid
-- Support for qBittorrent, Transmission, Torbox and Real-Debrid for downloading
+- Stream torrents directly to your media player without downloading using BitTorrent and Torbox
+- Support for qBittorrent, Transmission, and Torbox for downloading
 - Auto-downloading for new episodes with custom filters
 - MPV, VLC, MPC-HC, and mobile player app support for watching
 - Transcoding and direct play for streaming to any device web browser
@@ -120,9 +120,9 @@ Development and testing might require additional configuration.
 
 <img src="docs/images/4/rec-torrentstream.gif" alt="preview" width="100%"/>
 
-### Debrid streaming
+<!-- Debrid streaming section removed -->
 
-<img src="docs/images/4/rec-debridstream.gif" alt="preview" width="100%"/>
+
 
 <details>
 <summary><b>View more</b></summary>

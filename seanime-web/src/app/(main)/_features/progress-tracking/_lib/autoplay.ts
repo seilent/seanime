@@ -12,13 +12,13 @@ import { toast } from "sonner"
 const __autoplay_isActiveAtom = atom(false)
 const __autoplay_countdownAtom = atom(5)
 export const __autoplay_nextEpisodeAtom = atom<Anime_Episode | null>(null)
-const __autoplay_streamingTypeAtom = atom<"local" | "torrent" | "debrid" | null>(null)
+const __autoplay_streamingTypeAtom = atom<"local" | "torrent" | null>(null)
 
 export interface AutoplayState {
     isActive: boolean
     countdown: number
     nextEpisode: Anime_Episode | null
-    streamingType: "local" | "torrent" | "debrid" | null
+    streamingType: "local" | "torrent" | null
 }
 
 export function useAutoplay() {
@@ -70,7 +70,7 @@ export function useAutoplay() {
     const startAutoplay = (
         playbackState: PlaybackManager_PlaybackState,
         nextEp?: Anime_Episode,
-        type: "local" | "torrent" | "debrid" = "local",
+        type: "local" | "torrent" = "local",
     ) => {
         if (!serverStatus?.settings?.autoPlayNextEpisode) {
             logger("Autoplay").info("Autoplay disabled in settings")
@@ -84,7 +84,7 @@ export function useAutoplay() {
 
         // Determine next episode and streaming type
         let episodeToPlay: Anime_Episode | null = null
-        let detectedType: "local" | "torrent" | "debrid" | null = null
+        let detectedType: "local" | "torrent" | null = null
 
         if (nextEp) {
             episodeToPlay = nextEp
@@ -138,7 +138,7 @@ export function useAutoplay() {
     // Execute the actual autoplay
     const executeAutoplay = (
         episode: Anime_Episode | null,
-        type: "local" | "torrent" | "debrid" | null,
+        type: "local" | "torrent" | null,
         playbackState: PlaybackManager_PlaybackState,
     ) => {
         logger("Autoplay").info("Executing autoplay", { type, episode: episode?.displayTitle, isActive: isActiveRef.current })

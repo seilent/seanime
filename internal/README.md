@@ -25,11 +25,10 @@
   - `db`: **Database module**
   - `db_bridge`: Helper methods to avoid circular dependencies
   - `models`: Database models
-- `debrid`: **Debrid module**
-  - `debrid`: Structs and interfaces
-  - `client`: **Debrid repository** for streaming, download
+- Debrid module has been removed
+  
   - `torbox`
-  - `realdebrid`
+  
 - `discordrpc`: Discord RPC
   - `client`
   - `ipc`

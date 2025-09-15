@@ -558,11 +558,6 @@ export function UISettings() {
                                             value: "torrent-list",
                                         },
                                         {
-                                            label: "Debrid",
-                                            textValue: "Debrid",
-                                            value: "debrid",
-                                        },
-                                        {
                                             label: "Scan summaries",
                                             textValue: "Scan summaries",
                                             value: "scan-summaries",

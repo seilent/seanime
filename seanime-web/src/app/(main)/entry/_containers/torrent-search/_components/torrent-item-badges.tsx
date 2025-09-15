@@ -112,21 +112,4 @@ export function TorrentParsedMetadata({ metadata }: { metadata: Torrent_TorrentM
 }
 
 
-export function TorrentDebridInstantAvailabilityBadge() {
-
-    return (
-        <Tooltip
-            trigger={<Badge
-                data-torrent-item-debrid-instant-availability-badge
-                className="rounded-[--radius-md] bg-transparent border-transparent dark:text-[--white] animate-pulse"
-                intent="white"
-                leftIcon={<LuGauge className="text-lg" />}
-            >
-                Cached
-            </Badge>}
-        >
-            Instantly available on Debrid service
-        </Tooltip>
-    )
-
-}
+// Debrid feature removed: TorrentDebridInstantAvailabilityBadge deleted

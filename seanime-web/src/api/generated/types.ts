@@ -3099,7 +3099,6 @@ export type Models_AutoDownloaderSettings = {
     downloadAutomatically: boolean
     enableEnhancedQueries: boolean
     enableSeasonCheck: boolean
-    useDebrid: boolean
 }
 
 /**
@@ -3599,7 +3598,7 @@ export type NativePlayer_ServerEvent = "open-and-await" |
  * - Filename: nativeplayer.go
  * - Package: nativeplayer
  */
-export type NativePlayer_StreamType = "torrent" | "localfile" | "debrid"
+export type NativePlayer_StreamType = "torrent" | "localfile"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Report
@@ -4197,4 +4196,3 @@ export type Video = {
     height: number
     bitrate: number
 }
-

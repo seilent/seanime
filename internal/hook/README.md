@@ -19,7 +19,7 @@
 - [ ] Torrent search
 - [ ] AutoDownloader
 - [ ] Torrent streaming
-- [ ] Debrid / Debrid streaming
+ 
 - [ ] PlaybackManager
 - [ ] Media Player
 - [ ] Sync / Offline

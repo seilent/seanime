@@ -48,8 +48,7 @@ func GenerateHandlerHookEvents(handlersJsonPath string, outputDir string) {
 		"\"seanime/internal/api/tvdb\"",
 		"\"seanime/internal/continuity\"",
 		"\"seanime/internal/database/models\"",
-		"\"seanime/internal/debrid/client\"",
-		"\"seanime/internal/debrid/debrid\"",
+        
 		"\"seanime/internal/extension\"",
 		"hibikemanga \"seanime/internal/extension/hibike/manga\"",
 		"hibikeonlinestream \"seanime/internal/extension/hibike/onlinestream\"",

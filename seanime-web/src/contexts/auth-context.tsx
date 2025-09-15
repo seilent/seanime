@@ -166,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 '/admin',
                 '/anilist',
                 '/auto-downloader',
-                '/debrid',
+                
                 '/discover',
                 '/extensions',
                 '/manga',

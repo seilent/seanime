@@ -26,7 +26,7 @@ Electron-based desktop client for Seanime. Embeds server and web interface. Succ
 Pros:
 - Linux support
 - Better consistency accross platforms (fewer bugs)
-- Built-in player support for torrent/debrid streaming without transcoding
+- Built-in player support for torrent streaming without transcoding
 
 Cons:
 - Greater memory usage

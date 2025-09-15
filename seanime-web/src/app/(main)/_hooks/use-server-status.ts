@@ -25,10 +25,5 @@ export function useHasTorrentProvider() {
     }
 }
 
-export function useHasDebridService() {
-    return {
-        hasDebridService: false,
-    }
-}
-
+// Debrid feature removed: useHasDebridService deleted
 

@@ -219,10 +219,7 @@ export default function Page() {
                                             value="torrent-client"
                                             className="group"
                                         ><MdOutlineDownloading className="text-lg mr-3 transition-transform duration-200" /> Torrent Client</TabsTrigger>
-                                        <TabsTrigger
-                                            value="debrid"
-                                            className="group"
-                                        ><HiOutlineServerStack className="text-lg mr-3 transition-transform duration-200" /> Debrid Service</TabsTrigger>
+                                
                                     </>
                                 )}
 
@@ -828,18 +825,7 @@ export default function Page() {
 
                         {/*</TabsContent>*/}
 
-                        {isAdmin && (
-                            <TabsContent value="debrid" className={tabContentClass}>
-
-                                <SettingsPageHeader
-                                    title="Debrid Service"
-                                    description="Configure your debrid service integration"
-                                    icon={HiOutlineServerStack}
-                                />
-
-
-                            </TabsContent>
-                        )}
+                        
                     </div>
                 </Tabs>
                 {/*</Card>*/}

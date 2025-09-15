@@ -110,8 +110,7 @@ var typePrefixesByPackage = map[string]string{
 	"hibikeextension":    "HibikeExtension_",
 	"continuity":         "Continuity_",
 	"local":              "Local_",
-	"debrid":             "Debrid_",
-	"debrid_client":      "DebridClient_",
+    
 	"report":             "Report_",
 	"habari":             "Habari_",
 	"vendor_habari":      "Habari_",
