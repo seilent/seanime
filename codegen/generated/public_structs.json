@@ -26948,6 +26948,17 @@
         "comments": []
       },
       {
+        "name": "syncManager",
+        "jsonName": "syncManager",
+        "goType": "libsync.SyncManager",
+        "typescriptType": "SyncManager",
+        "usedTypescriptType": "SyncManager",
+        "usedStructName": "libsync.SyncManager",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
         "name": "externalPlayerEpisodeDetails",
         "jsonName": "externalPlayerEpisodeDetails",
         "goType": "",
@@ -27105,6 +27116,17 @@
         "required": false,
         "public": true,
         "comments": []
+      },
+      {
+        "name": "SyncManager",
+        "jsonName": "SyncManager",
+        "goType": "libsync.SyncManager",
+        "typescriptType": "SyncManager",
+        "usedTypescriptType": "SyncManager",
+        "usedStructName": "libsync.SyncManager",
+        "required": false,
+        "public": true,
+        "comments": []
       }
     ],
     "comments": []
@@ -27196,17 +27218,6 @@
       {
         "name": "AnilistPlatform",
         "jsonName": "AnilistPlatform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "OfflinePlatform",
-        "jsonName": "OfflinePlatform",
         "goType": "platform.Platform",
         "typescriptType": "Platform",
         "usedTypescriptType": "Platform",
@@ -27624,15 +27635,6 @@
         ]
       },
       {
-        "name": "isOffline",
-        "jsonName": "isOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
         "name": "SyncManager",
         "jsonName": "SyncManager",
         "goType": "libsync.SyncManager",
@@ -27820,9 +27822,9 @@
         "name": "Server",
         "jsonName": "Server",
         "goType": "INTERNAL_Config_Server",
-        "inlineStructType": "struct{\nHost string\nPort int\nOffline bool\nUseBinaryPath bool\nSystray bool\nDoHUrl string}",
+        "inlineStructType": "struct{\nHost string\nPort int\nUseBinaryPath bool\nSystray bool\nDoHUrl string}",
         "typescriptType": "INTERNAL_Config_Server",
-        "usedTypescriptType": "{ Host: string; Port: number; Offline: boolean; UseBinaryPath: boolean; Systray: boolean; DoHUrl: string; }",
+        "usedTypescriptType": "{ Host: string; Port: number; UseBinaryPath: boolean; Systray: boolean; DoHUrl: string; }",
         "usedStructName": "core.Config_Server",
         "required": true,
         "public": true,
@@ -27972,15 +27974,6 @@
         "jsonName": "Port",
         "goType": "int",
         "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Offline",
-        "jsonName": "Offline",
-        "goType": "bool",
-        "typescriptType": "boolean",
         "required": true,
         "public": true,
         "comments": []
@@ -29112,17 +29105,6 @@
         "comments": []
       },
       {
-        "name": "Nakama",
-        "jsonName": "nakama",
-        "goType": "NakamaSettings",
-        "typescriptType": "Models_NakamaSettings",
-        "usedTypescriptType": "Models_NakamaSettings",
-        "usedStructName": "models.NakamaSettings",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "Library",
         "jsonName": "library",
         "goType": "LibrarySettings",
@@ -29342,15 +29324,6 @@
         "comments": []
       },
       {
-        "name": "AutoSyncOfflineLocalData",
-        "jsonName": "autoSyncOfflineLocalData",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "ScannerMatchingThreshold",
         "jsonName": "scannerMatchingThreshold",
         "goType": "float64",
@@ -29376,15 +29349,6 @@
         "required": true,
         "public": true,
         "comments": []
-      },
-      {
-        "name": "AutoSaveCurrentMediaOffline",
-        "jsonName": "autoSaveCurrentMediaOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
       }
     ],
     "comments": []
@@ -29402,108 +29366,6 @@
       "declaredValues": null
     },
     "comments": null
-  },
-  {
-    "filepath": "../internal/database/models/models.go",
-    "filename": "models.go",
-    "name": "NakamaSettings",
-    "formattedName": "Models_NakamaSettings",
-    "package": "models",
-    "fields": [
-      {
-        "name": "Enabled",
-        "jsonName": "enabled",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Username",
-        "jsonName": "username",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsHost",
-        "jsonName": "isHost",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "HostPassword",
-        "jsonName": "hostPassword",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "RemoteServerURL",
-        "jsonName": "remoteServerURL",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "RemoteServerPassword",
-        "jsonName": "remoteServerPassword",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IncludeNakamaAnimeLibrary",
-        "jsonName": "includeNakamaAnimeLibrary",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "HostShareLocalAnimeLibrary",
-        "jsonName": "hostShareLocalAnimeLibrary",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "HostUnsharedAnimeIds",
-        "jsonName": "hostUnsharedAnimeIds",
-        "goType": "IntSlice",
-        "typescriptType": "Models_IntSlice",
-        "usedTypescriptType": "Models_IntSlice",
-        "usedStructName": "models.IntSlice",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "HostEnablePortForwarding",
-        "jsonName": "hostEnablePortForwarding",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
   },
   {
     "filepath": "../internal/database/models/models.go",
@@ -32270,6 +32132,15 @@
         "required": false,
         "public": true,
         "comments": []
+      },
+      {
+        "name": "UserID",
+        "jsonName": "UserID",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
       }
     ],
     "comments": []
@@ -32789,6 +32660,17 @@
         "public": false,
         "comments": [
           " Name of the file being streamed, if applicable"
+        ]
+      },
+      {
+        "name": "userID",
+        "jsonName": "userID",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": false,
+        "comments": [
+          " User ID for multi-user support"
         ]
       },
       {
@@ -34526,7 +34408,6 @@
       "typescriptType": "string",
       "declaredValues": [
         "\"native-player\"",
-        "\"nakama\"",
         "\"plugin\""
       ]
     },
@@ -34783,15 +34664,6 @@
       {
         "name": "clientNativePlayerEventSubscribers",
         "jsonName": "clientNativePlayerEventSubscribers",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "nakamaEventSubscribers",
-        "jsonName": "nakamaEventSubscribers",
         "goType": "",
         "typescriptType": "any",
         "required": false,
@@ -39684,15 +39556,6 @@
         "comments": []
       },
       {
-        "name": "IsOffline",
-        "jsonName": "isOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "MediastreamSettings",
         "jsonName": "mediastreamSettings",
         "goType": "models.MediastreamSettings",
@@ -42042,19 +41905,6 @@
         ]
       },
       {
-        "name": "NakamaEntryLibraryData",
-        "jsonName": "nakamaLibraryData",
-        "goType": "NakamaEntryLibraryData",
-        "typescriptType": "Anime_NakamaEntryLibraryData",
-        "usedTypescriptType": "Anime_NakamaEntryLibraryData",
-        "usedStructName": "anime.NakamaEntryLibraryData",
-        "required": false,
-        "public": true,
-        "comments": [
-          " Library data from Nakama"
-        ]
-      },
-      {
         "name": "EntryListData",
         "jsonName": "listData",
         "goType": "EntryListData",
@@ -42303,26 +42153,6 @@
         "goType": "int",
         "typescriptType": "number",
         "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsNakamaEntry",
-        "jsonName": "_isNakamaEntry",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "NakamaLibraryData",
-        "jsonName": "nakamaLibraryData",
-        "goType": "NakamaEntryLibraryData",
-        "typescriptType": "Anime_NakamaEntryLibraryData",
-        "usedTypescriptType": "Anime_NakamaEntryLibraryData",
-        "usedStructName": "anime.NakamaEntryLibraryData",
-        "required": false,
         "public": true,
         "comments": []
       }
@@ -42689,34 +42519,6 @@
         "public": true,
         "comments": []
       },
-      {
-        "name": "UnwatchedCount",
-        "jsonName": "unwatchedCount",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MainFileCount",
-        "jsonName": "mainFileCount",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/anime/entry_library_data.go",
-    "filename": "entry_library_data.go",
-    "name": "NakamaEntryLibraryData",
-    "formattedName": "Anime_NakamaEntryLibraryData",
-    "package": "anime",
-    "fields": [
       {
         "name": "UnwatchedCount",
         "jsonName": "unwatchedCount",
@@ -43140,15 +42942,6 @@
         "usedTypescriptType": "AL_BaseAnime",
         "usedStructName": "anilist.BaseAnime",
         "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsNakamaEpisode",
-        "jsonName": "_isNakamaEpisode",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
         "public": true,
         "comments": []
       }
@@ -46345,6 +46138,17 @@
         ]
       },
       {
+        "name": "currentUserID",
+        "jsonName": "currentUserID",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": false,
+        "comments": [
+          " User ID for the current playback session"
+        ]
+      },
+      {
         "name": "autoPlayMu",
         "jsonName": "autoPlayMu",
         "goType": "sync.Mutex",
@@ -47121,6 +46925,17 @@
         "required": true,
         "public": true,
         "comments": []
+      },
+      {
+        "name": "UserID",
+        "jsonName": "UserID",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " User ID for continuity tracking"
+        ]
       }
     ],
     "comments": []
@@ -62903,213 +62718,6 @@
     ]
   },
   {
-    "filepath": "../internal/platforms/offline_platform/offline_platform.go",
-    "filename": "offline_platform.go",
-    "name": "OfflinePlatform",
-    "formattedName": "OfflinePlatform",
-    "package": "offline_platform",
-    "fields": [
-      {
-        "name": "logger",
-        "jsonName": "logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "localManager",
-        "jsonName": "localManager",
-        "goType": "local.Manager",
-        "typescriptType": "Local_Manager",
-        "usedTypescriptType": "Local_Manager",
-        "usedStructName": "local.Manager",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "client",
-        "jsonName": "client",
-        "goType": "anilist.AnilistClient",
-        "typescriptType": "AL_AnilistClient",
-        "usedTypescriptType": "AL_AnilistClient",
-        "usedStructName": "anilist.AnilistClient",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " OfflinePlatform used when offline.",
-      " It provides the same API as the anilist_platform.AnilistPlatform but some methods are no-op."
-    ]
-  },
-  {
-    "filepath": "../internal/platforms/simulated_platform/helpers.go",
-    "filename": "helpers.go",
-    "name": "CollectionWrapper",
-    "formattedName": "CollectionWrapper",
-    "package": "simulated_platform",
-    "fields": [
-      {
-        "name": "platform",
-        "jsonName": "platform",
-        "goType": "SimulatedPlatform",
-        "typescriptType": "SimulatedPlatform",
-        "usedTypescriptType": "SimulatedPlatform",
-        "usedStructName": "simulated_platform.SimulatedPlatform",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "isAnime",
-        "jsonName": "isAnime",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " CollectionWrapper provides an ambivalent interface for anime and manga collections"
-    ]
-  },
-  {
-    "filepath": "../internal/platforms/simulated_platform/simulated_platform.go",
-    "filename": "simulated_platform.go",
-    "name": "SimulatedPlatform",
-    "formattedName": "SimulatedPlatform",
-    "package": "simulated_platform",
-    "fields": [
-      {
-        "name": "logger",
-        "jsonName": "logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "localManager",
-        "jsonName": "localManager",
-        "goType": "local.Manager",
-        "typescriptType": "Local_Manager",
-        "usedTypescriptType": "Local_Manager",
-        "usedStructName": "local.Manager",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "client",
-        "jsonName": "client",
-        "goType": "anilist.AnilistClient",
-        "typescriptType": "AL_AnilistClient",
-        "usedTypescriptType": "AL_AnilistClient",
-        "usedStructName": "anilist.AnilistClient",
-        "required": false,
-        "public": false,
-        "comments": [
-          " should only receive an unauthenticated client"
-        ]
-      },
-      {
-        "name": "animeCollection",
-        "jsonName": "animeCollection",
-        "goType": "anilist.AnimeCollection",
-        "typescriptType": "AL_AnimeCollection",
-        "usedTypescriptType": "AL_AnimeCollection",
-        "usedStructName": "anilist.AnimeCollection",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mangaCollection",
-        "jsonName": "mangaCollection",
-        "goType": "anilist.MangaCollection",
-        "typescriptType": "AL_MangaCollection",
-        "usedTypescriptType": "AL_MangaCollection",
-        "usedStructName": "anilist.MangaCollection",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mu",
-        "jsonName": "mu",
-        "goType": "sync.RWMutex",
-        "typescriptType": "RWMutex",
-        "usedTypescriptType": "RWMutex",
-        "usedStructName": "sync.RWMutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "collectionMu",
-        "jsonName": "collectionMu",
-        "goType": "sync.RWMutex",
-        "typescriptType": "RWMutex",
-        "usedTypescriptType": "RWMutex",
-        "usedStructName": "sync.RWMutex",
-        "required": false,
-        "public": false,
-        "comments": [
-          " used to protect access to collections"
-        ]
-      },
-      {
-        "name": "lastAnimeCollectionRefetchTime",
-        "jsonName": "lastAnimeCollectionRefetchTime",
-        "goType": "time.Time",
-        "typescriptType": "string",
-        "usedStructName": "time.Time",
-        "required": false,
-        "public": false,
-        "comments": [
-          " used to prevent refetching too many times"
-        ]
-      },
-      {
-        "name": "lastMangaCollectionRefetchTime",
-        "jsonName": "lastMangaCollectionRefetchTime",
-        "goType": "time.Time",
-        "typescriptType": "string",
-        "usedStructName": "time.Time",
-        "required": false,
-        "public": false,
-        "comments": [
-          " used to prevent refetching too many times"
-        ]
-      },
-      {
-        "name": "anilistRateLimit",
-        "jsonName": "anilistRateLimit",
-        "goType": "limiter.Limiter",
-        "typescriptType": "Limiter",
-        "usedTypescriptType": "Limiter",
-        "usedStructName": "limiter.Limiter",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " SimulatedPlatform used when the user is not authenticated to AniList.",
-      " It acts as a dummy account using simulated collections stored locally."
-    ]
-  },
-  {
     "filepath": "../internal/plugin/anilist.go",
     "filename": "anilist.go",
     "name": "Anilist",
@@ -77022,15 +76630,6 @@
         "jsonName": "token",
         "goType": "string",
         "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsSimulated",
-        "jsonName": "isSimulated",
-        "goType": "bool",
-        "typescriptType": "boolean",
         "required": true,
         "public": true,
         "comments": []

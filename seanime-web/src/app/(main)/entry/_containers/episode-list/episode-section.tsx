@@ -97,18 +97,16 @@ export function EpisodeSection({ entry, details, bottomSection }: EpisodeSection
     //     </div>
     // }
 
-    if (!!media && ((!entry.listData && !entry._isNakamaEntry) || !entry.libraryData) && !serverStatus?.isOffline) {
+    if (!!media && (!entry.listData || !entry.libraryData)) {
         return <div className="space-y-10">
             {media?.status !== "NOT_YET_RELEASED"
-                ? <h4 className="text-yellow-50 flex items-center gap-2"><IoLibrarySharp /> Not in {entry._isNakamaEntry
-                    ? "the Nakama's"
-                    : "your"} library</h4>
+                ? <h4 className="text-yellow-50 flex items-center gap-2"><IoLibrarySharp /> Not in your library</h4>
                 : <h5 className="text-yellow-50">Not yet released</h5>}
             <div className="overflow-y-auto pt-4 lg:pt-0 space-y-10 overflow-x-hidden">
-                {!entry._isNakamaEntry && <UndownloadedEpisodeList
+                <UndownloadedEpisodeList
                     downloadInfo={entry.downloadInfo}
                     media={media}
-                />}
+                />
                 {bottomSection}
             </div>
         </div>
@@ -189,10 +187,10 @@ export function EpisodeSection({ entry, details, bottomSection }: EpisodeSection
                         )}
                     />
 
-                    {!serverStatus?.isOffline && !entry._isNakamaEntry && <UndownloadedEpisodeList
+                    <UndownloadedEpisodeList
                         downloadInfo={entry.downloadInfo}
                         media={media}
-                    />}
+                    />
 
                     {specialEpisodes.length > 0 && <>
                         <h2>Specials</h2>

@@ -63,7 +63,6 @@ type Settings struct {
 	Discord                 *DiscordSettings       `gorm:"embedded" json:"discord"`
 	Notifications           *NotificationSettings  `gorm:"embedded" json:"notifications"`
 	Manga                   *MangaSettings         `gorm:"embedded" json:"manga"`
-	Nakama                  *NakamaSettings        `gorm:"embedded;embeddedPrefix:nakama_" json:"nakama"`
 	// Virtual fields populated from GlobalSettings for frontend compatibility
 	Library        *LibrarySettings        `gorm:"-" json:"library"`        // Populated from GlobalSettings
 	Torrent        *TorrentSettings        `gorm:"-" json:"torrent"`        // Populated from GlobalSettings
@@ -93,13 +92,11 @@ type LibrarySettings struct {
 	// v2.2+
 	EnableWatchContinuity    bool         `gorm:"column:enable_watch_continuity" json:"enableWatchContinuity"`
 	LibraryPaths             LibraryPaths `gorm:"column:library_paths;type:text" json:"libraryPaths"`
-	AutoSyncOfflineLocalData bool         `gorm:"column:auto_sync_offline_local_data" json:"autoSyncOfflineLocalData"`
 	// v2.6+
 	ScannerMatchingThreshold float64 `gorm:"column:scanner_matching_threshold" json:"scannerMatchingThreshold"`
 	ScannerMatchingAlgorithm string  `gorm:"column:scanner_matching_algorithm" json:"scannerMatchingAlgorithm"`
 	// v2.9+
 	AutoSyncToLocalAccount      bool `gorm:"column:auto_sync_to_local_account" json:"autoSyncToLocalAccount"`
-	AutoSaveCurrentMediaOffline bool `gorm:"column:auto_save_current_media_offline" json:"autoSaveCurrentMediaOffline"`
 }
 
 func (o *LibrarySettings) GetLibraryPaths() (ret []string) {
@@ -128,24 +125,6 @@ func (o LibraryPaths) Value() (driver.Value, error) {
 	return strings.Join(o, ","), nil
 }
 
-type NakamaSettings struct {
-	Enabled bool `gorm:"column:enabled" json:"enabled"`
-	// Username is the name used to identify a peer or host.
-	Username string `gorm:"column:username" json:"username"`
-	// IsHost allows the server to act as a host for other clients. This requires a password to be set.
-	IsHost               bool   `gorm:"column:is_host" json:"isHost"`
-	HostPassword         string `gorm:"column:host_password" json:"hostPassword"`
-	RemoteServerURL      string `gorm:"column:remote_server_url" json:"remoteServerURL"`
-	RemoteServerPassword string `gorm:"column:remote_server_password" json:"remoteServerPassword"`
-	// IncludeNakamaAnimeLibrary adds the local anime library of the host to the connected clients.
-	IncludeNakamaAnimeLibrary bool `gorm:"column:include_nakama_anime_library" json:"includeNakamaAnimeLibrary"`
-	// HostShareLocalAnimeLibrary shares the local anime library to connected clients
-	HostShareLocalAnimeLibrary bool `gorm:"column:host_share_local_anime_library" json:"hostShareLocalAnimeLibrary"`
-	// HostUnsharedAnimeIds is a list of anime IDs that should not be shared with connected clients.
-	HostUnsharedAnimeIds IntSlice `gorm:"column:host_unshared_anime_ids;type:text" json:"hostUnsharedAnimeIds"`
-	// HostEnablePortForwarding enables port forwarding.
-	HostEnablePortForwarding bool `gorm:"column:host_enable_port_forwarding" json:"hostEnablePortForwarding"`
-}
 
 type IntSlice []int
 

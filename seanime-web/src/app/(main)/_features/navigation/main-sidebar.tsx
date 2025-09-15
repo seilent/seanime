@@ -176,8 +176,8 @@ export function MainSidebar() {
         },
         {
             id: "anilist",
-            iconType: user?.isSimulated ? PiListChecksFill : SiAnilist,
-            name: user?.isSimulated ? "My lists" : "AniList",
+            iconType: SiAnilist,
+            name: "AniList",
             href: "/anilist",
             isCurrent: pathname === "/anilist",
         },
@@ -339,9 +339,9 @@ export function MainSidebar() {
                                 },
                                 ...(ctx.isBelowBreakpoint ? [
                                     {
-                                        iconType: user?.isSimulated ? FiLogIn : BiLogOut,
-                                        name: user?.isSimulated ? "Connect AniList" : "Sign out",
-                                        onClick: user?.isSimulated ? () => setLoginModal(true) : confirmSignOut.open,
+                                        iconType: BiLogOut,
+                                        name: "Sign out",
+                                        onClick: confirmSignOut.open,
                                     },
                                 ] : []),
                             ]}
@@ -382,11 +382,9 @@ export function MainSidebar() {
                             open={dropdownOpen}
                             onOpenChange={setDropdownOpen}
                         >
-                            {!user.isSimulated ? <DropdownMenuItem onClick={confirmSignOut.open}>
+                            <DropdownMenuItem onClick={confirmSignOut.open}>
                                 <BiLogOut /> Sign out
-                            </DropdownMenuItem> : <DropdownMenuItem onClick={() => setLoginModal(true)}>
-                                <BiLogIn /> Connect AniList
-                            </DropdownMenuItem>}
+                            </DropdownMenuItem>
                         </DropdownMenu>
                     </div>}
                 </div>
@@ -395,7 +393,7 @@ export function MainSidebar() {
             <Modal
                 title="Connect AniList Account"
                 description="Using an AniList account is recommended."
-                open={loginModal && user?.isSimulated}
+                open={loginModal}
                 onOpenChange={(v) => setLoginModal(v)}
                 overlayClass="bg-opacity-95 bg-gray-950"
                 contentClass="border"

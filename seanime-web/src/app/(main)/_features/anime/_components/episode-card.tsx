@@ -119,22 +119,18 @@ export function EpisodeCard(props: EpisodeCardProps) {
                     {pathname !== "/entry" && <>
                         <ContextMenuItem
                             onClick={() => {
-                                if (!serverStatus?.isOffline) {
-                                    router.push(`/entry?id=${anime?.id}`)
-                                } else {
-                                    router.push(`/offline/entry/anime?id=${anime?.id}`)
-                                }
+                                router.push(`/entry?id=${anime?.id}`)
                             }}
                         >
                             Open page
                         </ContextMenuItem>
-                        {!serverStatus?.isOffline && <ContextMenuItem
+                        <ContextMenuItem
                             onClick={() => {
                                 setPreviewModalMediaId(anime?.id || 0, "anime")
                             }}
                         >
                             Preview
-                        </ContextMenuItem>}
+                        </ContextMenuItem>
 
                     </>}
 

@@ -25,7 +25,7 @@ export function SeaContextMenu(props: SeaContextMenuProps) {
         <ContextMenu data-sea-context-menu {...rest}>
             {children}
 
-            {(((serverStatus?.isOffline && availableWhenOffline) || !serverStatus?.isOffline) && !hideMenuIf) &&
+            {!hideMenuIf &&
                 <ContextMenuContent className="max-w-xs" data-sea-context-menu-content>
                     {content}
                 </ContextMenuContent>}

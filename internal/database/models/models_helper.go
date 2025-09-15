@@ -45,12 +45,6 @@ func (s *Settings) GetNotifications() *NotificationSettings {
 	return s.Notifications
 }
 
-func (s *Settings) GetNakama() *NakamaSettings {
-	if s == nil || s.Nakama == nil {
-		return &NakamaSettings{}
-	}
-	return s.Nakama
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

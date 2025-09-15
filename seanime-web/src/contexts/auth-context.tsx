@@ -171,7 +171,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 '/extensions',
                 '/manga',
                 '/mediastream',
-                '/offline',
                 '/onlinestream',
                 '/schedule',
                 '/search',

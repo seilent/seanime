@@ -1372,8 +1372,6 @@ export type Anime_Entry = {
     localFiles?: Array<Anime_LocalFile>
     anidbId: number
     currentEpisodeCount: number
-    _isNakamaEntry: boolean
-    nakamaLibraryData?: Anime_NakamaEntryLibraryData
 }
 
 /**
@@ -1474,7 +1472,6 @@ export type Anime_Episode = {
      */
     metadataIssue?: string
     baseAnime?: AL_BaseAnime
-    _isNakamaEpisode: boolean
 }
 
 /**
@@ -1538,10 +1535,6 @@ export type Anime_LibraryCollectionEntry = {
      * Library data
      */
     libraryData?: Anime_EntryLibraryData
-    /**
-     * Library data from Nakama
-     */
-    nakamaLibraryData?: Anime_NakamaEntryLibraryData
     /**
      * AniList list data
      */
@@ -1637,16 +1630,6 @@ export type Anime_LocalFileType = "main" | "special" | "nc"
 export type Anime_MissingEpisodes = {
     episodes?: Array<Anime_Episode>
     silencedEpisodes?: Array<Anime_Episode>
-}
-
-/**
- * - Filepath: internal/library/anime/entry_library_data.go
- * - Filename: entry_library_data.go
- * - Package: anime
- */
-export type Anime_NakamaEntryLibraryData = {
-    unwatchedCount: number
-    mainFileCount: number
 }
 
 /**
@@ -2418,7 +2401,6 @@ export type Status = {
     version: string
     versionName: string
     themeSettings?: Models_Theme
-    isOffline: boolean
     mediastreamSettings?: Models_MediastreamSettings
     anilistClientId: string
     /**
@@ -3199,13 +3181,6 @@ export type Models_GlobalAnimeFileMapping = {
  * - Filename: models.go
  * - Package: models
  */
-export type Models_IntSlice = Array<number>
-
-/**
- * - Filepath: internal/database/models/models.go
- * - Filename: models.go
- * - Package: models
- */
 export type Models_LibraryPaths = Array<string>
 
 /**
@@ -3228,11 +3203,9 @@ export type Models_LibrarySettings = {
     refreshLibraryOnStart: boolean
     enableWatchContinuity: boolean
     libraryPaths: Models_LibraryPaths
-    autoSyncOfflineLocalData: boolean
     scannerMatchingThreshold: number
     scannerMatchingAlgorithm: string
     autoSyncToLocalAccount: boolean
-    autoSaveCurrentMediaOffline: boolean
 }
 
 /**
@@ -3308,24 +3281,6 @@ export type Models_MediastreamSettings = {
  * - Filename: models.go
  * - Package: models
  */
-export type Models_NakamaSettings = {
-    enabled: boolean
-    username: string
-    isHost: boolean
-    hostPassword: string
-    remoteServerURL: string
-    remoteServerPassword: string
-    includeNakamaAnimeLibrary: boolean
-    hostShareLocalAnimeLibrary: boolean
-    hostUnsharedAnimeIds: Models_IntSlice
-    hostEnablePortForwarding: boolean
-}
-
-/**
- * - Filepath: internal/database/models/models.go
- * - Filename: models.go
- * - Package: models
- */
 export type Models_NotificationSettings = {
     disableNotifications: boolean
     disableAutoDownloaderNotifications: boolean
@@ -3352,7 +3307,6 @@ export type Models_Settings = {
     discord?: Models_DiscordSettings
     notifications?: Models_NotificationSettings
     manga?: Models_MangaSettings
-    nakama?: Models_NakamaSettings
     /**
      * Populated from GlobalSettings
      */
@@ -4106,7 +4060,6 @@ export type Updater_Update = {
 export type User = {
     viewer?: AL_GetViewer_Viewer
     token: string
-    isSimulated: boolean
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

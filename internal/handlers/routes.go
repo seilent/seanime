@@ -27,8 +27,7 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	// CORS middleware
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
-		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Cookie", "Authorization",
-			"X-Seanime-Nakama-Token", "X-Seanime-Nakama-Username", "X-Seanime-Nakama-Server-Version", "X-Seanime-Nakama-Peer-Id"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Cookie", "Authorization"},
 		AllowCredentials: true,
 	}))
 
@@ -506,7 +505,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Local.GET("/storage/size", h.HandleLocalGetLocalStorageSize)
 	v1Local.POST("/sync-simulated-to-anilist", h.HandleLocalSyncSimulatedDataToAnilist)
 
-	v1Local.POST("/offline", h.HandleSetOfflineMode)
 
 
 	//

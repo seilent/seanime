@@ -7,7 +7,6 @@ import {
     useLocalSetHasLocalChanges,
     useLocalSyncAnilistData,
     useLocalSyncData,
-    useSetOfflineMode,
 } from "@/api/hooks/local.hooks"
 import { useGetMangaCollection } from "@/api/hooks/manga.hooks"
 import { animeLibraryCollectionWithoutStreamsAtom } from "@/app/(main)/_atoms/anime-library-collection.atoms"
@@ -46,7 +45,6 @@ export default function Page() {
     const { data: hasLocalChanges } = useLocalGetHasLocalChanges()
     const { mutate: syncHasLocalChanges, isPending: isChangingLocalChangeStatus } = useLocalSetHasLocalChanges()
     const { data: localStorageSize } = useLocalGetLocalStorageSize()
-    const { mutate: setOfflineMode, isPending: isSettingOfflineMode } = useSetOfflineMode()
 
     const trackedAnimeItems = React.useMemo(() => {
         return trackedMediaItems?.filter(n => n.type === "anime" && !!n.animeEntry?.media) ?? []
@@ -121,33 +119,12 @@ export default function Page() {
 
     if (isLoading) return <LoadingSpinner />
 
-    if (serverStatus?.user?.isSimulated) {
-        return <LuffyError
-            title="Not authenticated"
-        >
-            This feature is only available for authenticated users.
-        </LuffyError>
-    }
 
     return (
         <PageWrapper
             className="p-4 sm:p-8 pt-4 relative space-y-8"
         >
 
-            <Button
-                intent="gray-subtle"
-                rounded
-                className=""
-                leftIcon={serverStatus?.isOffline ? <LuCloudOff className="text-2xl" /> : <LuCloud className="text-2xl" />}
-                loading={isSettingOfflineMode}
-                onClick={() => {
-                    setOfflineMode({
-                        enabled: !serverStatus?.isOffline,
-                    })
-                }}
-            >
-                {serverStatus?.isOffline ? "Disable offline mode" : "Enable offline mode"}
-            </Button>
 
             <div className="flex flex-col lg:flex-row gap-2">
                 <div>
@@ -256,8 +233,6 @@ export default function Page() {
                     description={<div className="space-y-2">
                         <p>
                             <span>You have local changes that have not been synced to AniList.</span>
-                            {serverStatus?.settings?.library?.autoSyncOfflineLocalData &&
-                                <span> Automatic refreshing of offline data will be paused.</span>}
                         </p>
                         <div className="flex items-center gap-2 flex-wrap">
                             <Button

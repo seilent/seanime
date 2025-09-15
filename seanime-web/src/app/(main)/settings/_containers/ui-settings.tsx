@@ -548,11 +548,6 @@ export function UISettings() {
                                             value: "anilist",
                                         },
                                         {
-                                            label: "Nakama",
-                                            textValue: "Nakama",
-                                            value: "nakama",
-                                        },
-                                        {
                                             label: "Auto Downloader",
                                             textValue: "Auto Downloader",
                                             value: "auto-downloader",

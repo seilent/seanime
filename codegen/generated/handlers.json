@@ -3952,46 +3952,6 @@
     }
   },
   {
-    "name": "HandleSetOfflineMode",
-    "trimmedName": "SetOfflineMode",
-    "comments": [
-      "HandleSetOfflineMode",
-      "",
-      "\t@summary sets the offline mode.",
-      "\t@desc Returns true if the offline mode is active, false otherwise.",
-      "\t@route /api/v1/local/offline [POST]",
-      "\t@returns bool",
-      ""
-    ],
-    "filepath": "internal/handlers/local.go",
-    "filename": "local.go",
-    "api": {
-      "summary": "sets the offline mode.",
-      "descriptions": [
-        "Returns true if the offline mode is active, false otherwise."
-      ],
-      "endpoint": "/api/v1/local/offline",
-      "methods": [
-        "POST"
-      ],
-      "params": [],
-      "bodyFields": [
-        {
-          "name": "Enabled",
-          "jsonName": "enabled",
-          "goType": "bool",
-          "usedStructType": "",
-          "typescriptType": "boolean",
-          "required": true,
-          "descriptions": []
-        }
-      ],
-      "returns": "bool",
-      "returnGoType": "bool",
-      "returnTypescriptType": "boolean"
-    }
-  },
-  {
     "name": "HandleLocalGetTrackedMediaItems",
     "trimmedName": "LocalGetTrackedMediaItems",
     "comments": [
@@ -7620,6 +7580,40 @@
       "returns": "handlers.Status",
       "returnGoType": "handlers.Status",
       "returnTypescriptType": "Status"
+    }
+  },
+  {
+    "name": "HandleTriggerLibraryScan",
+    "trimmedName": "TriggerLibraryScan",
+    "comments": [
+      "HandleTriggerLibraryScan",
+      "",
+      "\t@summary triggers a manual library scan.",
+      "\t@desc This endpoint triggers a manual library scan to discover new files and update the library.",
+      "\t@desc It uses the same scan logic as the automatic file watcher but can be triggered on-demand.",
+      "\t@desc Admin-only operation as it affects system-wide file scanning for all users.",
+      "\t@route /api/v1/admin/system-scan/trigger [POST]",
+      "\t@returns bool",
+      ""
+    ],
+    "filepath": "internal/handlers/settings.go",
+    "filename": "settings.go",
+    "api": {
+      "summary": "triggers a manual library scan.",
+      "descriptions": [
+        "This endpoint triggers a manual library scan to discover new files and update the library.",
+        "It uses the same scan logic as the automatic file watcher but can be triggered on-demand.",
+        "Admin-only operation as it affects system-wide file scanning for all users."
+      ],
+      "endpoint": "/api/v1/admin/system-scan/trigger",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
     }
   },
   {

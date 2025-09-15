@@ -835,16 +835,6 @@ export const API_ENDPOINTS = {
         },
     },
     LOCAL: {
-        /**
-         *  @description
-         *  Route sets the offline mode.
-         *  Returns true if the offline mode is active, false otherwise.
-         */
-        SetOfflineMode: {
-            key: "LOCAL-set-offline-mode",
-            methods: ["POST"],
-            endpoint: "/api/v1/local/offline",
-        },
         LocalGetTrackedMediaItems: {
             key: "LOCAL-local-get-tracked-media-items",
             methods: ["GET"],
@@ -1610,6 +1600,18 @@ export const API_ENDPOINTS = {
             key: "SETTINGS-save-settings",
             methods: ["PATCH"],
             endpoint: "/api/v1/settings",
+        },
+        /**
+         *  @description
+         *  Route triggers a manual library scan.
+         *  This endpoint triggers a manual library scan to discover new files and update the library.
+         *  It uses the same scan logic as the automatic file watcher but can be triggered on-demand.
+         *  Admin-only operation as it affects system-wide file scanning for all users.
+         */
+        TriggerLibraryScan: {
+            key: "SETTINGS-trigger-library-scan",
+            methods: ["POST"],
+            endpoint: "/api/v1/admin/system-scan/trigger",
         },
         SaveAutoDownloaderSettings: {
             key: "SETTINGS-save-auto-downloader-settings",

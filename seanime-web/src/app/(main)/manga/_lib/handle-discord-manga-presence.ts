@@ -16,7 +16,6 @@ export function useDiscordMangaPresence(entry: { media?: AL_BaseManga } | undefi
     const prevChapter = React.useRef<any>()
 
     React.useEffect(() => {
-        if (serverStatus?.isOffline) return
         if (
             serverStatus?.settings?.discord?.enableRichPresence &&
             serverStatus?.settings?.discord?.enableMangaRichPresence

@@ -3,7 +3,6 @@ import {
     AL_BaseManga,
     Anime_EntryLibraryData,
     Anime_EntryListData,
-    Anime_NakamaEntryLibraryData,
     Manga_EntryListData,
 } from "@/api/generated/types"
 import { getAtomicLibraryEntryAtom } from "@/app/(main)/_atoms/anime-library-collection.atoms"
@@ -62,7 +61,6 @@ type MediaEntryCardProps<T extends "anime" | "manga"> = {
     showLibraryBadge?: T extends "anime" ? boolean : never
     showTrailer?: T extends "anime" ? boolean : never
     libraryData?: T extends "anime" ? Anime_EntryLibraryData : never
-    nakamaLibraryData?: T extends "anime" ? Anime_NakamaEntryLibraryData : never
     hideUnseenCountBadge?: boolean
     hideAnilistEntryEditButton?: boolean
 } & MediaEntryCardBaseProps
@@ -73,7 +71,6 @@ export function MediaEntryCard<T extends "anime" | "manga">(props: MediaEntryCar
         media,
         listData: _listData,
         libraryData: _libraryData,
-        nakamaLibraryData,
         overlay,
         showListDataButton,
         showTrailer: _showTrailer,
@@ -104,12 +101,12 @@ export function MediaEntryCard<T extends "anime" | "manga">(props: MediaEntryCar
 
     const showTrailer = React.useMemo(() => _showTrailer && !libraryData && !media?.isAdult, [_showTrailer, libraryData, media])
 
-    const MANGA_LINK = serverStatus?.isOffline ? `/offline/entry/manga?id=${media.id}` : `/manga/entry?id=${media.id}`
-    const ANIME_LINK = serverStatus?.isOffline ? `/offline/entry/anime?id=${media.id}` : `/entry?id=${media.id}`
+    const MANGA_LINK = `/manga/entry?id=${media.id}`
+    const ANIME_LINK = `/entry?id=${media.id}`
 
     const link = React.useMemo(() => {
         return type === "anime" ? ANIME_LINK : MANGA_LINK
-    }, [serverStatus?.isOffline, type])
+    }, [type])
 
     const progressTotal = type === "anime" ? (media as AL_BaseAnime)?.episodes : (media as AL_BaseManga)?.chapters
 
@@ -184,13 +181,13 @@ export function MediaEntryCard<T extends "anime" | "manga">(props: MediaEntryCar
                     <ContextMenuLabel className="text-[--muted] line-clamp-1 py-0 my-2">
                         {media.title?.userPreferred}
                     </ContextMenuLabel>
-                    {!serverStatus?.isOffline && <ContextMenuItem
+                    <ContextMenuItem
                         onClick={() => {
                             setPreviewModalMediaId(media.id!, type)
                         }}
                     >
                         Preview
-                    </ContextMenuItem>}
+                    </ContextMenuItem>
 
                     <PluginMediaCardContextMenuItems for={type} media={media} />
                 </ContextMenuGroup>}
@@ -319,7 +316,6 @@ export function MediaEntryCard<T extends "anime" | "manga">(props: MediaEntryCar
                                     progress={listData?.progress || 0}
                                     media={media}
                                     libraryData={libraryData}
-                                    nakamaLibraryData={nakamaLibraryData}
                                 />
                             )}
                             {type === "manga" &&

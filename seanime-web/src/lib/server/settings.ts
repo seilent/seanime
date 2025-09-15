@@ -94,21 +94,9 @@ export const settingsSchema = z.object({
     showActiveTorrentCount: z.boolean().optional().default(false),
     enableWatchContinuity: z.boolean().optional().default(false),
     libraryPaths: z.array(z.string()).optional().default([]),
-    autoSyncOfflineLocalData: z.boolean().optional().default(false),
     scannerMatchingThreshold: z.number().optional().default(0.5),
     scannerMatchingAlgorithm: z.string().optional().default(""),
     autoSyncToLocalAccount: z.boolean().optional().default(false),
-    nakamaIsHost: z.boolean().optional().default(false),
-    nakamaHostPassword: z.string().optional().default(""),
-    nakamaRemoteServerURL: z.string().optional().default(""),
-    nakamaRemoteServerPassword: z.string().optional().default(""),
-    nakamaHostShareLocalAnimeLibrary: z.boolean().optional().default(false),
-    nakamaEnabled: z.boolean().optional().default(false),
-    nakamaHostEnablePortForwarding: z.boolean().optional().default(false),
-    nakamaUsername: z.string().optional().default(""),
-    includeNakamaAnimeLibrary: z.boolean().optional().default(false),
-    nakamaHostUnsharedAnimeIds: z.array(z.number()).optional().default([]),
-    autoSaveCurrentMediaOffline: z.boolean().optional().default(false),
 })
 
 export const gettingStartedSchema = _gettingStartedSchema.extend(settingsSchema.shape)
@@ -131,11 +119,9 @@ export const getDefaultSettings = (data: z.infer<typeof gettingStartedSchema>): 
         refreshLibraryOnStart: false,
         enableWatchContinuity: data.enableWatchContinuity || false,
         libraryPaths: [],
-        autoSyncOfflineLocalData: false,
         scannerMatchingThreshold: 0.5,
         scannerMatchingAlgorithm: "",
         autoSyncToLocalAccount: false,
-        autoSaveCurrentMediaOffline: false,
     },
     torrent: {
         defaultTorrentClient: data.defaultTorrentClient || DEFAULT_TORRENT_CLIENT,

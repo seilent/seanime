@@ -614,7 +614,6 @@ export function GettingStartedPage({ status }: { status: Status }) {
                         enableManga: true,
                         enableAdultContent: false,
                         enableTranscode: true,
-                        nakamaUsername: "",
                         enableWatchContinuity: true,
                     }}
                 >

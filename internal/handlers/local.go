@@ -7,25 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// HandleSetOfflineMode
-//
-//	@summary sets the offline mode.
-//	@desc Returns true if the offline mode is active, false otherwise.
-//	@route /api/v1/local/offline [POST]
-//	@returns bool
-func (h *Handler) HandleSetOfflineMode(c echo.Context) error {
-	type body struct {
-		Enabled bool `json:"enabled"`
-	}
-
-	var b body
-	if err := c.Bind(&b); err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	h.App.SetOfflineMode(b.Enabled)
-	return h.RespondWithData(c, b.Enabled)
-}
 
 // HandleLocalGetTrackedMediaItems
 //
@@ -135,14 +116,6 @@ func (h *Handler) HandleLocalSyncData(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	if h.App.GlobalSettings.GetLibrary().AutoSaveCurrentMediaOffline {
-		go func() {
-			added, _ := h.App.LocalManager.AutoTrackCurrentMedia()
-			if added {
-				_ = h.App.LocalManager.SynchronizeLocal()
-			}
-		}()
-	}
 
 	return h.RespondWithData(c, true)
 }

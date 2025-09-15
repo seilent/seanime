@@ -1,4 +1,4 @@
-import { AL_BaseAnime, Anime_EntryLibraryData, Anime_NakamaEntryLibraryData, Nullish } from "@/api/generated/types"
+import { AL_BaseAnime, Anime_EntryLibraryData, Nullish } from "@/api/generated/types"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/components/ui/core/styling"
 import { anilist_getCurrentEpisodes } from "@/lib/helpers/media"
@@ -10,7 +10,6 @@ type AnimeEntryCardUnwatchedBadgeProps = {
     progress: number
     media: Nullish<AL_BaseAnime>
     libraryData: Nullish<Anime_EntryLibraryData>
-    nakamaLibraryData: Nullish<Anime_NakamaEntryLibraryData>
 }
 
 export function AnimeEntryCardUnwatchedBadge(props: AnimeEntryCardUnwatchedBadgeProps) {
@@ -19,7 +18,6 @@ export function AnimeEntryCardUnwatchedBadge(props: AnimeEntryCardUnwatchedBadge
         media,
         libraryData,
         progress,
-        nakamaLibraryData,
         ...rest
     } = props
 
@@ -30,8 +28,8 @@ export function AnimeEntryCardUnwatchedBadge(props: AnimeEntryCardUnwatchedBadge
     const progressTotal = anilist_getCurrentEpisodes(media)
     const unwatched = progressTotal - (progress ?? 0)
 
-    const unwatchedFromLibrary = nakamaLibraryData?.unwatchedCount ?? libraryData?.unwatchedCount ?? 0
-    const isInLibrary = !!nakamaLibraryData?.mainFileCount || !!libraryData?.mainFileCount
+    const unwatchedFromLibrary = libraryData?.unwatchedCount ?? 0
+    const isInLibrary = !!libraryData?.mainFileCount
 
     const unwatchedCount = isInLibrary ? unwatchedFromLibrary : unwatched
 

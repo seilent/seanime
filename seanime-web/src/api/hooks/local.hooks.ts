@@ -7,7 +7,6 @@ import {
     LocalAddTrackedMedia_Variables,
     LocalRemoveTrackedMedia_Variables,
     LocalSetHasLocalChanges_Variables,
-    SetOfflineMode_Variables,
 } from "../generated/endpoint.types"
 
 export function useLocalGetTrackedMediaItems() {
@@ -147,19 +146,3 @@ export function useLocalSyncSimulatedDataToAnilist() {
     })
 }
 
-export function useSetOfflineMode() {
-    return useServerMutation<boolean, SetOfflineMode_Variables>({
-        endpoint: API_ENDPOINTS.LOCAL.SetOfflineMode.endpoint,
-        method: API_ENDPOINTS.LOCAL.SetOfflineMode.methods[0],
-        mutationKey: [API_ENDPOINTS.LOCAL.SetOfflineMode.key],
-        onSuccess: async (data) => {
-            if (data) {
-                toast.success("Offline mode enabled")
-                window.location.href = "/offline"
-            } else {
-                toast.success("Offline mode disabled")
-                window.location.href = "/"
-            }
-        },
-    })
-}

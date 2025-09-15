@@ -35,7 +35,6 @@ export const EpisodeItem = memo(({ episode, media, isWatched, onPlay, percentage
     isWatched?: boolean
     percentageComplete?: number
     minutesRemaining?: number
-    isOffline?: boolean
 }) => {
 
     const { updateLocalFile, isPending } = useUpdateLocalFileData(media.id)
@@ -70,7 +69,7 @@ export const EpisodeItem = memo(({ episode, media, isWatched, onPlay, percentage
                 progressNumber={episode.progressNumber}
                 description={episode.episodeMetadata?.summary || episode.episodeMetadata?.overview}
                 action={<>
-                    {!episode._isNakamaEpisode && <IconButton
+                    {episode.localFile && <IconButton
                         icon={episode.localFile?.locked ? <VscVerified /> : <BiLockOpenAlt />}
                         intent={episode.localFile?.locked ? "success-basic" : "warning-basic"}
                         size="md"
@@ -94,16 +93,11 @@ export const EpisodeItem = memo(({ episode, media, isWatched, onPlay, percentage
                             />
                         }
                     >
-                        {!episode._isNakamaEpisode && <MetadataModalButton />}
+                        <MetadataModalButton />
                         {episode.localFile && <DropdownMenuItem
                             onClick={async () => {
-                                if (!episode._isNakamaEpisode) {
-                                    const endpoint = "/api/v1/mediastream/file?path=" + encodeFilePath(episode.localFile!.path)
-                                    copyToClipboard(`${getServerBaseUrl()}${endpoint}`)
-                                } else {
-                                    const endpoint = "/api/v1/nakama/stream?type=file&path=" + Buffer.from(episode.localFile!.path).toString("base64")
-                                    copyToClipboard(`${getServerBaseUrl()}${endpoint}`)
-                                }
+                                const endpoint = "/api/v1/mediastream/file?path=" + encodeFilePath(episode.localFile!.path)
+                                copyToClipboard(`${getServerBaseUrl()}${endpoint}`)
                                 toast.info("Stream URL copied")
                             }}
                         >

@@ -59,7 +59,7 @@ export function AnilistCollectionLists() {
         customLists,
     } = useHandleUserAnilistLists(debouncedSearchInput)
 
-    const { data: stats, isLoading: statsLoading } = useGetAniListStats(!!serverStatus?.user && !serverStatus?.user?.isSimulated)
+    const { data: stats, isLoading: statsLoading } = useGetAniListStats(!!serverStatus?.user)
 
     const setParams = useSetAtom(__myListsSearch_paramsAtom)
 
@@ -91,11 +91,11 @@ export function AnilistCollectionLists() {
                             isCurrent: pageType === "manga",
                             onClick: () => setPageType("manga"),
                         }],
-                        ...[!serverStatus?.user?.isSimulated && {
+                        {
                             name: "Stats",
                             isCurrent: pageType === "stats",
                             onClick: () => setPageType("stats"),
-                        }],
+                        },
                     ].filter(Boolean)}
                 />
             </div>
@@ -153,7 +153,7 @@ export function AnilistCollectionLists() {
                     </div>
                 </PageWrapper>}
 
-                {pageType === "stats" && !serverStatus?.user?.isSimulated && <PageWrapper
+                {pageType === "stats" && <PageWrapper
                     key="stats"
                     className="space-y-6"
                     {...{

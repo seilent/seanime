@@ -28,6 +28,7 @@ import (
 	"seanime/internal/torrent_clients/torrent_client"
 	"seanime/internal/torrent_clients/transmission"
 	"seanime/internal/torrents/torrent"
+	"seanime/internal/util"
 
 	"github.com/cli/browser"
 	"github.com/rs/zerolog"
@@ -98,7 +99,7 @@ func (a *App) initModulesOnce() {
 		MetadataProvider:  a.MetadataProvider,
 		Database:          a.Database,
 		DiscordPresence:   a.DiscordPresence,
-		IsOffline:         a.IsOffline(),
+		IsOffline:         util.NewBool(false),
 		ContinuityManager: a.ContinuityManager,
 		RefreshAnimeCollectionFunc: nil, // Disabled in multiuser mode
 	})
@@ -122,7 +123,7 @@ func (a *App) initModulesOnce() {
 		WSEventManager: a.WSEventManager,
 		DownloadDir:    a.Config.Manga.DownloadDir,
 		Repository:     a.MangaRepository,
-		IsOffline:      a.IsOffline(),
+		IsOffline:      util.NewBool(false),
 	})
 
 	a.MangaDownloader.Start()
@@ -149,7 +150,7 @@ func (a *App) initModulesOnce() {
 		DiscordPresence:   a.DiscordPresence,
 		Platform:          a.AnilistPlatform,
 		RefreshAnimeCollectionFunc: nil, // Disabled in multiuser mode
-		IsOffline:    a.IsOffline(),
+		IsOffline:    util.NewBool(false),
 		NativePlayer: a.NativePlayer,
 	})
 
@@ -183,7 +184,7 @@ func (a *App) initModulesOnce() {
 		Database:                a.Database,
 		WSEventManager:          a.WSEventManager,
 		MetadataProvider:        a.MetadataProvider,
-		IsOffline:               a.IsOffline(),
+		IsOffline:               util.NewBool(false),
 	})
 
 	// This is run in a goroutine

@@ -1,5 +1,4 @@
 import { useRefreshAnimeCollection } from "@/api/hooks/anilist.hooks"
-import { OfflineTopMenu } from "@/app/(main)/(offline)/offline/_components/offline-top-menu"
 import { RefreshAnilistButton } from "@/app/(main)/_features/anilist/refresh-anilist-button"
 import { LayoutHeaderBackground } from "@/app/(main)/_features/layout/_components/layout-header-background"
 import { TopMenu } from "@/app/(main)/_features/navigation/top-menu"
@@ -33,7 +32,6 @@ export function TopNavbar(props: TopNavbarProps) {
     } = props
 
     const serverStatus = useServerStatus()
-    const isOffline = serverStatus?.isOffline
     const ts = useThemeSettings()
 
     return (
@@ -48,13 +46,13 @@ export function TopNavbar(props: TopNavbarProps) {
                 <div data-top-navbar-content-container className="relative z-10 px-4 w-full flex flex-row md:items-center overflow-x-auto">
                     <div data-top-navbar-content className="flex items-center w-full gap-3">
                         <AppSidebarTrigger />
-                        {!isOffline ? <TopMenu /> : <OfflineTopMenu />}
+                        <TopMenu />
                         <PlaybackManagerProgressTrackingButton />
                         <ManualProgressTrackingButton />
                         <div data-top-navbar-content-separator className="flex flex-1"></div>
                         <PluginSidebarTray place="top" />
-                        {!isOffline && <ChapterDownloadsButton />}
-                        {!isOffline && <RefreshAnilistButton />}
+                        <ChapterDownloadsButton />
+                        <RefreshAnilistButton />
                             </div>
                 </div>
                 <LayoutHeaderBackground />
@@ -99,7 +97,7 @@ export function SidebarNavbar(props: SidebarNavbarProps) {
             <div data-sidebar-navbar-spacer className="px-4 lg:py-1">
                 <Separator className="px-4" />
             </div>
-            {!serverStatus?.isOffline && <VerticalMenu
+            <VerticalMenu
                 data-sidebar-navbar-vertical-menu
                 className="px-4"
                 collapsed={isCollapsed}
@@ -125,7 +123,7 @@ export function SidebarNavbar(props: SidebarNavbarProps) {
                         },
                     ] : []),
                 ]}
-            />}
+            />
             <div data-sidebar-navbar-playback-manager-progress-tracking-button className="flex justify-center">
                 <PlaybackManagerProgressTrackingButton asSidebarButton />
             </div>

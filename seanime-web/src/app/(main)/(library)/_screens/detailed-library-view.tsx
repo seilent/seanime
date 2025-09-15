@@ -168,7 +168,6 @@ const LibraryCollectionEntryItem = React.memo(({ entry, streamingMediaIds }: {
             media={entry.media!}
             listData={entry.listData}
             libraryData={entry.libraryData}
-            nakamaLibraryData={entry.nakamaLibraryData}
             showListDataButton
             withAudienceScore={false}
             type="anime"

@@ -48,7 +48,6 @@ import { VscDebugAlt } from "react-icons/vsc"
 import { SettingsCard, SettingsNavCard, SettingsPageHeader } from "./_components/settings-card"
 import { DiscordRichPresenceSettings } from "./_containers/discord-rich-presence-settings"
 import { LocalSettings } from "./_containers/local-settings"
-import { NakamaSettings } from "./_containers/nakama-settings"
 import { UserManagementSettings } from "./_containers/user-management-settings"
 import { MediastreamSettings } from "./_containers/mediastream-settings"
 
@@ -243,15 +242,6 @@ export default function Page() {
                                     value="manga"
                                     className="group"
                                 ><FaBookReader className="text-lg mr-3 transition-transform duration-200" /> Manga</TabsTrigger>
-                                {/* Admin-only nakama section */}
-                                {isAdmin && (
-                                    <TabsTrigger
-                                        value="nakama"
-                                        className="group relative"
-                                    ><MdOutlineConnectWithoutContact className="text-lg mr-3 transition-transform duration-200" /> Nakama <GrTest
-                                        className="text-md text-orange-300/40 absolute right-2 lg:block hidden"
-                                    /></TabsTrigger>
-                                )}
                                 {/* Admin-only discord section */}
                                 {isAdmin && (
                                     <TabsTrigger
@@ -316,11 +306,9 @@ export default function Page() {
                                         refreshLibraryOnStart: data.refreshLibraryOnStart,
                                         enableWatchContinuity: data.enableWatchContinuity ?? false,
                                         libraryPaths: data.libraryPaths ?? [],
-                                        autoSyncOfflineLocalData: data.autoSyncOfflineLocalData ?? false,
                                         scannerMatchingThreshold: data.scannerMatchingThreshold,
                                         scannerMatchingAlgorithm: data.scannerMatchingAlgorithm === "-" ? "" : data.scannerMatchingAlgorithm,
                                         autoSyncToLocalAccount: data.autoSyncToLocalAccount ?? false,
-                                        autoSaveCurrentMediaOffline: data.autoSaveCurrentMediaOffline ?? false,
                                     },
                                     autoUpdateProgress: data.autoUpdateProgress,
                                     autoPlayNextEpisode: data.autoPlayNextEpisode ?? false,
@@ -447,21 +435,10 @@ export default function Page() {
                                 autoPlayNextEpisode: status?.settings?.autoPlayNextEpisode ?? false,
                                 enableWatchContinuity: status?.settings?.library?.enableWatchContinuity ?? false,
                                 libraryPaths: status?.settings?.library?.libraryPaths ?? [],
-                                autoSyncOfflineLocalData: status?.settings?.library?.autoSyncOfflineLocalData ?? false,
                                 scannerMatchingThreshold: status?.settings?.library?.scannerMatchingThreshold ?? 0.5,
                                 scannerMatchingAlgorithm: status?.settings?.library?.scannerMatchingAlgorithm || "-",
                                 mangaLocalSourceDirectory: status?.settings?.manga?.mangaLocalSourceDirectory || "",
                                 autoSyncToLocalAccount: status?.settings?.library?.autoSyncToLocalAccount ?? false,
-                                nakamaEnabled: status?.settings?.nakama?.enabled ?? false,
-                                nakamaUsername: status?.settings?.nakama?.username ?? "",
-                                nakamaIsHost: status?.settings?.nakama?.isHost ?? false,
-                                nakamaRemoteServerURL: status?.settings?.nakama?.remoteServerURL ?? "",
-                                nakamaRemoteServerPassword: status?.settings?.nakama?.remoteServerPassword ?? "",
-                                nakamaHostShareLocalAnimeLibrary: status?.settings?.nakama?.hostShareLocalAnimeLibrary ?? false,
-                                nakamaHostPassword: status?.settings?.nakama?.hostPassword ?? "",
-                                includeNakamaAnimeLibrary: status?.settings?.nakama?.includeNakamaAnimeLibrary ?? false,
-                                nakamaHostUnsharedAnimeIds: status?.settings?.nakama?.hostUnsharedAnimeIds ?? [],
-                                autoSaveCurrentMediaOffline: status?.settings?.library?.autoSaveCurrentMediaOffline ?? false,
                             }}
                             stackClass="space-y-0 relative"
                         >
@@ -776,13 +753,6 @@ export default function Page() {
                                         </TabsContent>
                                     )}
 
-                                    {isAdmin && (
-                                        <TabsContent value="nakama" className={tabContentClass}>
-
-                                            <NakamaSettings isPending={isPending} />
-
-                                        </TabsContent>
-                                    )}
                                 </>
                             }}
                         </Form>

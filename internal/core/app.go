@@ -34,7 +34,6 @@ import (
 	"seanime/internal/mediaplayers/vlc"
 	"seanime/internal/nativeplayer"
 	"seanime/internal/platforms/anilist_platform"
-	"seanime/internal/platforms/offline_platform"
 	"seanime/internal/platforms/platform"
 	"seanime/internal/plugin"
 	"seanime/internal/report"
@@ -60,7 +59,6 @@ type (
 	Watcher                       *scanner.Watcher
 	AnilistClient                 anilist.AnilistClient
 	AnilistPlatform               platform.Platform
-	OfflinePlatform               platform.Platform
 	LocalManager                  local.Manager
 	FillerManager                 *fillermanager.FillerManager
 	WSEventManager                *events.WSEventManager
@@ -109,7 +107,6 @@ type (
 	moduleMu           sync.Mutex
 	HookManager        hook.Manager
 	ServerReady        bool // Whether the Anilist data from the first request has been fetched
-	isOffline          *bool
 	SyncManager        *libsync.SyncManager // Real-time sync system for LocalFiles and progress
 	// Global mapping system
 	GlobalMappingService    *global_mapping.GlobalMappingService
@@ -246,7 +243,7 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		FileCacher: fileCacher,
 	})
 
-	// Set initial metadata provider (will change if offline mode is enabled)
+	// Use metadata provider directly
 	activeMetadataProvider := metadataProvider
 
 	// Initialize manga repository
@@ -279,29 +276,16 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		MangaRepository:  mangaRepository,
 		Database:         database,
 		WSEventManager:   wsEventManager,
-		IsOffline:        cfg.Server.Offline,
+		IsOffline:        false,
 		AnilistPlatform:  anilistPlatform,
 	})
 	if err != nil {
 		logger.Fatal().Err(err).Msgf("app: Failed to initialize sync manager")
 	}
 
-	// Use local metadata provider if in offline mode
-	if cfg.Server.Offline {
-		activeMetadataProvider = localManager.GetOfflineMetadataProvider()
-	}
-
-	// Initialize local platform for offline operations
-	offlinePlatform, err := offline_platform.NewOfflinePlatform(localManager, anilistCW, logger)
-	if err != nil {
-		logger.Fatal().Err(err).Msgf("app: Failed to initialize local platform")
-	}
-
-	// Change active platform if offline mode is enabled
+	// Use AniList platform directly - multi-user system handles authentication per user
 	activePlatform := anilistPlatform
-	if cfg.Server.Offline {
-		activePlatform = offlinePlatform
-	} else if !anilistCW.IsAuthenticated() {
+	if !anilistCW.IsAuthenticated() {
 		logger.Warn().Msg("app: AniList client is not authenticated - multi-token system will handle API calls when needed")
 		// No fallback platform needed - multi-token system can use other authenticated users' tokens
 	}
@@ -327,7 +311,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Initialize extension playground for testing extensions
 	extensionPlaygroundRepository := extension_playground.NewPlaygroundRepository(logger, activePlatform, activeMetadataProvider)
 
-	isOffline := cfg.Server.Offline
 
 	// Create the main app instance with initialized components
 	app := &App{
@@ -335,7 +318,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		Database:                      database,
 		AnilistClient:                 anilistCW,
 		AnilistPlatform:               activePlatform,
-		OfflinePlatform:               offlinePlatform,
 		LocalManager:                  localManager,
 		WSEventManager:                wsEventManager,
 		SSEManager:                    sseManager,
@@ -372,7 +354,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		moduleMu:                        sync.Mutex{},
 		OnRefreshAnilistCollectionFuncs: result.NewResultMap[string, func()](),
 		HookManager:                     hookManager,
-		isOffline:                       &isOffline,
 		SyncManager:                     syncManager,
 		// Global mapping system
 		GlobalMappingService:    globalMappingService,
@@ -388,16 +369,14 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	app.initModulesOnce()
 
 	plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
-		IsOffline:               app.IsOffline(),
+		IsOffline:               util.NewBool(false),
 		ContinuityManager:       app.ContinuityManager,
 		AutoScanner:             app.AutoScanner,
 		AutoDownloader:          app.AutoDownloader,
 		FileCacher:              app.FileCacher,
 	})
 
-	if !*app.IsOffline() {
-		go app.Updater.FetchAnnouncements()
-	}
+	go app.Updater.FetchAnnouncements()
 
 	// Initialize all modules that depend on settings
 	app.InitOrRefreshModules()
@@ -415,12 +394,8 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Load built-in extensions into extension consumers
 	app.AddExtensionBankToConsumers()
 
-	// Initialize Anilist data if not in offline mode
-	if !*app.IsOffline() {
-		app.InitOrRefreshAnilistData()
-	} else {
-		app.ServerReady = true
-	}
+	// Initialize Anilist data
+	app.InitOrRefreshAnilistData()
 
 	// Initialize mediastream settings (for streaming media)
 	app.InitOrRefreshMediastreamSettings()
@@ -436,9 +411,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	return app
 }
 
-func (a *App) IsOffline() *bool {
-	return a.isOffline
-}
 
 func (a *App) AddCleanupFunction(f func()) {
 	a.Cleanups = append(a.Cleanups, f)

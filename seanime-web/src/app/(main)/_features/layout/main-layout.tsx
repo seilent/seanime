@@ -59,15 +59,6 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
     const router = useRouter()
     const pathname = usePathname()
 
-    React.useEffect(() => {
-        if (!serverStatus?.isOffline && pathname.startsWith("/offline")) {
-            router.push("/")
-        }
-    }, [serverStatus?.isOffline, pathname])
-
-    if (serverStatus?.isOffline) {
-        return <LoadingOverlayWithLogo />
-    }
 
     return (
         <>

@@ -119,7 +119,6 @@ var typePrefixesByPackage = map[string]string{
 	"directstream":       "Directstream_",
 	"nativeplayer":       "NativePlayer_",
 	"mkvparser":          "MKVParser_",
-	"nakama":             "Nakama_",
 }
 
 func getTypePrefix(packageName string) string {

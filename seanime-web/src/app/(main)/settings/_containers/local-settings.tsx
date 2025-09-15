@@ -50,7 +50,7 @@ export function LocalSettings(props: Props) {
                 title="AniList"
                 // description="You can upload your local Seanime collection to your AniList account."
             >
-                <div className={cn(serverStatus?.user?.isSimulated && "opacity-50 pointer-events-none")}>
+                <div>
                     <Field.Switch
                         side="right"
                         name="autoSyncToLocalAccount"
@@ -67,7 +67,7 @@ export function LocalSettings(props: Props) {
                     onClick={() => {
                         confirmDialog.open()
                     }}
-                    disabled={serverStatus?.user?.isSimulated}
+                    disabled={false}
                 >
                     Upload to AniList
                 </Button>

@@ -28,9 +28,6 @@ type (
 		LocalFiles          []*LocalFile       `json:"localFiles"`
 		AnidbId             int                `json:"anidbId"`
 		CurrentEpisodeCount int                `json:"currentEpisodeCount"`
-
-		IsNakamaEntry     bool                    `json:"_isNakamaEntry"`
-		NakamaLibraryData *NakamaEntryLibraryData `json:"nakamaLibraryData,omitempty"`
 	}
 
 	// EntryListData holds the details of the AniList entry.

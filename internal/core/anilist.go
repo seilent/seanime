@@ -10,7 +10,6 @@ import (
 	"seanime/internal/database/models"
 	"seanime/internal/platforms/anilist_platform"
 	"seanime/internal/platforms/platform"
-	"seanime/internal/user"
 )
 
 // Global user methods removed - use GetUserPlatform() in handlers instead
@@ -254,7 +253,7 @@ func (a *App) getUsernameForDBUser(dbUser *models.User) (string, error) {
 // getUserIDFromToken extracts user ID from JWT token for comparison purposes.
 // This is a simple implementation that decodes the JWT payload to get the "sub" field.
 func (a *App) getUserIDFromToken(token string) string {
-	if token == "" || token == user.SimulatedUserToken {
+	if token == "" {
 		return ""
 	}
 

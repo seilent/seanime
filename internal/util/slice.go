@@ -37,3 +37,8 @@ func Contains[T comparable](slice []T, item T) bool {
 	}
 	return false
 }
+
+// NewBool returns a pointer to a bool value
+func NewBool(b bool) *bool {
+	return &b
+}

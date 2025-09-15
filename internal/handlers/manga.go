@@ -346,7 +346,7 @@ func (h *Handler) HandleGetMangaEntryPages(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	container, err := h.App.MangaRepository.GetMangaPageContainer(b.Provider, b.MediaId, b.ChapterId, b.DoublePage, h.App.IsOffline())
+	container, err := h.App.MangaRepository.GetMangaPageContainer(b.Provider, b.MediaId, b.ChapterId, b.DoublePage, &[]bool{false}[0])
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

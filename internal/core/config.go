@@ -18,7 +18,6 @@ type Config struct {
 	Server  struct {
 		Host          string
 		Port          int
-		Offline       bool
 		UseBinaryPath bool // Makes $SEANIME_WORKING_DIR point to the binary's directory
 		Systray       bool
 		DoHUrl        string
@@ -110,7 +109,6 @@ func NewConfig(options *ConfigOptions, logger *zerolog.Logger) (*Config, error) 
 	viper.SetDefault("version", constants.Version)
 	viper.SetDefault("server.host", defaultHost)
 	viper.SetDefault("server.port", defaultPort)
-	viper.SetDefault("server.offline", false)
 	// Use the binary's directory as the working directory environment variable on macOS
 	viper.SetDefault("server.useBinaryPath", true)
 	//viper.SetDefault("server.systray", true)
@@ -121,9 +119,9 @@ func NewConfig(options *ConfigOptions, logger *zerolog.Logger) (*Config, error) 
 	viper.SetDefault("manga.downloadDir", "$SEANIME_DATA_DIR/manga")
 	viper.SetDefault("manga.localDir", "$SEANIME_DATA_DIR/manga-local")
 	viper.SetDefault("logs.dir", "$SEANIME_DATA_DIR/logs")
+	viper.SetDefault("extensions.dir", "$SEANIME_DATA_DIR/extensions")
 	viper.SetDefault("offline.dir", "$SEANIME_DATA_DIR/offline")
 	viper.SetDefault("offline.assetDir", "$SEANIME_DATA_DIR/offline/assets")
-	viper.SetDefault("extensions.dir", "$SEANIME_DATA_DIR/extensions")
 
 	// Create and populate the config file if it doesn't exist
 	if err = createConfigFile(configPath); err != nil {
@@ -357,9 +355,9 @@ func expandEnvironmentValues(cfg *Config) {
 	cfg.Logs.Dir = filepath.FromSlash(os.ExpandEnv(cfg.Logs.Dir))
 	cfg.Manga.DownloadDir = filepath.FromSlash(os.ExpandEnv(cfg.Manga.DownloadDir))
 	cfg.Manga.LocalDir = filepath.FromSlash(os.ExpandEnv(cfg.Manga.LocalDir))
+	cfg.Extensions.Dir = filepath.FromSlash(os.ExpandEnv(cfg.Extensions.Dir))
 	cfg.Offline.Dir = filepath.FromSlash(os.ExpandEnv(cfg.Offline.Dir))
 	cfg.Offline.AssetDir = filepath.FromSlash(os.ExpandEnv(cfg.Offline.AssetDir))
-	cfg.Extensions.Dir = filepath.FromSlash(os.ExpandEnv(cfg.Extensions.Dir))
 }
 
 // createConfigFile creates a default config file if it doesn't exist

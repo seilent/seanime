@@ -63,11 +63,10 @@ type (
 	// LibraryCollectionEntry holds the data for a single entry in a LibraryCollectionList.
 	// It is a slimmed down version of Entry. It holds the media, media id, library data, and list data.
 	LibraryCollectionEntry struct {
-		Media                  *anilist.BaseAnime      `json:"media"`
-		MediaId                int                     `json:"mediaId"`
-		EntryLibraryData       *EntryLibraryData       `json:"libraryData"`                 // Library data
-		NakamaEntryLibraryData *NakamaEntryLibraryData `json:"nakamaLibraryData,omitempty"` // Library data from Nakama
-		EntryListData          *EntryListData          `json:"listData"`                    // AniList list data
+		Media            *anilist.BaseAnime `json:"media"`
+		MediaId          int                `json:"mediaId"`
+		EntryLibraryData *EntryLibraryData  `json:"libraryData"` // Library data
+		EntryListData    *EntryListData     `json:"listData"`    // AniList list data
 	}
 
 	// UnmatchedGroup holds the data for a group of unmatched local files.

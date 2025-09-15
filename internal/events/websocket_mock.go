@@ -53,13 +53,6 @@ func (m *MockWSEventManager) SubscribeToClientNativePlayerEvents(id string) *Cli
 	return subscriber
 }
 
-func (m *MockWSEventManager) SubscribeToClientNakamaEvents(id string) *ClientEventSubscriber {
-	subscriber := &ClientEventSubscriber{
-		Channel: make(chan *WebsocketClientEvent),
-	}
-	m.ClientEventSubscribers.Set(id, subscriber)
-	return subscriber
-}
 
 func (m *MockWSEventManager) UnsubscribeFromClientEvents(id string) {
 	m.ClientEventSubscribers.Delete(id)

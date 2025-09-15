@@ -4,7 +4,6 @@ type WebsocketClientEventType string
 
 const (
 	NativePlayerEventType WebsocketClientEventType = "native-player"
-	NakamaEventType       WebsocketClientEventType = "nakama"
 	PluginEvent           WebsocketClientEventType = "plugin"
 )
 
@@ -89,23 +88,4 @@ const (
 	ShowIndefiniteLoader = "show-indefinite-loader"
 	HideIndefiniteLoader = "hide-indefinite-loader"
 
-	// Nakama events
-	NakamaHostStarted          = "nakama-host-started"
-	NakamaHostStopped          = "nakama-host-stopped"
-	NakamaPeerConnected        = "nakama-peer-connected"
-	NakamaPeerDisconnected     = "nakama-peer-disconnected"
-	NakamaHostConnected        = "nakama-host-connected"
-	NakamaHostDisconnected     = "nakama-host-disconnected"
-	NakamaError                = "nakama-error"
-	NakamaAnimeLibraryReceived = "nakama-anime-library-received"
-	NakamaCustomMessage        = "nakama-custom-message"
-	NakamaStatusRequested      = "nakama-status-requested"
-	NakamaStatus               = "nakama-status"
-
-	NakamaOnlineStreamEvent = "nakama-online-stream-event"
-
-	// Nakama Watch Party events
-	NakamaWatchPartyState                                 = "nakama-watch-party-state"
-	NakamaWatchPartyEnableRelayMode                       = "nakama-watch-party-enable-relay-mode"
-	NakamaWatchPartyRelayModeToggleShareLibraryWithOrigin = "nakama-watch-party-relay-mode-toggle-share-library-with-origin"
 )

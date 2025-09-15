@@ -1,5 +1,4 @@
 import { serverStatusAtom } from "@/app/(main)/_atoms/server-status.atoms"
-import { createNakamaHMACAuth } from "@/lib/server/hmac-auth"
 import { TORRENT_PROVIDER } from "@/lib/server/settings"
 import { useAtomValue } from "jotai"
 import { useSetAtom } from "jotai/react"
@@ -33,41 +32,3 @@ export function useHasDebridService() {
 }
 
 
-export function useNakamaHMACAuth() {
-    const serverStatus = useServerStatus()
-
-    const nakamaPassword = serverStatus?.settings?.nakama?.isHost
-        ? serverStatus?.settings?.nakama?.hostPassword
-        : serverStatus?.settings?.nakama?.remoteServerPassword
-
-    return {
-        getHMACTokenQueryParam: async (endpoint: string, symbol?: string) => {
-            if (!serverStatus?.settings?.nakama?.enabled) return ""
-
-            if (!nakamaPassword) return ""
-
-            try {
-                const hmacAuth = createNakamaHMACAuth(nakamaPassword)
-                return await hmacAuth.generateQueryParam(endpoint, symbol)
-            }
-            catch (error) {
-                console.error("Failed to generate Nakama HMAC token:", error)
-                return ""
-            }
-        },
-        generateHMACToken: async (endpoint: string) => {
-            if (!serverStatus?.settings?.nakama?.enabled) return ""
-
-            if (!nakamaPassword) return ""
-
-            try {
-                const hmacAuth = createNakamaHMACAuth(nakamaPassword)
-                return await hmacAuth.generateToken(endpoint)
-            }
-            catch (error) {
-                console.error("Failed to generate Nakama HMAC token:", error)
-                return ""
-            }
-        },
-    }
-}

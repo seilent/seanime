@@ -34,7 +34,6 @@ type Status struct {
 	Version               string                        `json:"version"`
 	VersionName           string                        `json:"versionName"`
 	ThemeSettings         *models.Theme                 `json:"themeSettings"`
-	IsOffline             bool                          `json:"isOffline"`
 	MediastreamSettings   *models.MediastreamSettings   `json:"mediastreamSettings"`
 	AnilistClientID       string                        `json:"anilistClientId"`
 	Updating              bool                          `json:"updating"`         // If true, a new screen will be displayed
@@ -65,13 +64,7 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 			if currentUser != nil {
 				currentUser.Token = "HIDDEN"
 			}
-		} else {
-			// User is logged in but has no AniList account
-			currentUser = user.NewSimulatedUser()
 		}
-	} else {
-		// If the user is not logged in, create a simulated user
-		currentUser = user.NewSimulatedUser()
 	}
 
 	// Get setup status from global settings separately
@@ -130,7 +123,6 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 		Version:               h.App.Version,
 		VersionName:           constants.VersionName,
 		ThemeSettings:         theme,
-		IsOffline:             h.App.Config.Server.Offline,
 		MediastreamSettings:   h.App.SecondarySettings.Mediastream,
 		AnilistClientID:       h.App.Config.Anilist.ClientID,
 		ServerReady:           h.App.ServerReady,

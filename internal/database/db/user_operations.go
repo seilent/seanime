@@ -271,18 +271,6 @@ func (db *Database) CreateDefaultSettingsForUser(userID uint) (*models.Settings,
 			DisableAutoDownloaderNotifications: false,
 			DisableAutoScannerNotifications:    false,
 		},
-		Nakama: &models.NakamaSettings{
-			Enabled:                        false,
-			Username:                       "",
-			IsHost:                         false,
-			HostPassword:                   "",
-			RemoteServerURL:                "",
-			RemoteServerPassword:           "",
-			IncludeNakamaAnimeLibrary:      false,
-			HostShareLocalAnimeLibrary:     false,
-			HostUnsharedAnimeIds:           models.IntSlice{},
-			HostEnablePortForwarding:       false,
-		},
 	}
 
 	if err := db.gormdb.Create(settings).Error; err != nil {

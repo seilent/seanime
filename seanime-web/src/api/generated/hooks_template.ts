@@ -1015,17 +1015,6 @@
 // local
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// export function useSetOfflineMode() {
-//     return useServerMutation<boolean, SetOfflineMode_Variables>({
-//         endpoint: API_ENDPOINTS.LOCAL.SetOfflineMode.endpoint,
-//         method: API_ENDPOINTS.LOCAL.SetOfflineMode.methods[0],
-//         mutationKey: [API_ENDPOINTS.LOCAL.SetOfflineMode.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
 // export function useLocalGetTrackedMediaItems() {
 //     return useServerQuery<Array<Local_TrackedMediaItem>>({
 //         endpoint: API_ENDPOINTS.LOCAL.LocalGetTrackedMediaItems.endpoint,
@@ -1963,6 +1952,17 @@
 //         endpoint: API_ENDPOINTS.SETTINGS.SaveSettings.endpoint,
 //         method: API_ENDPOINTS.SETTINGS.SaveSettings.methods[0],
 //         mutationKey: [API_ENDPOINTS.SETTINGS.SaveSettings.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useTriggerLibraryScan() {
+//     return useServerMutation<boolean>({
+//         endpoint: API_ENDPOINTS.SETTINGS.TriggerLibraryScan.endpoint,
+//         method: API_ENDPOINTS.SETTINGS.TriggerLibraryScan.methods[0],
+//         mutationKey: [API_ENDPOINTS.SETTINGS.TriggerLibraryScan.key],
 //         onSuccess: async () => {
 // 
 //         },

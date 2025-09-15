@@ -226,7 +226,7 @@ export function useHandleLibraryCollection() {
         streamingMediaIds: data?.stream?.anime?.map(n => n.id) ?? [],
         hasEntries: sortedCollection.some(n => n.entries?.length > 0),
         isStreamingOnly: sortedCollection.every(n => n.entries?.every(e => !e.libraryData)),
-        isNakamaLibrary: React.useMemo(() => data?.lists?.some(l => l.entries?.some(e => !!e.nakamaLibraryData)) ?? false, [data?.lists]),
+        isNakamaLibrary: false,
     }
 
 }

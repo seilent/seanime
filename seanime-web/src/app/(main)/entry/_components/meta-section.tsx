@@ -84,7 +84,7 @@ export function MetaSection(props: { entry: Anime_Entry, details: AL_AnimeDetail
             <div className="flex items-center gap-4 justify-center w-full lg:w-fit" data-anime-meta-section-action-buttons-inner-container>
                 <AnimeAutoDownloaderButton entry={entry} size="md" />
 
-                {!entry._isNakamaEntry && !!entry.libraryData && <>
+                {!!entry.libraryData && <>
                     <MediaSyncTrackButton mediaId={entry.mediaId} type="anime" size="md" />
                     <AnimeEntrySilenceToggle mediaId={entry.mediaId} size="md" />
                     <ToggleLockFilesButton

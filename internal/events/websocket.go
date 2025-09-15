@@ -17,7 +17,6 @@ type WSEventManagerInterface interface {
 	SendEventTo(clientId string, t string, payload interface{}, noLog ...bool)
 	SubscribeToClientEvents(id string) *ClientEventSubscriber
 	SubscribeToClientNativePlayerEvents(id string) *ClientEventSubscriber
-	SubscribeToClientNakamaEvents(id string) *ClientEventSubscriber
 	UnsubscribeFromClientEvents(id string)
 }
 
@@ -52,7 +51,6 @@ type (
 		eventMu                            sync.RWMutex
 		clientEventSubscribers             *result.Map[string, *ClientEventSubscriber]
 		clientNativePlayerEventSubscribers *result.Map[string, *ClientEventSubscriber]
-		nakamaEventSubscribers             *result.Map[string, *ClientEventSubscriber]
 	}
 
 	ClientEventSubscriber struct {
@@ -79,7 +77,6 @@ func NewWSEventManager(logger *zerolog.Logger) *WSEventManager {
 		Conns:                              make([]*WSConn, 0),
 		clientEventSubscribers:             result.NewResultMap[string, *ClientEventSubscriber](),
 		clientNativePlayerEventSubscribers: result.NewResultMap[string, *ClientEventSubscriber](),
-		nakamaEventSubscribers:             result.NewResultMap[string, *ClientEventSubscriber](),
 	}
 	GlobalWSEventManager = &GlobalWSEventManagerWrapper{
 		WSEventManager: ret,
@@ -236,8 +233,6 @@ func (m *WSEventManager) OnClientEvent(event *WebsocketClientEvent) {
 	switch event.Type {
 	case NativePlayerEventType:
 		m.clientNativePlayerEventSubscribers.Range(onEvent)
-	case NakamaEventType:
-		m.nakamaEventSubscribers.Range(onEvent)
 	default:
 		m.clientEventSubscribers.Range(onEvent)
 	}
@@ -259,13 +254,6 @@ func (m *WSEventManager) SubscribeToClientNativePlayerEvents(id string) *ClientE
 	return subscriber
 }
 
-func (m *WSEventManager) SubscribeToClientNakamaEvents(id string) *ClientEventSubscriber {
-	subscriber := &ClientEventSubscriber{
-		Channel: make(chan *WebsocketClientEvent, 100),
-	}
-	m.nakamaEventSubscribers.Set(id, subscriber)
-	return subscriber
-}
 
 func (m *WSEventManager) UnsubscribeFromClientEvents(id string) {
 	m.eventMu.Lock()

@@ -104,7 +104,7 @@ export function ServerSettings(props: ServerSettingsProps) {
                 title="Local Data"
                 description="Local data is used when you're not using an AniList account."
             >
-                <div className={cn(serverStatus?.user?.isSimulated && "opacity-50 pointer-events-none")}>
+                <div>
                     <Field.Switch
                         side="right"
                         name="autoSyncToLocalAccount"
@@ -121,7 +121,7 @@ export function ServerSettings(props: ServerSettingsProps) {
                     onClick={() => {
                         confirmDialog.open()
                     }}
-                    disabled={serverStatus?.user?.isSimulated}
+                    disabled={false}
                 >
                     Upload local lists to AniList
                 </Button>
@@ -129,24 +129,6 @@ export function ServerSettings(props: ServerSettingsProps) {
 
             <ConfirmationDialog {...confirmDialog} />
 
-            <SettingsCard title="Offline mode" description="Only available when authenticated with AniList.">
-
-                <Field.Switch
-                    side="right"
-                    name="autoSyncOfflineLocalData"
-                    label="Update local metadata automatically"
-                    help="If disabled, you will need to manually refresh your local metadata by clicking 'Sync now' in the offline mode page."
-                    moreHelp="Only if no offline changes have been made."
-                />
-
-                <Field.Switch
-                    side="right"
-                    name="autoSaveCurrentMediaOffline"
-                    label="Save all currently watched/read media for offline use"
-                    help="If enabled, Seanime will automatically save all currently watched/read media for offline use."
-                />
-
-            </SettingsCard>
 
             <SettingsCard title="App">
                 <Field.Switch

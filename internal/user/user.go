@@ -8,13 +8,10 @@ import (
 	"github.com/goccy/go-json"
 )
 
-const SimulatedUserToken = "SIMULATED"
 
 type User struct {
 	Viewer *anilist.GetViewer_Viewer `json:"viewer"`
 	Token  string                    `json:"token"`
-	// IsSimulated indicates whether the user is not a real AniList account.
-	IsSimulated bool `json:"isSimulated"`
 }
 
 // NewUser creates a new User entity from a models.User
@@ -33,17 +30,3 @@ func NewUser(model *models.Account) (*User, error) {
 	}, nil
 }
 
-func NewSimulatedUser() *User {
-	acc := anilist.GetViewer_Viewer{
-		Name:        "User",
-		Avatar:      nil,
-		BannerImage: nil,
-		IsBlocked:   nil,
-		Options:     nil,
-	}
-	return &User{
-		Viewer:      &acc,
-		Token:       SimulatedUserToken,
-		IsSimulated: true,
-	}
-}
