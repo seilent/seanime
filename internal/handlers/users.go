@@ -82,9 +82,8 @@ func (h *Handler) HandleUserLogin(c echo.Context) error {
 	}
 
 	isWhitelisted := false
-	// Check if this is truly first setup - only allow if setup is not completed
-	setupCompleted, _ := h.App.Database.GetGlobalSettingsSetupStatus()
-	isFirstSetup := globalSettings == nil || (!setupCompleted && len(globalSettings.AnilistWhitelist) == 0)
+	// Check if this is first setup - allow if no whitelist exists
+	isFirstSetup := globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0
 
 	if isFirstSetup {
 		// Only create GlobalSettings if they truly don't exist

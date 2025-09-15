@@ -11,6 +11,7 @@ import { Field, Form } from "@/components/ui/form"
 import { useAuth } from "@/contexts/auth-context"
 import { TextInput } from "@/components/ui/text-input"
 import Link from "next/link"
+import { ANILIST_PIN_URL } from "@/lib/server/config"
 import {
     DEFAULT_TORRENT_PROVIDER,
     getDefaultIinaSocket,
@@ -263,10 +264,7 @@ function AdminStep({ form }: { form: any }) {
 
                     <div className="space-y-4">
                         <div className="text-center">
-                            <Link
-                                href="https://anilist.co/api/v2/oauth/authorize?client_id=13985&response_type=token"
-                                target="_blank"
-                            >
+                            <Link href={ANILIST_PIN_URL} target="_blank">
                                 <Button
                                     leftIcon={<svg
                                         xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="24" height="24"
@@ -544,7 +542,8 @@ export function GettingStartedPage({ status }: { status: Status }) {
         if (!isPending && !!data?.settings && isSuccess) {
             // Only redirect when setup is complete (after form submission)
             setServerStatus(data)
-            router.push("/")
+            // Redirect to dedicated login page instead of opening a modal
+            router.push("/login")
         }
     }, [data, isPending, isSuccess, setServerStatus, router])
 
