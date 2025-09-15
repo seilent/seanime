@@ -129,44 +129,6 @@ func (db *Database) AutoUpdateProgressIsEnabled() (bool, error) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var CurrMediastreamSettings *models.MediastreamSettings
-
-func (db *Database) UpsertMediastreamSettings(settings *models.MediastreamSettings) (*models.MediastreamSettings, error) {
-
-	err := db.gormdb.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}},
-		UpdateAll: true,
-	}).Create(settings).Error
-
-	if err != nil {
-		db.Logger.Error().Err(err).Msg("db: Failed to save media streaming settings in the database")
-		return nil, err
-	}
-
-	CurrMediastreamSettings = settings
-
-	db.Logger.Debug().Msg("db: Media streaming settings saved")
-	return settings, nil
-
-}
-
-func (db *Database) GetMediastreamSettings() (*models.MediastreamSettings, bool) {
-
-	if CurrMediastreamSettings != nil {
-		return CurrMediastreamSettings, true
-	}
-
-	var settings models.MediastreamSettings
-	err := db.gormdb.Where("id = ?", 1).First(&settings).Error
-
-	if err != nil {
-		return nil, false
-	}
-	return &settings, true
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 var CurrTorrentstreamSettings *models.TorrentstreamSettings
 
 func (db *Database) UpsertTorrentstreamSettings(settings *models.TorrentstreamSettings) (*models.TorrentstreamSettings, error) {

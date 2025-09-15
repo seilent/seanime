@@ -44,11 +44,12 @@ type LocalFiles struct {
 // GlobalSettings - server-wide settings stored in separate table
 type GlobalSettings struct {
 	BaseModel
-	SetupCompleted   bool                    `gorm:"column:setup_completed" json:"setupCompleted"`
-	AnilistWhitelist StringSlice             `gorm:"column:anilist_whitelist;type:text" json:"anilistWhitelist"`
-	Library          *LibrarySettings        `gorm:"embedded" json:"library"`
-	Torrent          *TorrentSettings        `gorm:"embedded" json:"torrent"`
-	AutoDownloader   *AutoDownloaderSettings `gorm:"embedded" json:"autoDownloader"`
+	SetupCompleted   bool                        `gorm:"column:setup_completed" json:"setupCompleted"`
+	AnilistWhitelist StringSlice                 `gorm:"column:anilist_whitelist;type:text" json:"anilistWhitelist"`
+	Library          *LibrarySettings            `gorm:"embedded" json:"library"`
+	Torrent          *TorrentSettings            `gorm:"embedded" json:"torrent"`
+	AutoDownloader   *AutoDownloaderSettings     `gorm:"embedded" json:"autoDownloader"`
+	Transcoding      *ServerTranscodingSettings  `gorm:"embedded" json:"transcoding"`
 }
 
 // Settings - per-user settings
@@ -63,10 +64,12 @@ type Settings struct {
 	Discord                 *DiscordSettings       `gorm:"embedded" json:"discord"`
 	Notifications           *NotificationSettings  `gorm:"embedded" json:"notifications"`
 	Manga                   *MangaSettings         `gorm:"embedded" json:"manga"`
+	ClientMedia             *ClientMediaSettings   `gorm:"embedded" json:"clientMedia"`
 	// Virtual fields populated from GlobalSettings for frontend compatibility
 	Library        *LibrarySettings        `gorm:"-" json:"library"`        // Populated from GlobalSettings
 	Torrent        *TorrentSettings        `gorm:"-" json:"torrent"`        // Populated from GlobalSettings
 	AutoDownloader *AutoDownloaderSettings `gorm:"-" json:"autoDownloader"` // Populated from GlobalSettings
+	Transcoding    *ServerTranscodingSettings `gorm:"-" json:"transcoding"`  // Populated from GlobalSettings
 }
 
 type AnilistSettings struct {
@@ -362,6 +365,26 @@ type ChapterDownloadQueueItem struct {
 // |     MediaStream     |
 // +---------------------+
 
+// Server-side transcoding settings (admin-controlled, stored in GlobalSettings)
+type ServerTranscodingSettings struct {
+	TranscodeEnabled              bool   `gorm:"column:transcode_enabled" json:"transcodeEnabled"`
+	TranscodeHwAccel              string `gorm:"column:transcode_hw_accel" json:"transcodeHwAccel"`
+	TranscodeThreads              int    `gorm:"column:transcode_threads" json:"transcodeThreads"`
+	TranscodePreset               string `gorm:"column:transcode_preset" json:"transcodePreset"`
+	PreTranscodeEnabled           bool   `gorm:"column:pre_transcode_enabled" json:"preTranscodeEnabled"`
+	PreTranscodeLibraryDir        string `gorm:"column:pre_transcode_library_dir" json:"preTranscodeLibraryDir"`
+	FfmpegPath                    string `gorm:"column:ffmpeg_path" json:"ffmpegPath"`
+	FfprobePath                   string `gorm:"column:ffprobe_path" json:"ffprobePath"`
+	TranscodeHwAccelCustomSettings string `gorm:"column:transcode_hw_accel_custom_settings" json:"transcodeHwAccelCustomSettings"`
+}
+
+// Client-side media playback settings (user-controlled, stored in user Settings)
+type ClientMediaSettings struct {
+	DisableAutoSwitchToDirectPlay bool `gorm:"column:disable_auto_switch_to_direct_play" json:"disableAutoSwitchToDirectPlay"`
+	DirectPlayOnly                bool `gorm:"column:direct_play_only" json:"directPlayOnly"`
+}
+
+// DEPRECATED: Use ServerTranscodingSettings (in GlobalSettings) and ClientMediaSettings (in user Settings) instead
 type MediastreamSettings struct {
 	BaseModel
 	// DEVNOTE: Should really be "Enabled"

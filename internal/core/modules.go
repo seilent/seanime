@@ -461,7 +461,25 @@ func (a *App) InitOrRefreshModules() {
 	// +---------------------+
 	// Load settings that are sent to the client via status endpoint
 
-	mediastreamSettings, _ := a.Database.GetMediastreamSettings()
+	// Convert transcoding settings from GlobalSettings for backwards compatibility
+	var mediastreamSettings *models.MediastreamSettings
+	if globalSettings != nil && globalSettings.Transcoding != nil {
+		mediastreamSettings = &models.MediastreamSettings{
+			BaseModel: models.BaseModel{ID: 1},
+			TranscodeEnabled:              globalSettings.Transcoding.TranscodeEnabled,
+			TranscodeHwAccel:              globalSettings.Transcoding.TranscodeHwAccel,
+			TranscodeThreads:              globalSettings.Transcoding.TranscodeThreads,
+			TranscodePreset:               globalSettings.Transcoding.TranscodePreset,
+			PreTranscodeEnabled:           globalSettings.Transcoding.PreTranscodeEnabled,
+			PreTranscodeLibraryDir:        globalSettings.Transcoding.PreTranscodeLibraryDir,
+			FfmpegPath:                    globalSettings.Transcoding.FfmpegPath,
+			FfprobePath:                   globalSettings.Transcoding.FfprobePath,
+			TranscodeHwAccelCustomSettings: globalSettings.Transcoding.TranscodeHwAccelCustomSettings,
+			// Client settings are no longer used in server-side operations
+			DisableAutoSwitchToDirectPlay: false,
+			DirectPlayOnly:                false,
+		}
+	}
 	a.SecondarySettings.Mediastream = mediastreamSettings
 
 
@@ -529,25 +547,46 @@ func (a *App) performActionsOnce() {
 // It is called after the App instance is created and after settings are updated.
 func (a *App) InitOrRefreshMediastreamSettings() {
 
-	var settings *models.MediastreamSettings
-	var found bool
-	settings, found = a.Database.GetMediastreamSettings()
-	if !found {
+	// Get transcoding settings from GlobalSettings
+	globalSettings, err := a.Database.GetGlobalSettings()
+	if err != nil {
+		a.Logger.Error().Err(err).Msg("app: Failed to get global settings")
+		return
+	}
 
-		var err error
-		settings, err = a.Database.UpsertMediastreamSettings(&models.MediastreamSettings{
-			BaseModel: models.BaseModel{
-				ID: 1,
-			},
+	// Initialize default transcoding settings if not present
+	if globalSettings.Transcoding == nil {
+		globalSettings.Transcoding = &models.ServerTranscodingSettings{
 			TranscodeEnabled:    false,
 			TranscodeHwAccel:    "cpu",
 			TranscodePreset:     "fast",
+			TranscodeThreads:    4,
 			PreTranscodeEnabled: false,
-		})
+		}
+		// Save the updated global settings
+		_, err = a.Database.UpsertGlobalSettings(globalSettings)
 		if err != nil {
-			a.Logger.Error().Err(err).Msg("app: Failed to initialize mediastream module")
+			a.Logger.Error().Err(err).Msg("app: Failed to initialize transcoding settings")
 			return
 		}
+	}
+
+	// Convert ServerTranscodingSettings to MediastreamSettings for backwards compatibility
+	// TODO: Update mediastream repository to use ServerTranscodingSettings directly
+	settings := &models.MediastreamSettings{
+		BaseModel: models.BaseModel{ID: 1},
+		TranscodeEnabled:              globalSettings.Transcoding.TranscodeEnabled,
+		TranscodeHwAccel:              globalSettings.Transcoding.TranscodeHwAccel,
+		TranscodeThreads:              globalSettings.Transcoding.TranscodeThreads,
+		TranscodePreset:               globalSettings.Transcoding.TranscodePreset,
+		PreTranscodeEnabled:           globalSettings.Transcoding.PreTranscodeEnabled,
+		PreTranscodeLibraryDir:        globalSettings.Transcoding.PreTranscodeLibraryDir,
+		FfmpegPath:                    globalSettings.Transcoding.FfmpegPath,
+		FfprobePath:                   globalSettings.Transcoding.FfprobePath,
+		TranscodeHwAccelCustomSettings: globalSettings.Transcoding.TranscodeHwAccelCustomSettings,
+		// Client settings are no longer used in server-side operations
+		DisableAutoSwitchToDirectPlay: false,
+		DirectPlayOnly:                false,
 	}
 
 	a.MediastreamRepository.InitializeModules(settings, a.Config.Cache.Dir, a.Config.Cache.TranscodeDir)
@@ -563,5 +602,6 @@ func (a *App) InitOrRefreshMediastreamSettings() {
 		}
 	}()
 
+	// Store the converted settings for SecondarySettings (backwards compatibility)
 	a.SecondarySettings.Mediastream = settings
 }

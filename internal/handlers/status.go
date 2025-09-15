@@ -90,6 +90,7 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 			settings.Library = globalSettings.Library
 			settings.Torrent = globalSettings.Torrent
 			settings.AutoDownloader = globalSettings.AutoDownloader
+			settings.Transcoding = globalSettings.Transcoding
 		}
 	} else {
 		// If no user is authenticated, create empty settings with global data
@@ -98,6 +99,7 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 			settings.Library = globalSettings.Library
 			settings.Torrent = globalSettings.Torrent
 			settings.AutoDownloader = globalSettings.AutoDownloader
+			settings.Transcoding = globalSettings.Transcoding
 		}
 	}
 

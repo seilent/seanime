@@ -271,6 +271,10 @@ func (db *Database) CreateDefaultSettingsForUser(userID uint) (*models.Settings,
 			DisableAutoDownloaderNotifications: false,
 			DisableAutoScannerNotifications:    false,
 		},
+		ClientMedia: &models.ClientMediaSettings{
+			DisableAutoSwitchToDirectPlay: false,
+			DirectPlayOnly:                false,
+		},
 	}
 
 	if err := db.gormdb.Create(settings).Error; err != nil {

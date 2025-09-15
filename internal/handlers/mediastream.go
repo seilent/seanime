@@ -3,36 +3,56 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"seanime/internal/database/models"
 	"seanime/internal/mediastream"
 
 	"github.com/labstack/echo/v4"
 )
 
-// HandleGetMediastreamSettings
+// HandleGetTranscodingSettings
 //
-//	@summary get mediastream settings.
-//	@desc This returns the mediastream settings.
-//	@returns models.MediastreamSettings
-//	@route /api/v1/mediastream/settings [GET]
-func (h *Handler) HandleGetMediastreamSettings(c echo.Context) error {
-	mediastreamSettings, found := h.App.Database.GetMediastreamSettings()
-	if !found {
-		return h.RespondWithError(c, errors.New("media streaming settings not found"))
+//	@summary get server transcoding settings (admin only).
+//	@desc This returns the server-side transcoding settings from GlobalSettings.
+//	@returns models.ServerTranscodingSettings
+//	@route /api/v1/transcoding/settings [GET]
+func (h *Handler) HandleGetTranscodingSettings(c echo.Context) error {
+	globalSettings, err := h.App.Database.GetGlobalSettings()
+	if err != nil {
+		return h.RespondWithError(c, errors.New("global settings not found"))
 	}
 
-	return h.RespondWithData(c, mediastreamSettings)
+	if globalSettings.Transcoding == nil {
+		// Return default settings if not set
+		defaultSettings := &models.ServerTranscodingSettings{
+			TranscodeEnabled: false,
+			TranscodeHwAccel: "cpu",
+			TranscodePreset:  "fast",
+			TranscodeThreads: 4,
+		}
+		return h.RespondWithData(c, defaultSettings)
+	}
+
+	return h.RespondWithData(c, globalSettings.Transcoding)
 }
 
-// HandleSaveMediastreamSettings
+// HandleSaveTranscodingSettings
 //
-//	@summary save mediastream settings.
-//	@desc This saves the mediastream settings.
-//	@returns models.MediastreamSettings
-//	@route /api/v1/mediastream/settings [PATCH]
-func (h *Handler) HandleSaveMediastreamSettings(c echo.Context) error {
+//	@summary save server transcoding settings (admin only).
+//	@desc This saves the server-side transcoding settings to GlobalSettings. Admin access required.
+//	@returns models.ServerTranscodingSettings
+//	@route /api/v1/transcoding/settings [PATCH]
+func (h *Handler) HandleSaveTranscodingSettings(c echo.Context) error {
+	// Check admin permissions
+	user := h.getCurrentUser(c)
+	if user == nil || !user.IsAdmin() {
+		return c.JSON(http.StatusForbidden, map[string]string{
+			"error": "Admin access required",
+		})
+	}
+
 	type body struct {
-		Settings models.MediastreamSettings `json:"settings"`
+		Settings models.ServerTranscodingSettings `json:"settings"`
 	}
 
 	var b body
@@ -40,14 +60,97 @@ func (h *Handler) HandleSaveMediastreamSettings(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	settings, err := h.App.Database.UpsertMediastreamSettings(&b.Settings)
+	// Get current global settings
+	globalSettings, err := h.App.Database.GetGlobalSettings()
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
+	// Update transcoding settings
+	globalSettings.Transcoding = &b.Settings
+
+	// Save global settings
+	_, err = h.App.Database.UpsertGlobalSettings(globalSettings)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Refresh mediastream modules with new settings
 	h.App.InitOrRefreshMediastreamSettings()
 
-	return h.RespondWithData(c, settings)
+	return h.RespondWithData(c, globalSettings.Transcoding)
+}
+
+// HandleGetClientMediaSettings
+//
+//	@summary get user client media settings.
+//	@desc This returns the client-side media playback settings for the current user.
+//	@returns models.ClientMediaSettings
+//	@route /api/v1/client-media/settings [GET]
+func (h *Handler) HandleGetClientMediaSettings(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Authentication required",
+		})
+	}
+
+	userSettings, err := h.App.Database.GetSettingsForUser(user.ID)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	if userSettings.ClientMedia == nil {
+		// Return default settings if not set
+		defaultSettings := &models.ClientMediaSettings{
+			DisableAutoSwitchToDirectPlay: false,
+			DirectPlayOnly:                false,
+		}
+		return h.RespondWithData(c, defaultSettings)
+	}
+
+	return h.RespondWithData(c, userSettings.ClientMedia)
+}
+
+// HandleSaveClientMediaSettings
+//
+//	@summary save user client media settings.
+//	@desc This saves the client-side media playback settings for the current user.
+//	@returns models.ClientMediaSettings
+//	@route /api/v1/client-media/settings [PATCH]
+func (h *Handler) HandleSaveClientMediaSettings(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Authentication required",
+		})
+	}
+
+	type body struct {
+		Settings models.ClientMediaSettings `json:"settings"`
+	}
+
+	var b body
+	if err := c.Bind(&b); err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Get current user settings
+	userSettings, err := h.App.Database.GetSettingsForUser(user.ID)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Update client media settings
+	userSettings.ClientMedia = &b.Settings
+
+	// Save user settings
+	err = h.App.Database.SaveSettingsForUser(user.ID, userSettings)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	return h.RespondWithData(c, userSettings.ClientMedia)
 }
 
 // HandleRequestMediastreamMediaContainer

@@ -223,22 +223,24 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 	// Enable transcoding by default during setup
 	go func() {
 		defer util.HandlePanicThen(func() {})
-		prev, found := h.App.Database.GetMediastreamSettings()
-		if found {
-			prev.TranscodeEnabled = b.EnableTranscode
-			_, _ = h.App.Database.UpsertMediastreamSettings(prev)
-		} else {
-			// Create default mediastream settings
-			defaultSettings := &models.MediastreamSettings{
-				BaseModel: models.BaseModel{
-					ID: 1,
-				},
+		globalSettings, err := h.App.Database.GetGlobalSettings()
+		if err != nil {
+			return
+		}
+
+		// Initialize transcoding settings if not present
+		if globalSettings.Transcoding == nil {
+			globalSettings.Transcoding = &models.ServerTranscodingSettings{
 				TranscodeEnabled: b.EnableTranscode,
+				TranscodeHwAccel: "cpu",
 				TranscodePreset:  "fast",
 				TranscodeThreads: 2,
 			}
-			_, _ = h.App.Database.UpsertMediastreamSettings(defaultSettings)
+		} else {
+			globalSettings.Transcoding.TranscodeEnabled = b.EnableTranscode
 		}
+
+		_, _ = h.App.Database.UpsertGlobalSettings(globalSettings)
 	}()
 
 

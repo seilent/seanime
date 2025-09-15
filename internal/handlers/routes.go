@@ -433,8 +433,12 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	//
 	// Media Stream
 	//
-	v1.GET("/mediastream/settings", h.HandleGetMediastreamSettings)
-	v1.PATCH("/mediastream/settings", h.HandleSaveMediastreamSettings)
+	// Server-side transcoding settings (admin only)
+	v1.GET("/transcoding/settings", h.HandleGetTranscodingSettings)
+	v1.PATCH("/transcoding/settings", h.HandleSaveTranscodingSettings)
+	// Client-side media settings (per-user)
+	v1.GET("/client-media/settings", h.HandleGetClientMediaSettings)
+	v1.PATCH("/client-media/settings", h.HandleSaveClientMediaSettings)
 	v1.POST("/mediastream/request", h.HandleRequestMediastreamMediaContainer)
 	v1.POST("/mediastream/preload", h.HandlePreloadMediastreamMediaContainer)
 	// Transcode
