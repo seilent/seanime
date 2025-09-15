@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"seanime/internal/continuity"
 	"strconv"
 
@@ -15,6 +16,13 @@ import (
 //	@route /api/v1/continuity/item [PATCH]
 //	@returns bool
 func (h *Handler) HandleUpdateContinuityWatchHistoryItem(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Authentication required",
+		})
+	}
+
 	type body struct {
 		Options continuity.UpdateWatchHistoryItemOptions `json:"options"`
 	}
@@ -24,7 +32,7 @@ func (h *Handler) HandleUpdateContinuityWatchHistoryItem(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	err := h.App.ContinuityManager.UpdateWatchHistoryItem(&b.Options)
+	err := h.App.ContinuityManager.UpdateWatchHistoryItemForUser(user.ID, &b.Options)
 	if err != nil {
 		// Ignore the error
 		return h.RespondWithError(c, err)
@@ -41,6 +49,13 @@ func (h *Handler) HandleUpdateContinuityWatchHistoryItem(c echo.Context) error {
 //	@param id - int - true - "AniList anime media ID"
 //	@returns continuity.WatchHistoryItemResponse
 func (h *Handler) HandleGetContinuityWatchHistoryItem(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Authentication required",
+		})
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -53,7 +68,7 @@ func (h *Handler) HandleGetContinuityWatchHistoryItem(c echo.Context) error {
 		})
 	}
 
-	resp := h.App.ContinuityManager.GetWatchHistoryItem(id)
+	resp := h.App.ContinuityManager.GetWatchHistoryItemForUser(user.ID, id)
 	return h.RespondWithData(c, resp)
 }
 
@@ -64,11 +79,18 @@ func (h *Handler) HandleGetContinuityWatchHistoryItem(c echo.Context) error {
 //	@route /api/v1/continuity/history [GET]
 //	@returns continuity.WatchHistory
 func (h *Handler) HandleGetContinuityWatchHistory(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Authentication required",
+		})
+	}
+
 	if !h.App.ContinuityManager.GetSettings().WatchContinuityEnabled {
 		ret := make(map[int]*continuity.WatchHistoryItem)
 		return h.RespondWithData(c, ret)
 	}
 
-	resp := h.App.ContinuityManager.GetWatchHistory()
+	resp := h.App.ContinuityManager.GetWatchHistoryForUser(user.ID)
 	return h.RespondWithData(c, resp)
 }

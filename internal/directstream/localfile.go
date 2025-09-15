@@ -234,6 +234,7 @@ type PlayLocalFileOptions struct {
 	ClientId   string
 	Path       string
 	LocalFiles []*anime.LocalFile
+	UserID     uint
 }
 
 // PlayLocalFile is used by a module to load a new torrent stream.
@@ -308,6 +309,7 @@ func (m *Manager) PlayLocalFile(ctx context.Context, opts PlayLocalFileOptions) 
 			media:                 media,
 			episode:               episode,
 			episodeCollection:     episodeCollection,
+			userID:                opts.UserID,
 			subtitleEventCache:    result.NewResultMap[string, *mkvparser.SubtitleEvent](),
 			activeSubtitleStreams: result.NewResultMap[string, *SubtitleStream](),
 		},

@@ -203,7 +203,7 @@ func (pm *PlaybackManager) handleTrackingStopped(reason string) {
 	}()
 
 	if pm.currentMediaPlaybackStatus != nil {
-		pm.continuityManager.UpdateExternalPlayerEpisodeWatchHistoryItem(pm.currentMediaPlaybackStatus.CurrentTimeInSeconds, pm.currentMediaPlaybackStatus.DurationInSeconds)
+		pm.continuityManager.UpdateExternalPlayerEpisodeWatchHistoryItemForUser(pm.currentUserID, pm.currentMediaPlaybackStatus.CurrentTimeInSeconds, pm.currentMediaPlaybackStatus.DurationInSeconds)
 	}
 
 	// ------- Playlist ------- //
@@ -413,7 +413,7 @@ func (pm *PlaybackManager) handleStreamingTrackingStopped(reason string) {
 	}
 
 	if pm.currentMediaPlaybackStatus != nil {
-		pm.continuityManager.UpdateExternalPlayerEpisodeWatchHistoryItem(pm.currentMediaPlaybackStatus.CurrentTimeInSeconds, pm.currentMediaPlaybackStatus.DurationInSeconds)
+		pm.continuityManager.UpdateExternalPlayerEpisodeWatchHistoryItemForUser(pm.currentUserID, pm.currentMediaPlaybackStatus.CurrentTimeInSeconds, pm.currentMediaPlaybackStatus.DurationInSeconds)
 	}
 
 	// Notify subscribers

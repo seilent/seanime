@@ -15,6 +15,13 @@ import (
 //	@returns mediastream.MediaContainer
 //	@route /api/v1/directstream/play/localfile [POST]
 func (h *Handler) HandleDirectstreamPlayLocalFile(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Authentication required",
+		})
+	}
+
 	type body struct {
 		Path     string `json:"path"`     // The path of the file.
 		ClientId string `json:"clientId"` // The session id
@@ -25,7 +32,7 @@ func (h *Handler) HandleDirectstreamPlayLocalFile(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	lfs, _, err := db_bridge.GetLocalFiles(h.App.Database)
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -34,6 +41,7 @@ func (h *Handler) HandleDirectstreamPlayLocalFile(c echo.Context) error {
 		ClientId:   b.ClientId,
 		Path:       b.Path,
 		LocalFiles: lfs,
+		UserID:     user.ID,
 	})
 }
 

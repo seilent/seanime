@@ -227,7 +227,7 @@ func (m *Repository) Play(path string) error {
 
 	m.Logger.Debug().Str("path", path).Msg("media player: Media requested")
 
-	lastWatched := m.continuityManager.GetExternalPlayerEpisodeWatchHistoryItem(path, false, 0, 0)
+	// Note: Resume functionality is now handled by PlaybackManager with proper user context
 
 	switch m.Default {
 	case "vlc":
@@ -247,16 +247,7 @@ func (m *Repository) Play(path string) error {
 			}
 		}
 
-		if m.continuityManager.GetSettings().WatchContinuityEnabled {
-			if lastWatched.Found {
-				time.Sleep(400 * time.Millisecond)
-				_ = m.VLC.ForcePause()
-				time.Sleep(400 * time.Millisecond)
-				_ = m.VLC.Seek(fmt.Sprintf("%d", int(lastWatched.Item.CurrentTime)))
-				time.Sleep(400 * time.Millisecond)
-				_ = m.VLC.Resume()
-			}
-		}
+		// Resume functionality moved to PlaybackManager with user context
 
 		return nil
 	case "mpc-hc":
@@ -271,64 +262,25 @@ func (m *Repository) Play(path string) error {
 			return fmt.Errorf("could not open and play video, %w", err)
 		}
 
-		if m.continuityManager.GetSettings().WatchContinuityEnabled {
-			if lastWatched.Found {
-				time.Sleep(400 * time.Millisecond)
-				_ = m.MpcHc.Pause()
-				time.Sleep(400 * time.Millisecond)
-				_ = m.MpcHc.Seek(int(lastWatched.Item.CurrentTime))
-				time.Sleep(400 * time.Millisecond)
-				_ = m.MpcHc.Play()
-			}
-		}
+		// Resume functionality moved to PlaybackManager with user context
 
 		return nil
 	case "mpv":
-		if m.continuityManager.GetSettings().WatchContinuityEnabled {
-			var args []string
-			if lastWatched.Found {
-				//args = append(args, "--no-resume-playback", fmt.Sprintf("--start=+%d", int(lastWatched.Item.CurrentTime)))
-				args = append(args, "--no-resume-playback")
-			}
-			err := m.Mpv.OpenAndPlay(path, args...)
-			if err != nil {
-				m.Logger.Error().Err(err).Msg("media player: Could not open and play video using MPV")
-				return fmt.Errorf("could not open and play video, %w", err)
-			}
-			if lastWatched.Found {
-				_ = m.Mpv.SeekTo(lastWatched.Item.CurrentTime)
-			}
-		} else {
-			err := m.Mpv.OpenAndPlay(path)
-			if err != nil {
-				m.Logger.Error().Err(err).Msg("media player: Could not open and play video using MPV")
-				return fmt.Errorf("could not open and play video, %w", err)
-			}
+		err := m.Mpv.OpenAndPlay(path)
+		if err != nil {
+			m.Logger.Error().Err(err).Msg("media player: Could not open and play video using MPV")
+			return fmt.Errorf("could not open and play video, %w", err)
 		}
+		// Resume functionality moved to PlaybackManager with user context
 
 		return nil
 	case "iina":
-		if m.continuityManager.GetSettings().WatchContinuityEnabled {
-			var args []string
-			if lastWatched.Found {
-				//args = append(args, "--mpv-no-resume-playback", fmt.Sprintf("--mpv-start=+%d", int(lastWatched.Item.CurrentTime)))
-				args = append(args, "--mpv-no-resume-playback")
-			}
-			err := m.Iina.OpenAndPlay(path, args...)
-			if err != nil {
-				m.Logger.Error().Err(err).Msg("media player: Could not open and play video using IINA")
-				return fmt.Errorf("could not open and play video, %w", err)
-			}
-			if lastWatched.Found {
-				_ = m.Iina.SeekTo(lastWatched.Item.CurrentTime)
-			}
-		} else {
-			err := m.Iina.OpenAndPlay(path)
-			if err != nil {
-				m.Logger.Error().Err(err).Msg("media player: Could not open and play video using IINA")
-				return fmt.Errorf("could not open and play video, %w", err)
-			}
+		err := m.Iina.OpenAndPlay(path)
+		if err != nil {
+			m.Logger.Error().Err(err).Msg("media player: Could not open and play video using IINA")
+			return fmt.Errorf("could not open and play video, %w", err)
 		}
+		// Resume functionality moved to PlaybackManager with user context
 
 		return nil
 	default:
@@ -406,64 +358,28 @@ func (m *Repository) Stream(streamUrl string, episode int, mediaId int, windowTi
 		return fmt.Errorf("could not open media player, %w", err)
 	}
 
-	lastWatched := m.continuityManager.GetExternalPlayerEpisodeWatchHistoryItem("", true, episode, mediaId)
+	// Note: Resume functionality is now handled by PlaybackManager with proper user context
 
 	switch m.Default {
 	case "vlc":
 		err = m.VLC.AddAndPlay(streamUrl)
 
-		if m.continuityManager.GetSettings().WatchContinuityEnabled {
-			if lastWatched.Found {
-				time.Sleep(400 * time.Millisecond)
-				_ = m.VLC.ForcePause()
-				time.Sleep(400 * time.Millisecond)
-				_ = m.VLC.Seek(fmt.Sprintf("%d", int(lastWatched.Item.CurrentTime)))
-				time.Sleep(400 * time.Millisecond)
-				_ = m.VLC.Resume()
-			}
-		}
-
 	case "mpc-hc":
 		_, err = m.MpcHc.OpenAndPlay(streamUrl)
-
-		if m.continuityManager.GetSettings().WatchContinuityEnabled {
-			if lastWatched.Found {
-				time.Sleep(400 * time.Millisecond)
-				_ = m.MpcHc.Pause()
-				time.Sleep(400 * time.Millisecond)
-				_ = m.MpcHc.Seek(int(lastWatched.Item.CurrentTime))
-				time.Sleep(400 * time.Millisecond)
-				_ = m.MpcHc.Play()
-			}
-		}
 
 	case "mpv":
 		args := []string{}
 		if windowTitle != "" {
 			args = append(args, fmt.Sprintf("--title=%q", windowTitle))
 		}
-		if m.continuityManager.GetSettings().WatchContinuityEnabled {
-			err = m.Mpv.OpenAndPlay(streamUrl, args...)
-			if lastWatched.Found {
-				_ = m.Mpv.SeekTo(lastWatched.Item.CurrentTime)
-			}
-		} else {
-			err = m.Mpv.OpenAndPlay(streamUrl, args...)
-		}
+		err = m.Mpv.OpenAndPlay(streamUrl, args...)
 
 	case "iina":
 		args := []string{}
 		if windowTitle != "" {
 			args = append(args, fmt.Sprintf("--mpv-title=%q", windowTitle))
 		}
-		if m.continuityManager.GetSettings().WatchContinuityEnabled {
-			err = m.Iina.OpenAndPlay(streamUrl, args...)
-			if lastWatched.Found {
-				_ = m.Iina.SeekTo(lastWatched.Item.CurrentTime)
-			}
-		} else {
-			err = m.Iina.OpenAndPlay(streamUrl, args...)
-		}
+		err = m.Iina.OpenAndPlay(streamUrl, args...)
 
 	}
 
@@ -607,7 +523,7 @@ func (m *Repository) StartTrackingTorrentStream() {
 
 						// Video is completed, and we are unable to get the status
 						// We can safely assume that the player has been closed
-						if retries == 1 && (completed || m.continuityManager.GetSettings().WatchContinuityEnabled) {
+						if retries == 1 && completed {
 							m.Logger.Debug().Msg("media player: Sending player closed event")
 							m.streamingTrackingStopped(PlayerClosedEvent)
 							close(done)
@@ -743,7 +659,7 @@ func (m *Repository) StartTracking() {
 
 					// Video is completed, and we are unable to get the status
 					// We can safely assume that the player has been closed
-					if retries == 1 && (completed || m.continuityManager.GetSettings().WatchContinuityEnabled) {
+					if retries == 1 && completed {
 						m.trackingStopped(PlayerClosedEvent)
 						close(done)
 						break

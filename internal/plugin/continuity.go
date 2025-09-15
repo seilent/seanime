@@ -14,44 +14,44 @@ func (a *AppContextImpl) BindContinuityToContextObj(vm *goja.Runtime, obj *goja.
 
 	continuityObj := vm.NewObject()
 
-	_ = continuityObj.Set("updateWatchHistoryItem", func(opts continuity.UpdateWatchHistoryItemOptions) goja.Value {
+	_ = continuityObj.Set("updateWatchHistoryItem", func(userID uint, opts continuity.UpdateWatchHistoryItemOptions) goja.Value {
 		manager, ok := a.continuityManager.Get()
 		if !ok {
 			goja_bindings.PanicThrowErrorString(vm, "continuity manager not set")
 		}
-		err := manager.UpdateWatchHistoryItem(&opts)
+		err := manager.UpdateWatchHistoryItemForUser(userID, &opts)
 		if err != nil {
 			goja_bindings.PanicThrowError(vm, err)
 		}
 		return goja.Undefined()
 	})
 
-	_ = continuityObj.Set("getWatchHistoryItem", func(mediaId int) goja.Value {
+	_ = continuityObj.Set("getWatchHistoryItem", func(userID uint, mediaId int) goja.Value {
 		manager, ok := a.continuityManager.Get()
 		if !ok {
 			goja_bindings.PanicThrowErrorString(vm, "continuity manager not set")
 		}
-		resp := manager.GetWatchHistoryItem(mediaId)
+		resp := manager.GetWatchHistoryItemForUser(userID, mediaId)
 		if resp == nil || !resp.Found {
 			return goja.Undefined()
 		}
 		return vm.ToValue(resp.Item)
 	})
 
-	_ = continuityObj.Set("getWatchHistory", func() goja.Value {
+	_ = continuityObj.Set("getWatchHistory", func(userID uint) goja.Value {
 		manager, ok := a.continuityManager.Get()
 		if !ok {
 			goja_bindings.PanicThrowErrorString(vm, "continuity manager not set")
 		}
-		return vm.ToValue(manager.GetWatchHistory())
+		return vm.ToValue(manager.GetWatchHistoryForUser(userID))
 	})
 
-	_ = continuityObj.Set("deleteWatchHistoryItem", func(mediaId int) goja.Value {
+	_ = continuityObj.Set("deleteWatchHistoryItem", func(userID uint, mediaId int) goja.Value {
 		manager, ok := a.continuityManager.Get()
 		if !ok {
 			goja_bindings.PanicThrowErrorString(vm, "continuity manager not set")
 		}
-		err := manager.DeleteWatchHistoryItem(mediaId)
+		err := manager.DeleteWatchHistoryItemForUser(userID, mediaId)
 		if err != nil {
 			goja_bindings.PanicThrowError(vm, err)
 		}

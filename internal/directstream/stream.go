@@ -226,7 +226,12 @@ func (m *Manager) listenToNativePlayerEvents() {
 						go m.discordPresence.Close()
 					}
 				case *nativeplayer.VideoStatusEvent:
-					_ = m.continuityManager.UpdateWatchHistoryItem(&continuity.UpdateWatchHistoryItemOptions{
+					// Get UserID from the stream if it's a BaseStream
+					var userID uint = 1 // fallback
+					if baseStream, ok := cs.(*LocalFileStream); ok {
+						userID = baseStream.userID
+					}
+					_ = m.continuityManager.UpdateWatchHistoryItemForUser(userID, &continuity.UpdateWatchHistoryItemOptions{
 						CurrentTime:   event.Status.CurrentTime,
 						Duration:      event.Status.Duration,
 						MediaId:       cs.Media().GetID(),
@@ -297,6 +302,7 @@ type BaseStream struct {
 	terminateOnce          sync.Once
 	serveContentCancelFunc context.CancelFunc
 	filename               string // Name of the file being streamed, if applicable
+	userID                 uint   // User ID for multi-user support
 
 	// Subtitle stream management
 	activeSubtitleStreams *result.Map[string, *SubtitleStream]

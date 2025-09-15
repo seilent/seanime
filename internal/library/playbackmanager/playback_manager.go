@@ -68,6 +68,7 @@ type (
 		historyMap                 map[string]PlaybackState
 		currentPlaybackType        PlaybackType
 		currentMediaPlaybackStatus *mediaplayer.PlaybackStatus // The current video playback status (can be nil)
+	currentUserID              uint                        // User ID for the current playback session
 
 		autoPlayMu           sync.Mutex
 		nextEpisodeLocalFile mo.Option[*anime.LocalFile] // The next episode's local file (for local file playback)
@@ -290,9 +291,12 @@ type StartPlayingOptions struct {
 	Payload   string // url or path
 	UserAgent string
 	ClientId  string
+	UserID    uint   // User ID for continuity tracking
 }
 
 func (pm *PlaybackManager) StartPlayingUsingMediaPlayer(opts *StartPlayingOptions) error {
+	// Store user ID for continuity tracking
+	pm.currentUserID = opts.UserID
 
 	event := &LocalFilePlaybackRequestedEvent{
 		Path: opts.Payload,
@@ -385,6 +389,9 @@ func (pm *PlaybackManager) StartUntrackedStreamingUsingMediaPlayer(windowTitle s
 // Note that PlaybackManager.currentStreamEpisodeCollection is not required to start streaming but is needed for progress tracking.
 func (pm *PlaybackManager) StartStreamingUsingMediaPlayer(windowTitle string, opts *StartPlayingOptions, media *anilist.BaseAnime, aniDbEpisode string) (err error) {
 	defer util.HandlePanicInModuleWithError("library/playbackmanager/StartStreamingUsingMediaPlayer", &err)
+
+	// Store user ID for continuity tracking
+	pm.currentUserID = opts.UserID
 
 	event := &StreamPlaybackRequestedEvent{
 		WindowTitle:  windowTitle,

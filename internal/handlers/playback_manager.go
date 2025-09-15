@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/library/playbackmanager"
 
@@ -23,10 +24,16 @@ func (h *Handler) HandlePlaybackPlayVideo(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
 	err := h.App.PlaybackManager.StartPlayingUsingMediaPlayer(&playbackmanager.StartPlayingOptions{
 		Payload:   b.Path,
 		UserAgent: c.Request().Header.Get("User-Agent"),
 		ClientId:  "",
+		UserID:    user.ID,
 	})
 	if err != nil {
 		return h.RespondWithError(c, err)

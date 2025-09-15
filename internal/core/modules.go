@@ -80,9 +80,10 @@ func (a *App) initModulesOnce() {
 	// +---------------------+
 
 	a.ContinuityManager = continuity.NewManager(&continuity.NewManagerOptions{
-		FileCacher: a.FileCacher,
-		Logger:     a.Logger,
-		Database:   a.Database,
+		FileCacher:  a.FileCacher,
+		Logger:      a.Logger,
+		Database:    a.Database,
+		SyncManager: a.SyncManager,
 	})
 
 	// +---------------------+
