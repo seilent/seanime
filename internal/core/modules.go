@@ -89,10 +89,12 @@ func (a *App) initModulesOnce() {
 	// |   Playback Manager  |
 	// +---------------------+
 
-	// Playback Manager
+	// Playback Manager with SSE adapter
+	sseAdapter := events.NewSSEEventManagerAdapter(a.SSEManager)
 	a.PlaybackManager = playbackmanager.New(&playbackmanager.NewPlaybackManagerOptions{
 		Logger:            a.Logger,
-		WSEventManager:    a.WSEventManager,
+		WSEventManager:    a.WSEventManager,    // Keep for backwards compatibility
+		SSEEventManager:   sseAdapter,          // Preferred SSE implementation
 		Platform:          a.AnilistPlatform,
 		MetadataProvider:  a.MetadataProvider,
 		Database:          a.Database,
@@ -118,7 +120,7 @@ func (a *App) initModulesOnce() {
 	a.MangaDownloader = manga.NewDownloader(&manga.NewDownloaderOptions{
 		Database:       a.Database,
 		Logger:         a.Logger,
-		WSEventManager: a.WSEventManager,
+		WSEventManager: sseAdapter,  // Use SSE adapter
 		DownloadDir:    a.Config.Manga.DownloadDir,
 		Repository:     a.MangaRepository,
 		IsOffline:      util.NewBool(false),
@@ -142,7 +144,7 @@ func (a *App) initModulesOnce() {
 
 	a.DirectStreamManager = directstream.NewManager(directstream.NewManagerOptions{
 		Logger:            a.Logger,
-		WSEventManager:    a.WSEventManager,
+		WSEventManager:    sseAdapter,  // Use SSE adapter
 		ContinuityManager: a.ContinuityManager,
 		MetadataProvider:  a.MetadataProvider,
 		DiscordPresence:   a.DiscordPresence,
@@ -158,7 +160,7 @@ func (a *App) initModulesOnce() {
 
 	a.MediastreamRepository = mediastream.NewRepository(&mediastream.NewRepositoryOptions{
 		Logger:         a.Logger,
-		WSEventManager: a.WSEventManager,
+		WSEventManager: sseAdapter,  // Use SSE adapter
 		FileCacher:     a.FileCacher,
 	})
 
@@ -180,7 +182,7 @@ func (a *App) initModulesOnce() {
 		TorrentClientRepository: a.TorrentClientRepository,
 		TorrentRepository:       a.TorrentRepository,
 		Database:                a.Database,
-		WSEventManager:          a.WSEventManager,
+		WSEventManager:          sseAdapter,  // Use SSE adapter
 		MetadataProvider:        a.MetadataProvider,
 		IsOffline:               util.NewBool(false),
 	})
@@ -196,7 +198,7 @@ func (a *App) initModulesOnce() {
 		Database:         a.Database,
 		Platform:         a.AnilistPlatform,
 		Logger:           a.Logger,
-		WSEventManager:   a.WSEventManager,
+		WSEventManager:   sseAdapter,  // Use SSE adapter
 		Enabled:          false, // Will be set in InitOrRefreshModules
 		AutoDownloader:   a.AutoDownloader,
 		MetadataProvider: a.MetadataProvider,
@@ -310,7 +312,7 @@ func (a *App) InitOrRefreshModules() {
 			MpcHc:             a.MediaPlayer.MpcHc,
 			Mpv:               a.MediaPlayer.Mpv, // Socket
 			Iina:              a.MediaPlayer.Iina,
-			WSEventManager:    a.WSEventManager,
+			WSEventManager:    events.NewSSEEventManagerAdapter(a.SSEManager),  // Use SSE adapter
 			ContinuityManager: a.ContinuityManager,
 		})
 
@@ -394,7 +396,7 @@ func (a *App) InitOrRefreshModules() {
 			MetadataProvider:  a.MetadataProvider,
 		})
 
-		a.TorrentClientRepository.InitActiveTorrentCount(globalSettings.Torrent.ShowActiveTorrentCount, a.WSEventManager)
+		a.TorrentClientRepository.InitActiveTorrentCount(globalSettings.Torrent.ShowActiveTorrentCount, events.NewSSEEventManagerAdapter(a.SSEManager))
 
 		// Set AutoDownloader qBittorrent client
 		a.AutoDownloader.SetTorrentClientRepository(a.TorrentClientRepository)
@@ -492,7 +494,8 @@ func (a *App) InitOrRefreshAnilistData() {
 
 	// No global user setup - everything is handled per-user in handlers
 	a.ServerReady = true
-	a.WSEventManager.SendEvent(events.ServerReady, nil)
+	// Send server ready via SSE
+	a.SSEManager.BroadcastEvent(events.ServerReady, nil)
 
 	a.Logger.Info().Msg("app: Multiuser AniList initialization complete")
 }

@@ -67,7 +67,7 @@ func NewManager(opts *NewManagerOptions) *Manager {
 		syncManager:                 opts.SyncManager,
 		watchHistoryFileCacheBucket: &watchHistoryFileCacheBucket,
 		settings: &Settings{
-			WatchContinuityEnabled: false,
+			WatchContinuityEnabled: true,
 		},
 		externalPlayerEpisodeDetails: mo.None[*ExternalPlayerEpisodeDetails](),
 	}
@@ -97,6 +97,14 @@ func (m *Manager) GetSettings() *Settings {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.settings
+}
+
+// GetSyncManager returns the sync manager for progress operations.
+func (m *Manager) GetSyncManager() *libsync.SyncManager {
+	if m == nil {
+		return nil
+	}
+	return m.syncManager
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

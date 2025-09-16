@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
@@ -187,7 +188,8 @@ type (
 	}
 
 	NewPlaybackManagerOptions struct {
-		WSEventManager             events.WSEventManagerInterface
+		WSEventManager             events.WSEventManagerInterface  // Deprecated: use SSEEventManager
+		SSEEventManager            *events.SSEEventManagerAdapter  // Preferred: SSE-based event manager
 		Logger                     *zerolog.Logger
 		Platform                   platform.Platform
 		MetadataProvider           metadata.Provider
@@ -216,12 +218,20 @@ func (e StreamCompletedEvent) Type() string       { return "stream_completed" }
 func (e PlaybackStartingEvent) Type() string      { return "playback_starting" }
 
 func New(opts *NewPlaybackManagerOptions) *PlaybackManager {
+	// Prefer SSE over WebSocket if available
+	var eventManager events.WSEventManagerInterface
+	if opts.SSEEventManager != nil {
+		eventManager = opts.SSEEventManager
+	} else {
+		eventManager = opts.WSEventManager
+	}
+
 	pm := &PlaybackManager{
 		Logger:                       opts.Logger,
 		Database:                     opts.Database,
 		settings:                     &Settings{},
 		discordPresence:              opts.DiscordPresence,
-		wsEventManager:               opts.WSEventManager,
+		wsEventManager:               eventManager,
 		platform:                     opts.Platform,
 		metadataProvider:             opts.MetadataProvider,
 		refreshAnimeCollectionFunc:   opts.RefreshAnimeCollectionFunc,
@@ -323,10 +333,56 @@ func (pm *PlaybackManager) StartPlayingUsingMediaPlayer(opts *StartPlayingOption
 		pm.manualTrackingCtxCancel()
 	}
 
+	// Check for resume point before starting playback
+	var resumeTimeSeconds float64
+	if pm.continuityManager.GetSettings().WatchContinuityEnabled {
+		// Get media information from file path
+		_, localFile, _, err := pm.getLocalFilePlaybackDetails(opts.Payload)
+		if err == nil && localFile != nil {
+			// Get the media ID from the local file
+			mediaId := localFile.MediaId
+			episodeNumber := localFile.GetEpisodeNumber()
+
+			if mediaId > 0 && episodeNumber > 0 {
+				// Check for existing resume point using continuity manager's sync manager
+				if pm.continuityManager != nil && pm.continuityManager.GetSyncManager() != nil {
+					resumePoint, err := pm.continuityManager.GetSyncManager().GetResumePoint(opts.UserID, mediaId, episodeNumber)
+					if err == nil && resumePoint != nil {
+						// Only resume if watch time is significant (>30 seconds) and not near completion (<90%)
+						watchTimeSeconds := float64(resumePoint.ResumeTimeSeconds)
+
+						if watchTimeSeconds > 30 && resumePoint.CompletionPercent < 90 {
+							resumeTimeSeconds = watchTimeSeconds
+							pm.Logger.Debug().
+								Float64("resumeTime", resumeTimeSeconds).
+								Int("mediaId", mediaId).
+								Int("episode", episodeNumber).
+								Msg("playback manager: Resume point found")
+						}
+					}
+				}
+			}
+		}
+	}
+
 	// Send the media file to the media player
 	err = pm.MediaPlayerRepository.Play(opts.Payload)
 	if err != nil {
 		return err
+	}
+
+	// If we have a resume point, seek to it after a short delay to allow player to initialize
+	if resumeTimeSeconds > 0 {
+		go func() {
+			// Wait for the player to start and initialize
+			time.Sleep(3 * time.Second)
+
+			pm.Logger.Debug().Float64("seconds", resumeTimeSeconds).Msg("playback manager: Seeking to resume position")
+			err := pm.MediaPlayerRepository.Seek(resumeTimeSeconds)
+			if err != nil {
+				pm.Logger.Error().Err(err).Msg("playback manager: Failed to seek to resume position")
+			}
+		}()
 	}
 
 	trackingEvent := &PlaybackBeforeTrackingEvent{

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
+	"seanime/internal/events"
 	"seanime/internal/library/anime"
 	"seanime/internal/library/scanner"
 	"seanime/internal/library/summary"
@@ -93,7 +94,7 @@ func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 		OtherDirPaths:      additionalLibraryPaths,
 		Platform:           userPlatform,
 		Logger:             h.App.Logger,
-		WSEventManager:     h.App.WSEventManager,
+		WSEventManager:     events.NewSSEEventManagerAdapter(h.App.SSEManager),
 		ExistingLocalFiles: existingLfs,
 		SkipLockedFiles:    b.SkipLockedFiles,
 		SkipIgnoredFiles:   b.SkipIgnoredFiles,

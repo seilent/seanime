@@ -29,7 +29,8 @@ func (h *Handler) HandleDownloadMangaChapters(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	h.App.WSEventManager.SendEvent(events.InfoToast, "Adding chapters to download queue...")
+	// Send info toast via SSE
+	h.App.SSEManager.BroadcastEvent(events.InfoToast, "Adding chapters to download queue...")
 
 	// Add chapters to the download queue
 	for _, chapterId := range b.ChapterIds {
@@ -134,7 +135,8 @@ func (h *Handler) HandleClearAllChapterDownloadQueue(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	h.App.WSEventManager.SendEvent(events.ChapterDownloadQueueUpdated, nil)
+	// Broadcast queue update via SSE
+	h.App.SSEManager.BroadcastEvent(events.ChapterDownloadQueueUpdated, nil)
 
 	return h.RespondWithData(c, true)
 }
@@ -154,7 +156,8 @@ func (h *Handler) HandleResetErroredChapterDownloadQueue(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	h.App.WSEventManager.SendEvent(events.ChapterDownloadQueueUpdated, nil)
+	// Broadcast queue update via SSE
+	h.App.SSEManager.BroadcastEvent(events.ChapterDownloadQueueUpdated, nil)
 
 	return h.RespondWithData(c, true)
 }

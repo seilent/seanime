@@ -82,6 +82,9 @@ seanime-web/analyze
 seanime-web/TODO-priv.md
 seanime-web/CHANGELOG-priv.md
 
+AGENTS.md
+
+
 codegen/generated/hooks.mdx
 
 
@@ -103,4 +106,3 @@ seanime
 seanime.exe
 
 build-output.log
-

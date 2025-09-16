@@ -20,17 +20,29 @@ type SSEConnection struct {
 	Logger   *zerolog.Logger
 }
 
+// SSESubscriber represents a subscription to events
+type SSESubscriber struct {
+	ConnectionID string
+	EventFilter  string
+	UserID       uint
+}
+
 // SSEManager manages active SSE connections
 type SSEManager struct {
 	connections map[string]*SSEConnection
 	mutex       sync.RWMutex
 	logger      *zerolog.Logger
+
+	// Enhanced functionality for WebSocket compatibility
+	subscribers map[string]*SSESubscriber  // ConnectionID -> Subscriber info
+	db          interface{}               // Database for media subscriptions (optional)
 }
 
 // NewSSEManager creates a new SSE connection manager
 func NewSSEManager(logger *zerolog.Logger) *SSEManager {
 	return &SSEManager{
 		connections: make(map[string]*SSEConnection),
+		subscribers: make(map[string]*SSESubscriber),
 		logger:      logger,
 	}
 }
@@ -57,6 +69,12 @@ func (m *SSEManager) RemoveConnection(id string) {
 	if conn, exists := m.connections[id]; exists {
 		close(conn.Done)
 		delete(m.connections, id)
+
+		// Clean up any subscriptions for this connection
+		if _, hasSubscription := m.subscribers[id]; hasSubscription {
+			delete(m.subscribers, id)
+		}
+
 		m.logger.Debug().Str("connection_id", id).Int("total_connections", len(m.connections)).Msg("sse: Connection removed")
 	}
 }
@@ -190,4 +208,103 @@ func (m *SSEManager) SendEventToUser(userID uint, eventType string, data interfa
 		return
 	}
 	m.BroadcastEventToUser(userID, eventType, data)
+}
+
+// SendEventToConnection sends an event to a specific connection by ID
+// This provides WebSocket SendEventTo compatibility
+func (m *SSEManager) SendEventToConnection(connectionID string, eventType string, data interface{}) {
+	if m == nil {
+		return
+	}
+
+	m.mutex.RLock()
+	conn, exists := m.connections[connectionID]
+	m.mutex.RUnlock()
+
+	if exists {
+		select {
+		case <-conn.Done:
+			// Connection is closed, skip
+			return
+		default:
+			m.sendEventToConnection(conn, eventType, data)
+		}
+		m.logger.Debug().Str("event_type", eventType).Str("connection_id", connectionID).Msg("sse: Event sent to connection")
+	} else {
+		m.logger.Warn().Str("connection_id", connectionID).Msg("sse: Connection not found for SendEventToConnection")
+	}
+}
+
+// SendEventToUsersWithMedia sends an event to all users who have a specific media in their library
+// This provides Enhanced WebSocket compatibility
+func (m *SSEManager) SendEventToUsersWithMedia(mediaID int, eventType string, data interface{}) {
+	if m == nil {
+		return
+	}
+
+	// For now, broadcast to all users - can be enhanced with database integration later
+	m.logger.Debug().Str("event_type", eventType).Int("media_id", mediaID).Msg("sse: Broadcasting event to users with media (fallback to all users)")
+	m.BroadcastEvent(eventType, data)
+}
+
+// SubscribeToEvents creates a subscription for filtered events
+// This provides WebSocket subscription compatibility
+func (m *SSEManager) SubscribeToEvents(connectionID string, eventFilter string) *SSESubscriber {
+	if m == nil {
+		return nil
+	}
+
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	// Get user ID from connection
+	var userID uint
+	if conn, exists := m.connections[connectionID]; exists {
+		userID = conn.UserID
+	}
+
+	subscriber := &SSESubscriber{
+		ConnectionID: connectionID,
+		EventFilter:  eventFilter,
+		UserID:       userID,
+	}
+
+	m.subscribers[connectionID] = subscriber
+	m.logger.Debug().Str("connection_id", connectionID).Str("filter", eventFilter).Msg("sse: Event subscription created")
+
+	return subscriber
+}
+
+// UnsubscribeFromEvents removes a subscription
+// This provides WebSocket unsubscription compatibility
+func (m *SSEManager) UnsubscribeFromEvents(connectionID string) {
+	if m == nil {
+		return
+	}
+
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	if _, exists := m.subscribers[connectionID]; exists {
+		delete(m.subscribers, connectionID)
+		m.logger.Debug().Str("connection_id", connectionID).Msg("sse: Event subscription removed")
+	}
+}
+
+// GetConnectionByUserID finds the first connection for a given user ID
+// Utility method for user-to-connection mapping
+func (m *SSEManager) GetConnectionByUserID(userID uint) (string, bool) {
+	if m == nil {
+		return "", false
+	}
+
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	for id, conn := range m.connections {
+		if conn.UserID == userID {
+			return id, true
+		}
+	}
+	return "", false
 }

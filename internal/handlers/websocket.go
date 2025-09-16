@@ -17,7 +17,9 @@ var (
 	}
 )
 
-// webSocketEventHandler creates a new websocket handler for real-time event communication
+// webSocketEventHandler creates a new websocket handler for bidirectional communication
+// Primary use cases: Plugin events and Native Player communication
+// Most server-to-client events now use SSE (Server-Sent Events)
 func (h *Handler) webSocketEventHandler(c echo.Context) error {
 	// Authenticate user for WebSocket connection
 	user := h.getCurrentUser(c)
@@ -77,7 +79,15 @@ func (h *Handler) webSocketEventHandler(c echo.Context) error {
 			continue // Skip further processing for ping messages
 		}
 
-		h.HandleClientEvents(event)
+		// Only handle plugin and native player events via WebSocket
+		// Other events should use SSE or HTTP endpoints
+		if event.Type == events.PluginEvent || event.Type == events.NativePlayerEventType {
+			h.HandleClientEvents(event)
+		} else {
+			h.App.Logger.Debug().
+				Str("event_type", string(event.Type)).
+				Msg("ws: Non-plugin/native-player event received, consider migrating to SSE")
+		}
 
 		// h.App.Logger.Debug().Msgf("ws: message received: %+v", msg)
 

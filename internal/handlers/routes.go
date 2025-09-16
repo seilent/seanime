@@ -116,6 +116,10 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	// SSE endpoint for Server-Sent Events
 	v1.GET("/sse/events", h.HandleSSEEvents)
 
+	// SSE polling endpoints for client events (HTTP alternative to WebSocket subscriptions)
+	v1.GET("/sse/client-events", h.HandleSSEClientEvents)
+	v1.GET("/sse/native-player-events", h.HandleSSENativePlayerEvents)
+
 	// Setup endpoints (before auth middleware)
 	v1.GET("/setup/required", h.HandleSetupRequired)
 

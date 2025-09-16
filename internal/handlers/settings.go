@@ -260,7 +260,8 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 	}()
 
 
-	h.App.WSEventManager.SendEvent("settings", settings)
+	// Broadcast settings update to all users via SSE
+	h.App.SSEManager.BroadcastEvent("settings", settings)
 
 	status := h.NewStatus(c)
 
@@ -404,7 +405,8 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	h.App.WSEventManager.SendEvent("settings", userSettings)
+	// Broadcast user settings update to all users via SSE
+	h.App.SSEManager.BroadcastEvent("settings", userSettings)
 
 	status := h.NewStatus(c)
 

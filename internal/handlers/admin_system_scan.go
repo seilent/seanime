@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"seanime/internal/api/anilist"
+	"seanime/internal/events"
 	"seanime/internal/library/scanner"
 	"seanime/internal/util/limiter"
 	"time"
@@ -59,7 +60,7 @@ func (h *Handler) HandleStartSystemScan(c echo.Context) error {
 		h.App.AnilistPlatform,
 		h.App.MetadataProvider,
 		h.App.Logger,
-		h.App.WSEventManager,
+		events.NewSSEEventManagerAdapter(h.App.SSEManager),
 		limiter.NewLimiter(time.Second, 10), // Rate limit for AniList API
 		anilist.NewCompleteAnimeCache(),
 	)

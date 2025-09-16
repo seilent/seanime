@@ -208,7 +208,8 @@ func (h *Handler) HandleRemoveMapping(c echo.Context) error {
 	// Send notification to subscribed users that mapping was removed
 	subscribedUsers := h.App.UserSubscriptionService.GetSubscribedUsers(mapping.AniListID)
 	for range subscribedUsers {
-		h.App.WSEventManager.SendEvent("file_unmapped", map[string]interface{}{
+		// Broadcast file unmapped event via SSE
+		h.App.SSEManager.BroadcastEvent("file_unmapped", map[string]interface{}{
 			"anilist_id": mapping.AniListID,
 			"file_path":  body.FilePath,
 			"title":      mapping.Title,
