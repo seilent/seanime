@@ -82,53 +82,69 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("setup has already been completed"))
 	}
 
-	// Set up AniList whitelist and admin user during first-time setup
-	var anilistWhitelist models.StringSlice
-	var adminUsername string
-	var dbUser *models.User
-	if b.AdminAnilistToken != "" {
+    // Set up AniList whitelist and admin user during first-time setup
+    // Note: If no admin token is provided, preserve any existing whitelist instead of overwriting it.
+    var anilistWhitelist models.StringSlice
+    var adminUsername string
+    var dbUser *models.User
+    if b.AdminAnilistToken != "" {
 		// Validate the AniList token and get user info
 		authenticatedClient := anilist.NewAnilistClient(b.AdminAnilistToken)
 		getViewer, err := authenticatedClient.GetViewer(context.Background())
 		if err != nil {
 			return h.RespondWithError(c, fmt.Errorf("invalid AniList token: %w", err))
-		}
+    }
+
+    // If admin token is not provided, try to preserve an existing whitelist
+    if b.AdminAnilistToken == "" {
+        if existing, err := h.App.Database.GetGlobalSettings(); err == nil && existing != nil {
+            if len(existing.AnilistWhitelist) > 0 {
+                anilistWhitelist = existing.AnilistWhitelist
+            }
+        }
+    }
 		
-		adminUsername = getViewer.Viewer.Name
-		anilistWhitelist = models.StringSlice{adminUsername}
-		h.App.Logger.Info().Str("adminUsername", adminUsername).Msg("Set admin AniList username in whitelist during setup")
-		
-		// Create admin user account and authenticate them
-		dbUser = &models.User{
-			Username:    adminUsername,
-			DisplayName: getViewer.Viewer.Name,
-			Role:        "admin",
-			IsActive:    true,
-		}
-		
-		dbUser, err = h.App.Database.CreateUser(dbUser)
-		if err != nil {
-			h.App.Logger.Error().Err(err).Msg("Failed to create admin user")
-		} else {
-			// Create AniList account entry
-			viewerBytes, _ := json.Marshal(getViewer.Viewer)
-			_, err = h.App.Database.UpsertAccount(&models.Account{
-				UserID:   dbUser.ID,
-				Username: getViewer.Viewer.Name,
-				Token:    b.AdminAnilistToken,
-				Viewer:   viewerBytes,
-			})
-			if err != nil {
-				h.App.Logger.Error().Err(err).Msg("Failed to create admin AniList account")
-			}
-			
-			// Create user session and set cookie (7 days expiration)
-			session, err := h.App.Database.CreateUserSession(dbUser.ID, 24*7)
-			if err != nil {
-				h.App.Logger.Error().Err(err).Msg("Failed to create admin user session")
-			} else {
-				// Set session cookie
-				cookie := &http.Cookie{
+        adminUsername = getViewer.Viewer.Name
+        anilistWhitelist = models.StringSlice{adminUsername}
+        h.App.Logger.Info().Str("adminUsername", adminUsername).Msg("Set admin AniList username in whitelist during setup")
+        
+        // Find or create admin user account and authenticate them
+        existingUser, getErr := h.App.Database.GetUserByUsername(adminUsername)
+        if getErr == nil && existingUser != nil {
+            dbUser = existingUser
+        } else {
+            dbUser = &models.User{
+                Username:    adminUsername,
+                DisplayName: getViewer.Viewer.Name,
+                Role:        "admin",
+                IsActive:    true,
+            }
+            dbUser, err = h.App.Database.CreateUser(dbUser)
+            if err != nil {
+                h.App.Logger.Error().Err(err).Msg("Failed to create admin user")
+            }
+        }
+
+        if dbUser != nil && err == nil {
+            // Create AniList account entry
+            viewerBytes, _ := json.Marshal(getViewer.Viewer)
+            _, err = h.App.Database.UpsertAccount(&models.Account{
+                UserID:   dbUser.ID,
+                Username: getViewer.Viewer.Name,
+                Token:    b.AdminAnilistToken,
+                Viewer:   viewerBytes,
+            })
+            if err != nil {
+                h.App.Logger.Error().Err(err).Msg("Failed to create admin AniList account")
+            }
+            
+            // Create user session and set cookie (7 days expiration)
+            session, err := h.App.Database.CreateUserSession(dbUser.ID, 24*7)
+            if err != nil {
+                h.App.Logger.Error().Err(err).Msg("Failed to create admin user session")
+            } else {
+                // Set session cookie
+                cookie := &http.Cookie{
 					Name:     "seanime-session",
 					Value:    session.Token,
 					Path:     "/",
@@ -149,8 +165,8 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 	}
 	b.Library.LibraryPath = filepath.ToSlash(b.Library.LibraryPath)
 
-	// Create global settings (server-wide)
-	globalSettings, err := h.App.Database.UpsertGlobalSettings(&models.GlobalSettings{
+    // Create global settings (server-wide)
+    globalSettings, err := h.App.Database.UpsertGlobalSettings(&models.GlobalSettings{
 		BaseModel: models.BaseModel{
 			ID:        1,
 			UpdatedAt: time.Now(),

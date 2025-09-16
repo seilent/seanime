@@ -17,7 +17,8 @@ import (
 
 // AniListLoginRequest represents the AniList OAuth login request payload
 type AniListLoginRequest struct {
-	Token string `json:"token" validate:"required"` // AniList access token
+    Token  string `json:"token" validate:"required"` // AniList access token
+    DryRun bool   `json:"dryRun"`                     // Validate only, no side effects
 }
 
 // LoginResponse represents the login response
@@ -59,70 +60,50 @@ type ResetPasswordRequest struct {
 //	@route /api/v1/users/login [POST]
 //	@returns LoginResponse
 func (h *Handler) HandleUserLogin(c echo.Context) error {
-	var req AniListLoginRequest
-	if err := c.Bind(&req); err != nil {
-		return h.RespondWithError(c, err)
-	}
+    var req AniListLoginRequest
+    if err := c.Bind(&req); err != nil {
+        return h.RespondWithError(c, err)
+    }
 
-	// Create AniList client with provided token
-	authenticatedClient := anilist.NewAnilistClient(req.Token)
-	getViewer, err := authenticatedClient.GetViewer(context.Background())
-	if err != nil {
-		h.App.Logger.Error().Err(err).Msg("Failed to get AniList user info")
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Failed to get user information from AniList",
-		})
-	}
+    // Create AniList client with provided token
+    authenticatedClient := anilist.NewAnilistClient(req.Token)
+    getViewer, err := authenticatedClient.GetViewer(context.Background())
+    if err != nil {
+        h.App.Logger.Error().Err(err).Msg("Failed to get AniList user info")
+        return c.JSON(http.StatusUnauthorized, map[string]string{
+            "error": "Failed to get user information from AniList",
+        })
+    }
 
-	// Check if user is in whitelist or if this is first setup
-	globalSettings, err := h.App.Database.GetGlobalSettings()
-	if err != nil {
-		// If global settings don't exist, this is first setup
-		globalSettings = nil
-	}
+    // DryRun: only validate token and return username. No whitelist/user/session writes.
+    if req.DryRun {
+        return h.RespondWithData(c, map[string]any{
+            "valid":    true,
+            "username": getViewer.Viewer.Name,
+        })
+    }
+
+    // Check if user is in whitelist or if this is first setup
+    globalSettings, err := h.App.Database.GetGlobalSettings()
+    if err != nil {
+        // If global settings don't exist, this is first setup
+        globalSettings = nil
+    }
 
 	isWhitelisted := false
-	// Check if this is first setup - allow if no whitelist exists
-	isFirstSetup := globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0
-
-	if isFirstSetup {
-		// Only create GlobalSettings if they truly don't exist
-		if globalSettings == nil {
-			// Absolute first setup: create new GlobalSettings
-			anilistWhitelist := models.StringSlice{getViewer.Viewer.Name}
-			_, err = h.App.Database.UpsertGlobalSettings(&models.GlobalSettings{
-				BaseModel: models.BaseModel{
-					ID:        1,
-					UpdatedAt: time.Now(),
-				},
-				AnilistWhitelist: anilistWhitelist,
-			})
-			if err != nil {
-				h.App.Logger.Error().Err(err).Msg("Failed to create whitelist during first setup")
-			} else {
-				h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Created admin whitelist during first setup")
-			}
-		} else {
-			// GlobalSettings exist but whitelist is empty - update only the whitelist
-			globalSettings.AnilistWhitelist = models.StringSlice{getViewer.Viewer.Name}
-			globalSettings.UpdatedAt = time.Now()
-			_, err = h.App.Database.UpsertGlobalSettings(globalSettings)
-			if err != nil {
-				h.App.Logger.Error().Err(err).Msg("Failed to update whitelist during first setup")
-			} else {
-				h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Updated admin whitelist during first setup")
-			}
-		}
-		isWhitelisted = true
-	} else {
-		// Check existing whitelist
-		for _, whitelistedUsername := range globalSettings.AnilistWhitelist {
-			if whitelistedUsername == getViewer.Viewer.Name {
-				isWhitelisted = true
-				break
-			}
-		}
-	}
+    // If setup not completed (no whitelist), block normal login
+    isFirstSetup := globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0
+    if !isFirstSetup {
+        // Check existing whitelist
+        for _, whitelistedUsername := range globalSettings.AnilistWhitelist {
+            if whitelistedUsername == getViewer.Viewer.Name {
+                isWhitelisted = true
+                break
+            }
+        }
+    } else {
+        h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Login blocked: setup not completed (no whitelist)")
+    }
 
 	if !isWhitelisted {
 		h.App.Logger.Warn().Str("username", getViewer.Viewer.Name).Msg("AniList user not in whitelist")
@@ -131,15 +112,15 @@ func (h *Handler) HandleUserLogin(c echo.Context) error {
 		})
 	}
 
-	// Create or update user
-	user, err := h.App.Database.GetUserByUsername(getViewer.Viewer.Name)
-	if err != nil {
-		// User doesn't exist, create new one
-		// First user during setup becomes admin, or first user in whitelist
-		role := "user"
-		if isFirstSetup || (globalSettings != nil && len(globalSettings.AnilistWhitelist) > 0 && globalSettings.AnilistWhitelist[0] == getViewer.Viewer.Name) {
-			role = "admin"
-		}
+    // Create or update user
+    user, err := h.App.Database.GetUserByUsername(getViewer.Viewer.Name)
+    if err != nil {
+        // User doesn't exist, create new one
+        // First user during setup becomes admin, or first user in whitelist
+        role := "user"
+        if (!isFirstSetup) && (globalSettings != nil && len(globalSettings.AnilistWhitelist) > 0 && globalSettings.AnilistWhitelist[0] == getViewer.Viewer.Name) {
+            role = "admin"
+        }
 
 		user = &models.User{
 			Username:    getViewer.Viewer.Name,

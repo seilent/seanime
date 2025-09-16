@@ -12,11 +12,20 @@ import (
 
 // HandleSSEEvents handles SSE connection requests
 func (h *Handler) HandleSSEEvents(c echo.Context) error {
-	// Authenticate user for SSE connection
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Authentication required for SSE connection")
-	}
+    // Authenticate user for SSE connection
+    user := h.getCurrentUser(c)
+    if user == nil {
+        // Fallback: validate session token directly (route may be registered before auth middleware)
+        if token := h.getSessionToken(c); token != "" {
+            if u, err := h.validateUserSession(token); err == nil && u != nil {
+                c.Set("user", u)
+                user = u
+            }
+        }
+        if user == nil {
+            return echo.NewHTTPError(http.StatusUnauthorized, "Authentication required for SSE connection")
+        }
+    }
 
 	// Check if client supports SSE
 	w := c.Response().Writer

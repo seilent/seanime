@@ -112,7 +112,11 @@ func (u *Updater) GetAnnouncements(version string, platform string, settings *mo
 }
 
 func (u *Updater) FetchAnnouncements() []Announcement {
-	var announcements []Announcement
+    var announcements []Announcement
+
+    if !u.checkForUpdate {
+        return announcements
+    }
 
 	response, err := http.Get(constants.AnnouncementURL)
 	if err != nil {
@@ -152,10 +156,10 @@ func (u *Updater) FetchAnnouncements() []Announcement {
 
 	u.announcements = announcements
 
-	if u.wsEventManager.IsPresent() {
-		// Tell the client to send a request to fetch the latest announcements
-		u.wsEventManager.MustGet().SendEvent(events.CheckForAnnouncements, nil)
-	}
+    if u.wsEventManager.IsPresent() {
+        // Tell the client to send a request to fetch the latest announcements
+        u.wsEventManager.MustGet().SendEvent(events.CheckForAnnouncements, nil)
+    }
 
-	return announcements
+    return announcements
 }

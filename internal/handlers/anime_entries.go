@@ -488,11 +488,16 @@ var missingEpisodesCache *anime.MissingEpisodes
 //	@route /api/v1/library/missing-episodes [GET]
 //	@returns anime.MissingEpisodes
 func (h *Handler) HandleGetMissingEpisodes(c echo.Context) error {
-	// Get the current authenticated user
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, errors.New("user not authenticated"))
-	}
+    // Get the current authenticated user
+    user := h.getCurrentUser(c)
+    if user == nil {
+        return h.RespondWithError(c, errors.New("user not authenticated"))
+    }
+
+    // Short-circuit when missing-episodes is disabled
+    if anime.DisableMissingEpisodesCheck {
+        return h.RespondWithData(c, &anime.MissingEpisodes{Episodes: []*anime.Episode{}, SilencedEpisodes: []*anime.Episode{}})
+    }
 
 	h.App.AddOnRefreshAnilistCollectionFunc("HandleGetMissingEpisodes", func() {
 		missingEpisodesCache = nil

@@ -1,14 +1,16 @@
 package handlers
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
-	"seanime/internal/database/models"
-	"seanime/internal/mediastream"
+    "errors"
+    "fmt"
+    "net/http"
+    "seanime/internal/database/models"
+    "seanime/internal/mediastream"
 
-	"github.com/labstack/echo/v4"
+    "github.com/labstack/echo/v4"
 )
+
+// (Unified mediastream settings endpoint removed in favor of split endpoints.)
 
 // HandleGetTranscodingSettings
 //

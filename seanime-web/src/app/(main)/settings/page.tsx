@@ -196,13 +196,11 @@ export default function Page() {
                                     value="external-player-link"
                                     className="group"
                                 ><LuExternalLink className="text-lg mr-3 transition-transform duration-200" /> External Player Link</TabsTrigger>
-                                {/* Admin-only transcoding section */}
-                                {isAdmin && (
-                                    <TabsTrigger
-                                        value="mediastream"
-                                        className="relative group"
-                                    ><MdOutlineBroadcastOnHome className="text-lg mr-3 transition-transform duration-200" /> Transcoding / Direct play</TabsTrigger>
-                                )}
+                                {/* Transcoding section visible to all; server params still admin-only inside */}
+                                <TabsTrigger
+                                    value="mediastream"
+                                    className="relative group"
+                                ><MdOutlineBroadcastOnHome className="text-lg mr-3 transition-transform duration-200" /> Transcoding / Direct play</TabsTrigger>
 
                                 {/* Admin-only torrenting section */}
                                 {isAdmin && (
@@ -766,8 +764,7 @@ export default function Page() {
 
                          </TabsContent> */}
 
-                        {isAdmin && (
-                            <TabsContent value="mediastream" className={tabContentClass}>
+                        <TabsContent value="mediastream" className={tabContentClass}>
 
                                 <SettingsPageHeader
                                     title="Transcoding / Direct play"
@@ -778,7 +775,6 @@ export default function Page() {
                                 <MediastreamSettings />
 
                             </TabsContent>
-                        )}
 
                         <TabsContent value="ui" className={tabContentClass}>
 

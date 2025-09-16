@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"context"
-	"errors"
-	"seanime/internal/database/models"
-	"seanime/internal/util"
-	"time"
+    "context"
+    "errors"
+    "seanime/internal/database/models"
+    "seanime/internal/util"
+    "time"
 
-	"github.com/goccy/go-json"
-	"github.com/labstack/echo/v4"
+    "github.com/goccy/go-json"
+    "github.com/labstack/echo/v4"
 )
 
 // HandleAnilistConnect

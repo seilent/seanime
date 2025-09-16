@@ -96,12 +96,16 @@ func (u *Updater) GetLatestUpdate() (*Update, error) {
 }
 
 func (u *Updater) ShouldRefetchReleases() {
-	u.hasCheckedForUpdate = false
+    if !u.checkForUpdate {
+        return
+    }
 
-	if u.wsEventManager.IsPresent() {
-		// Tell the client to send a request to fetch the latest release
-		u.wsEventManager.MustGet().SendEvent(events.CheckForUpdates, nil)
-	}
+    u.hasCheckedForUpdate = false
+
+    if u.wsEventManager.IsPresent() {
+        // Tell the client to send a request to fetch the latest release
+        u.wsEventManager.MustGet().SendEvent(events.CheckForUpdates, nil)
+    }
 }
 
 func (u *Updater) SetEnabled(checkForUpdate bool) {

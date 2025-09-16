@@ -703,34 +703,38 @@ export function GettingStartedPage({ status }: { status: Status }) {
 }
 
 function AdminTokenField() {
-    const { loginWithToken } = useAuth()
-    const setServerStatus = useSetServerStatus()
+    const form = useFormContext<any>()
     const [token, setToken] = React.useState("")
     const [isLoading, setIsLoading] = React.useState(false)
     const [error, setError] = React.useState("")
+    const [success, setSuccess] = React.useState<string>("")
 
     const handleTokenChange = async (value: string) => {
         setToken(value)
         setError("")
-        
-        // Only attempt login if token looks valid (has some length)
-        if (value.trim().length > 50) { // AniList tokens are typically longer
+        setSuccess("")
+        // Keep token for final /start
+        form.setValue('adminAnilistToken', value.trim())
+
+        if (value.trim().length > 50) {
             setIsLoading(true)
             try {
-                const result = await loginWithToken(value.trim())
-                if (result.success) {
-                    // Refresh server status after successful login
-                    const statusResponse = await fetch('/api/v1/status')
-                    if (statusResponse.ok) {
-                        const statusData = await statusResponse.json() as any
-                        setServerStatus(statusData.data)
-                    }
-                    // Auth context will handle redirect
+                const resp = await fetch('/api/v1/users/login', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: value.trim(), dryRun: true }),
+                })
+                if (resp.ok) {
+                    const data: any = await resp.json().catch(() => undefined)
+                    const username = data?.data?.username as string | undefined
+                    setSuccess(username ? `Valid token for ${username}` : 'Token valid')
                 } else {
-                    setError(result.error || "Invalid token")
+                    const data: any = await resp.json().catch(() => undefined)
+                    setError((data && data.error) || 'Invalid token')
                 }
             } catch (err) {
-                setError("Failed to validate token")
+                setError('Failed to validate token')
             } finally {
                 setIsLoading(false)
             }
@@ -750,15 +754,14 @@ function AdminTokenField() {
             <div className="text-sm text-[--muted]">
                 Copy the token from the URL after authorizing on AniList
             </div>
+            {success && (
+                <div className="text-sm text-emerald-400">{success}</div>
+            )}
             {error && (
-                <div className="text-sm text-red-500">
-                    {error}
-                </div>
+                <div className="text-sm text-red-500">{error}</div>
             )}
             {isLoading && (
-                <div className="text-sm text-[--muted]">
-                    Validating token and logging you in...
-                </div>
+                <div className="text-sm text-[--muted]">Validating token…</div>
             )}
         </div>
     )

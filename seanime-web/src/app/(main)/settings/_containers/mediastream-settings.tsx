@@ -1,4 +1,4 @@
-import { useGetMediastreamSettings, useSaveMediastreamSettings } from "@/api/hooks/mediastream.hooks"
+import { useGetTranscodingSettings, useSaveTranscodingSettings, useGetClientMediaSettings, useSaveClientMediaSettings } from "@/api/hooks/mediastream.hooks"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { useMediastreamActiveOnDevice } from "@/app/(main)/mediastream/_lib/mediastream.atoms"
 import { SettingsSubmitButton } from "@/app/(main)/settings/_components/settings-submit-button"
@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Separator } from "@/components/ui/separator"
 import React from "react"
 import { MdOutlineDevices } from "react-icons/md"
+import { useAuth } from "@/contexts/auth-context"
 
 const mediastreamSchema = defineSchema(({ z }) => z.object({
     transcodeEnabled: z.boolean(),
@@ -52,53 +53,70 @@ export function MediastreamSettings(props: MediastreamSettingsProps) {
     } = props
 
     const serverStatus = useServerStatus()
+    const { isAdmin } = useAuth()
 
-    const { data: settings, isLoading } = useGetMediastreamSettings(true)
+    const { data: transcoding, isLoading: loadingTranscoding } = useGetTranscodingSettings(true)
+    const { data: clientMedia, isLoading: loadingClientMedia } = useGetClientMediaSettings(true)
 
-    const { mutate, isPending } = useSaveMediastreamSettings()
+    const { mutate: saveTranscoding, isPending: savingTranscoding } = useSaveTranscodingSettings()
+    const { mutate: saveClientMedia, isPending: savingClientMedia } = useSaveClientMediaSettings()
 
     const { activeOnDevice, setActiveOnDevice } = useMediastreamActiveOnDevice()
 
-    if (!settings) return <LoadingSpinner />
+    if (!transcoding || !clientMedia || loadingTranscoding || loadingClientMedia) return <LoadingSpinner />
 
     return (
         <>
             <Form
                 schema={mediastreamSchema}
                 onSubmit={data => {
-                    if (settings) {
-                        mutate({
+                    // Save client media settings (per-user)
+                    saveClientMedia({
+                        settings: {
+                            disableAutoSwitchToDirectPlay: data.disableAutoSwitchToDirectPlay,
+                            directPlayOnly: data.directPlayOnly,
+                        },
+                    })
+                    // Save server transcoding settings if admin
+                    if (isAdmin) {
+                        saveTranscoding({
                             settings: {
-                                ...settings,
-                                ...data,
-                                preTranscodeLibraryDir: "",
-                                preTranscodeEnabled: false,
+                                transcodeEnabled: data.transcodeEnabled,
+                                transcodeHwAccel: data.transcodeHwAccel === "cpu" ? "cpu" : data.transcodeHwAccel,
+                                transcodePreset: data.transcodePreset,
                                 transcodeThreads: 0,
+                                preTranscodeEnabled: false,
+                                preTranscodeLibraryDir: "",
+                                ffmpegPath: data.ffmpegPath,
+                                ffprobePath: data.ffprobePath,
+                                transcodeHwAccelCustomSettings: data.transcodeHwAccelCustomSettings,
                             },
                         })
                     }
                 }}
                 defaultValues={{
-                    transcodeEnabled: settings?.transcodeEnabled ?? false,
-                    transcodeHwAccel: settings?.transcodeHwAccel === "none" ? "cpu" : settings?.transcodeHwAccel || "cpu",
-                    transcodePreset: settings?.transcodePreset || "fast",
-                    // transcodeThreads: settings?.transcodeThreads,
-                    // preTranscodeEnabled: settings?.preTranscodeEnabled ?? false,
-                    // preTranscodeLibraryDir: settings?.preTranscodeLibraryDir,
-                    disableAutoSwitchToDirectPlay: settings?.disableAutoSwitchToDirectPlay ?? false,
-                    directPlayOnly: settings?.directPlayOnly ?? false,
-                    ffmpegPath: settings?.ffmpegPath || "",
-                    ffprobePath: settings?.ffprobePath || "",
-                    transcodeHwAccelCustomSettings: settings?.transcodeHwAccelCustomSettings || "{\n	\"name\": \"amf\",\n	\"decodeFlags\": [\n		\"-hwaccel\", \"\",\n		\"-hwaccel_output_format\", \"\",\n	],\n	\"encodeFlags\": [\n		\"-c:v\", \"\",\n		\"-preset\", \"\",\n		\"-pix_fmt\", \"yuv420p\",\n	],\n	\"scaleFilter\": \"scale=%d:%d\"\n}",
+                    transcodeEnabled: transcoding?.transcodeEnabled ?? false,
+                    transcodeHwAccel: transcoding?.transcodeHwAccel === "none" ? "cpu" : transcoding?.transcodeHwAccel || "cpu",
+                    transcodePreset: transcoding?.transcodePreset || "fast",
+                    // transcodeThreads: transcoding?.transcodeThreads,
+                    // preTranscodeEnabled: transcoding?.preTranscodeEnabled ?? false,
+                    // preTranscodeLibraryDir: transcoding?.preTranscodeLibraryDir,
+                    disableAutoSwitchToDirectPlay: clientMedia?.disableAutoSwitchToDirectPlay ?? false,
+                    directPlayOnly: clientMedia?.directPlayOnly ?? false,
+                    ffmpegPath: transcoding?.ffmpegPath || "",
+                    ffprobePath: transcoding?.ffprobePath || "",
+                    transcodeHwAccelCustomSettings: transcoding?.transcodeHwAccelCustomSettings || "{\n\t\"name\": \"amf\",\n\t\"decodeFlags\": [\n\t\t\"-hwaccel\", \"\",\n\t\t\"-hwaccel_output_format\", \"\",\n\t],\n\t\"encodeFlags\": [\n\t\t\"-c:v\", \"\",\n\t\t\"-preset\", \"\",\n\t\t\"-pix_fmt\", \"yuv420p\",\n\t],\n\t\"scaleFilter\": \"scale=%d:%d\"\n}",
                 }}
                 stackClass="space-y-6"
             >
                 {(f) => (
                     <>
-                        <Field.Switch
-                            name="transcodeEnabled"
-                            label="Enable"
-                        />
+                        {isAdmin && (
+                            <Field.Switch
+                                name="transcodeEnabled"
+                                label="Enable"
+                            />
+                        )}
 
                         <div className="flex gap-4 items-center border rounded-md p-2 lg:p-4">
                             <MdOutlineDevices className="text-4xl" />
@@ -137,69 +155,52 @@ export function MediastreamSettings(props: MediastreamSettingsProps) {
                             help="Only allow direct play. Transcoding will never be started."
                         />
 
-                        <Field.Select
-                            options={MEDIASTREAM_HW_ACCEL_OPTIONS}
-                            name="transcodeHwAccel"
-                            label="Hardware acceleration"
-                            help="Hardware acceleration is highly recommended for a smoother transcoding experience."
-                        />
+                        {isAdmin && (
+                            <>
+                                <Field.Select
+                                    options={MEDIASTREAM_HW_ACCEL_OPTIONS}
+                                    name="transcodeHwAccel"
+                                    label="Hardware acceleration"
+                                    help="Hardware acceleration is highly recommended for a smoother transcoding experience."
+                                />
 
-                        {f.watch("transcodeHwAccel") === "custom" && (
-                            <Field.Textarea
-                                name="transcodeHwAccelCustomSettings"
-                                label="Custom settings (JSON)"
-                                className="min-h-[400px]"
-                                help="Video stream only, scaleFilter = -vf, -map,-bufsize,-b:v,-maxrate automatically applied."
-                            />
+                                {f.watch("transcodeHwAccel") === "custom" && (
+                                    <Field.Textarea
+                                        name="transcodeHwAccelCustomSettings"
+                                        label="Custom settings (JSON)"
+                                        className="min-h-[400px]"
+                                        help="Video stream only, scaleFilter = -vf, -map,-bufsize,-b:v,-maxrate automatically applied."
+                                    />
+                                )}
+
+                                <Field.Select
+                                    options={MEDIASTREAM_PRESET_OPTIONS}
+                                    name="transcodePreset"
+                                    label="Transcode preset"
+                                    help="'Fast' is recommended. VAAPI does not support presets."
+                                />
+
+                                <div className="flex gap-3 items-center">
+                                    <Field.Text
+                                        name="ffmpegPath"
+                                        label="FFmpeg path"
+                                        help="Path to the FFmpeg binary. Leave empty if binary is already in your PATH."
+                                    />
+
+                                    <Field.Text
+                                        name="ffprobePath"
+                                        label="FFprobe path"
+                                        help="Path to the FFprobe binary. Leave empty if binary is already in your PATH."
+                                    />
+                                </div>
+                            </>
                         )}
 
-                        <Field.Select
-                            options={MEDIASTREAM_PRESET_OPTIONS}
-                            name="transcodePreset"
-                            label="Transcode preset"
-                            help="'Fast' is recommended. VAAPI does not support presets."
-                        />
-
-                        <div className="flex gap-3 items-center">
-                            <Field.Text
-                                name="ffmpegPath"
-                                label="FFmpeg path"
-                                help="Path to the FFmpeg binary. Leave empty if binary is already in your PATH."
-                            />
-
-                            <Field.Text
-                                name="ffprobePath"
-                                label="FFprobe path"
-                                help="Path to the FFprobe binary. Leave empty if binary is already in your PATH."
-                            />
-                        </div>
-
-                        <SettingsSubmitButton isPending={isPending} />
+                        <SettingsSubmitButton isPending={savingClientMedia || savingTranscoding} />
                     </>
                 )}
             </Form>
 
-            {/*<Separator />*/}
-
-            {/*<h2>Cache</h2>*/}
-
-            {/*<div className="space-y-4">*/}
-            {/*    <div className="flex gap-2 items-center">*/}
-            {/*        <Button intent="white-subtle" size="sm" onClick={() => getTotalSize()} disabled={isFetchingSize}>*/}
-            {/*            Show total size*/}
-            {/*        </Button>*/}
-            {/*        {!!totalSize && (*/}
-            {/*            <p>*/}
-            {/*                {totalSize}*/}
-            {/*            </p>*/}
-            {/*        )}*/}
-            {/*    </div>*/}
-            {/*    <div className="flex gap-2 flex-wrap items-center">*/}
-            {/*        <Button intent="alert-subtle" size="sm" onClick={() => clearCache()} disabled={isClearing}>*/}
-            {/*            Clear cache*/}
-            {/*        </Button>*/}
-            {/*    </div>*/}
-            {/*</div>*/}
         </>
     )
 }

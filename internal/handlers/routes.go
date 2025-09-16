@@ -203,8 +203,8 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1Anilist := v1.Group("/anilist")
 
-	// AniList Connection - Connect user's personal AniList account
-	v1Anilist.POST("/connect", h.HandleAnilistConnect)
+    // AniList Connection - Connect user's personal AniList account
+    v1Anilist.POST("/connect", h.HandleAnilistConnect)
 	v1Anilist.POST("/disconnect", h.HandleAnilistDisconnect)
 	v1Anilist.GET("/status", h.HandleAnilistConnectionStatus)
 

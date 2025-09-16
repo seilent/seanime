@@ -366,18 +366,19 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Initialize modules that only need to be initialized once
 	app.initModulesOnce()
 
-	plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
-		IsOffline:               util.NewBool(false),
-		ContinuityManager:       app.ContinuityManager,
-		AutoScanner:             app.AutoScanner,
-		AutoDownloader:          app.AutoDownloader,
-		FileCacher:              app.FileCacher,
-	})
+    plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
+        IsOffline:               util.NewBool(false),
+        ContinuityManager:       app.ContinuityManager,
+        AutoScanner:             app.AutoScanner,
+        AutoDownloader:          app.AutoDownloader,
+        FileCacher:              app.FileCacher,
+    })
 
-	go app.Updater.FetchAnnouncements()
+    // Initialize all modules that depend on settings
+    app.InitOrRefreshModules()
 
-	// Initialize all modules that depend on settings
-	app.InitOrRefreshModules()
+    // Fetch announcements after modules are initialized so updater respects settings
+    go app.Updater.FetchAnnouncements()
 
 	// Start sync manager for real-time LocalFile and progress tracking
 	if app.SyncManager != nil {

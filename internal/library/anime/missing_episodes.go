@@ -15,10 +15,10 @@ import (
 )
 
 type (
-	MissingEpisodes struct {
-		Episodes         []*Episode `json:"episodes"`
-		SilencedEpisodes []*Episode `json:"silencedEpisodes"`
-	}
+    MissingEpisodes struct {
+        Episodes         []*Episode `json:"episodes"`
+        SilencedEpisodes []*Episode `json:"silencedEpisodes"`
+    }
 
 	NewMissingEpisodesOptions struct {
 		AnimeCollection  *anilist.AnimeCollection
@@ -28,8 +28,18 @@ type (
 	}
 )
 
+// DisableMissingEpisodesCheck can be toggled to short-circuit the
+// missing-episodes computation and always return empty results.
+// Temporary switch to disable the feature without wider code changes.
+var DisableMissingEpisodesCheck = true
+
 func NewMissingEpisodes(opts *NewMissingEpisodesOptions) *MissingEpisodes {
-	missing := new(MissingEpisodes)
+    // Short-circuit when disabled
+    if DisableMissingEpisodesCheck {
+        return &MissingEpisodes{Episodes: []*Episode{}, SilencedEpisodes: []*Episode{}}
+    }
+
+    missing := new(MissingEpisodes)
 
 	reqEvent := new(MissingEpisodesRequestedEvent)
 	reqEvent.AnimeCollection = opts.AnimeCollection

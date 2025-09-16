@@ -1,7 +1,7 @@
 import { getServerBaseUrl } from "@/api/client/server-url"
 import { Anime_Episode, Mediastream_StreamType, Nullish } from "@/api/generated/types"
 import { useHandleContinuityWithMediaPlayer, useHandleCurrentMediaContinuity } from "@/api/hooks/continuity.hooks"
-import { useGetMediastreamSettings, useMediastreamShutdownTranscodeStream, useRequestMediastreamMediaContainer } from "@/api/hooks/mediastream.hooks"
+import { useGetClientMediaSettings, useMediastreamShutdownTranscodeStream, useRequestMediastreamMediaContainer } from "@/api/hooks/mediastream.hooks"
 import { useIsCodecSupported } from "@/app/(main)/_features/sea-media-player/hooks"
 import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
 import { useMediastreamCurrentFile, useMediastreamJassubOffscreenRender } from "@/app/(main)/mediastream/_lib/mediastream.atoms"
@@ -101,7 +101,7 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
     const router = useRouter()
     const { filePath, setFilePath } = useMediastreamCurrentFile()
 
-    const { data: mediastreamSettings, isFetching: mediastreamSettingsLoading } = useGetMediastreamSettings(true)
+    const { data: mediastreamSettings, isFetching: mediastreamSettingsLoading } = useGetClientMediaSettings(true)
 
     /**
      * Stream URL

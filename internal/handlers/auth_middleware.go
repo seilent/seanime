@@ -87,10 +87,10 @@ func (h *Handler) isPublicPath(path string) bool {
 
 // isSetupPath checks if a path should be accessible during initial setup (when no users exist)
 func (h *Handler) isSetupPath(path string) bool {
-	setupPaths := []string{
-		"/api/v1/directory-selector",    // Needed for library path selection
-		"/api/v1/start",                 // Getting started API endpoint
-	}
+    setupPaths := []string{
+        "/api/v1/directory-selector",    // Needed for library path selection
+        "/api/v1/start",                 // Getting started API endpoint
+    }
 
 	// Check exact matches
 	for _, setupPath := range setupPaths {
@@ -142,4 +142,3 @@ func (h *Handler) getCurrentUser(c echo.Context) *models.User {
 	}
 	return user
 }
-
