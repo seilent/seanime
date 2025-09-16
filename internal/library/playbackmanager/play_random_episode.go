@@ -34,10 +34,10 @@ func (pm *PlaybackManager) StartRandomVideo(opts *StartRandomVideoOptions) error
 	// Retrieve random episode
 	//
 
-	// Get lfs for the specific user
-	lfs, _, err := db_bridge.GetLocalFilesForUser(pm.Database, opts.UserID)
+	// Get lfs from global file mappings (shared across users)
+	lfs, _, err := db_bridge.GetLocalFilesFromGlobalMappings(pm.Database)
 	if err != nil {
-		return fmt.Errorf("error getting local files: %s", err.Error())
+		return fmt.Errorf("error getting local files from global mappings: %s", err.Error())
 	}
 
 	// Create a local file wrapper

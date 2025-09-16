@@ -296,7 +296,7 @@ func (lfm *LocalFileManager) HandleUserLibraryChanged(userID uint, addedMediaIDs
 // sendExistingLocalFilesToUser sends all existing LocalFiles for a media to a user
 func (lfm *LocalFileManager) sendExistingLocalFilesToUser(userID uint, mediaID int) {
 	// Get existing LocalFiles for this media from global database
-	localFiles, _, err := db_bridge.GetLocalFiles(lfm.db)
+	localFiles, _, err := db_bridge.GetLocalFilesFromGlobalMappings(lfm.db)
 	if err != nil {
 		lfm.logger.Error().Err(err).
 			Uint("userId", userID).
@@ -481,7 +481,7 @@ func (lfm *LocalFileManager) NotifyNewMediaAvailability(mediaID int, newFiles []
 // GetMediaAvailabilityForUser returns all available episodes for a media that a user can access
 func (lfm *LocalFileManager) GetMediaAvailabilityForUser(userID uint, mediaID int) ([]*anime.LocalFile, error) {
 	// Get all LocalFiles from global database  
-	localFiles, _, err := db_bridge.GetLocalFiles(lfm.db)
+	localFiles, _, err := db_bridge.GetLocalFilesFromGlobalMappings(lfm.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get local files: %w", err)
 	}

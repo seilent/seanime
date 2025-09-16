@@ -113,12 +113,18 @@ func (pm *ProgressManager) StartWatching(userID uint, sessionID string, state *U
 		SessionID:         sessionID,
 	}
 	
-	// Save to database
-	err := pm.db.Gorm().Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "user_id"}},
-		UpdateAll: true,
-	}).Create(activePlayback).Error
+	// Save to database - Fix OnConflict to handle per-user sessions properly
+	// Since UserActivePlayback has unique constraint on user_id only, we need to
+	// delete any existing record first, then create the new one
+	err := pm.db.Gorm().Where("user_id = ?", userID).Delete(&models.UserActivePlayback{}).Error
+	if err != nil {
+		pm.logger.Error().Err(err).
+			Uint("userId", userID).
+			Msg("progress-manager: Failed to clear existing active playback")
+		// Continue anyway - this isn't critical
+	}
 	
+	err = pm.db.Gorm().Create(activePlayback).Error
 	if err != nil {
 		pm.logger.Error().Err(err).
 			Uint("userId", userID).

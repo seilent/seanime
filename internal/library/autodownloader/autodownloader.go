@@ -291,7 +291,7 @@ func (ad *AutoDownloader) checkForNewEpisodes() {
 	}
 
 	// Get local files from the database
-	lfs, _, err := db_bridge.GetLocalFiles(ad.database)
+	lfs, _, err := db_bridge.GetLocalFilesFromGlobalMappings(ad.database)
 	if err != nil {
 		ad.logger.Error().Err(err).Msg("autodownloader: Failed to fetch local files from the database")
 		return

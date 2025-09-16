@@ -198,7 +198,7 @@ func (as *AutoScanner) scan() {
 	}
 
 	// Get existing local files
-	existingLfs, _, err := db_bridge.GetLocalFiles(as.db)
+	existingLfs, _, err := db_bridge.GetLocalFilesFromGlobalMappings(as.db)
 	if err != nil {
 		as.logger.Error().Err(err).Msg("autoscanner: Failed to get existing local files")
 		return

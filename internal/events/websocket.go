@@ -202,8 +202,8 @@ func (m *WSEventManager) SendEventToUser(userID uint, t string, payload interfac
 				Payload: payload,
 			})
 			if err != nil {
-				// Note: NaN error coming from [progress_tracking.go]
-				//m.Logger.Err(err).Msg("ws: Failed to send message")
+				// Log the actual error to help with debugging
+				m.Logger.Warn().Err(err).Str("type", t).Uint("user_id", userID).Msg("ws: Failed to send message")
 			}
 		}
 	}

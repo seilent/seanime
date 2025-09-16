@@ -93,6 +93,7 @@ internal/extension_repo/goja_plugin_test
 .serena/
 CLAUDE.md
 MULTI_USER_IMPLEMENTATION_PLAN.md
+docs/MULTI_USER_ARCHITECTURE.md
 .fastembed_cache/
 .codanna/
 .codannaignore
@@ -102,3 +103,4 @@ seanime
 seanime.exe
 
 build-output.log
+

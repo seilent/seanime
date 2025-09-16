@@ -13,6 +13,7 @@ import (
 	"seanime/internal/hook"
 	"seanime/internal/library/anime"
 	"seanime/internal/mediaplayers/mediaplayer"
+	"seanime/internal/platforms/anilist_platform"
 	"seanime/internal/platforms/platform"
 	"seanime/internal/util"
 	"seanime/internal/util/result"
@@ -673,16 +674,44 @@ func (pm *PlaybackManager) StartPlaylist(playlist *anime.Playlist) (err error) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// getUserSpecificPlatform creates a user-specific platform instance for the current user
+func (pm *PlaybackManager) getUserSpecificPlatform() (platform.Platform, error) {
+	if pm.currentUserID == 0 {
+		return nil, errors.New("no current user ID set")
+	}
+
+	// Get user's AniList account data
+	account, err := pm.Database.GetAccountForUser(pm.currentUserID)
+	if err != nil || account == nil || account.Token == "" {
+		return nil, fmt.Errorf("user %d has no AniList connection: %v", pm.currentUserID, err)
+	}
+
+	// Create user-specific AniList platform
+	client := anilist.NewAnilistClient(account.Token)
+	userPlatform := anilist_platform.NewAnilistPlatform(client, pm.Logger)
+	userPlatform.SetUsername(account.Username)
+
+	return userPlatform, nil
+}
+
 func (pm *PlaybackManager) checkOrLoadAnimeCollection() (err error) {
 	defer util.HandlePanicInModuleWithError("library/playbackmanager/checkOrLoadAnimeCollection", &err)
 
 	if pm.animeCollection.IsAbsent() {
-		// If the anime collection is not present, we retrieve it from the platform
-		collection, err := pm.platform.GetAnimeCollection(context.Background(), false)
+		// If the anime collection is not present, we retrieve it from the user-specific platform
+		userPlatform, err := pm.getUserSpecificPlatform()
 		if err != nil {
+			pm.Logger.Error().Err(err).Uint("userID", pm.currentUserID).Msg("playback manager: Failed to get user-specific platform")
+			return err
+		}
+
+		collection, err := userPlatform.GetAnimeCollection(context.Background(), false)
+		if err != nil {
+			pm.Logger.Error().Err(err).Uint("userID", pm.currentUserID).Msg("playback manager: Failed to get anime collection for user")
 			return err
 		}
 		pm.animeCollection = mo.Some(collection)
+		pm.Logger.Debug().Uint("userID", pm.currentUserID).Msg("playback manager: Loaded user-specific anime collection")
 	}
 	return nil
 }

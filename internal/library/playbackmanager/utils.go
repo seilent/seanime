@@ -7,8 +7,6 @@ import (
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/hook"
 	"seanime/internal/library/anime"
-	"seanime/internal/util"
-	"strings"
 
 	"github.com/samber/mo"
 )
@@ -25,15 +23,12 @@ func (pm *PlaybackManager) GetCurrentMediaID() (int, error) {
 func (pm *PlaybackManager) getLocalFilePlaybackDetails(path string) (*anilist.AnimeListEntry, *anime.LocalFile, *anime.LocalFileWrapperEntry, error) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	// Normalize path
-	path = util.NormalizePath(path)
-
 	pm.Logger.Debug().Str("path", path).Msg("playback manager: Getting local file playback details")
 
-	// Find the local file from the path
-	lfs, _, err := db_bridge.GetLocalFiles(pm.Database)
+	// Find the local file from the path - use global file mappings (shared across users)
+	lfs, _, err := db_bridge.GetLocalFilesFromGlobalMappings(pm.Database)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error getting local files: %s", err.Error())
+		return nil, nil, nil, fmt.Errorf("error getting local files from global mappings: %s", err.Error())
 	}
 
 	reqEvent := &PlaybackLocalFileDetailsRequestedEvent{
@@ -59,11 +54,11 @@ func (pm *PlaybackManager) getLocalFilePlaybackDetails(path string) (*anilist.An
 	}
 
 	var lf *anime.LocalFile
-	// Find the local file from the path
+	// Find the local file from the path - use exact path matching
 	for _, l := range lfs {
-		if l.GetNormalizedPath() == path {
+		if l.Path == path {
 			lf = l
-			pm.Logger.Debug().Msg("playback manager: Local file found by path")
+			pm.Logger.Debug().Msg("playback manager: Local file found by exact path")
 			break
 		}
 	}
@@ -71,8 +66,8 @@ func (pm *PlaybackManager) getLocalFilePlaybackDetails(path string) (*anilist.An
 	// If the local file is not found, the path might be a filename (in the case of VLC)
 	if lf == nil {
 		for _, l := range lfs {
-			if strings.ToLower(l.Name) == path {
-				pm.Logger.Debug().Msg("playback manager: Local file found by name")
+			if l.Name == path {
+				pm.Logger.Debug().Msg("playback manager: Local file found by exact filename")
 				lf = l
 				break
 			}
