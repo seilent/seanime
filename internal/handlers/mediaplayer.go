@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -11,8 +12,14 @@ import (
 //	@returns bool
 func (h *Handler) HandleStartDefaultMediaPlayer(c echo.Context) error {
 
-	// Retrieve settings
-	settings, err := h.App.Database.GetSettings()
+	// Get current user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, fmt.Errorf("user authentication required"))
+	}
+
+	// Retrieve user settings
+	settings, err := h.App.Database.GetSettingsForUser(user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}

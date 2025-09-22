@@ -51,6 +51,98 @@ func (h *Handler) HandleGetSettings(c echo.Context) error {
 	return h.RespondWithData(c, userSettings)
 }
 
+// HandleGetGlobalSettings
+//
+//	@summary returns the global server settings (admin-only).
+//	@desc Returns server-wide settings like library paths, torrent settings, etc.
+//	@route /api/v1/settings/global [GET]
+//	@returns models.GlobalSettings
+func (h *Handler) HandleGetGlobalSettings(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil || !user.IsAdmin() {
+		return c.JSON(403, map[string]string{"error": "Admin access required"})
+	}
+
+	globalSettings, err := h.App.Database.GetGlobalSettings()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	return h.RespondWithData(c, globalSettings)
+}
+
+// HandleUpdateGlobalSettings
+//
+//	@summary updates global server settings (admin-only).
+//	@desc Updates server-wide settings like library paths, torrent settings, etc.
+//	@route /api/v1/settings/global [PUT]
+//	@returns models.GlobalSettings
+func (h *Handler) HandleUpdateGlobalSettings(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil || !user.IsAdmin() {
+		return c.JSON(403, map[string]string{"error": "Admin access required"})
+	}
+
+	var settings models.GlobalSettings
+	if err := c.Bind(&settings); err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	updatedSettings, err := h.App.Database.UpsertGlobalSettings(&settings)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	return h.RespondWithData(c, updatedSettings)
+}
+
+// HandleGetUserSettings
+//
+//	@summary returns the current user's personal settings.
+//	@desc Returns user-specific settings like media player preferences, display settings, etc.
+//	@route /api/v1/settings/user [GET]
+//	@returns models.Settings
+func (h *Handler) HandleGetUserSettings(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(401, map[string]string{"error": "Authentication required"})
+	}
+
+	userSettings, err := h.App.Database.GetSettingsForUser(user.ID)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	return h.RespondWithData(c, userSettings)
+}
+
+// HandleUpdateUserSettings
+//
+//	@summary updates the current user's personal settings.
+//	@desc Updates user-specific settings like media player preferences, display settings, etc.
+//	@route /api/v1/settings/user [PUT]
+//	@returns models.Settings
+func (h *Handler) HandleUpdateUserSettings(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(401, map[string]string{"error": "Authentication required"})
+	}
+
+	var settings models.Settings
+	if err := c.Bind(&settings); err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Ensure the settings are for the current user
+	settings.UserID = user.ID
+
+	if err := h.App.Database.SaveSettingsForUser(user.ID, &settings); err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	return h.RespondWithData(c, settings)
+}
+
 // HandleGettingStarted
 //
 //	@summary updates the app settings.

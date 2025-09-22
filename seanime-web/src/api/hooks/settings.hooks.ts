@@ -62,3 +62,54 @@ export function useSaveAutoDownloaderSettings() {
         },
     })
 }
+
+// Multi-user settings hooks
+export function useGetGlobalSettings() {
+    return useServerQuery<any>({
+        endpoint: "/api/v1/settings/global",
+        method: "GET",
+        queryKey: ["global-settings"],
+        enabled: false, // Only enable for admin users
+    })
+}
+
+export function useUpdateGlobalSettings() {
+    const queryClient = useQueryClient()
+
+    return useServerMutation<any, any>({
+        endpoint: "/api/v1/settings/global",
+        method: "PUT",
+        mutationKey: ["update-global-settings"],
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["global-settings"] })
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.SETTINGS.GetSettings.key] })
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.STATUS.GetStatus.key] })
+            toast.success("Global settings saved")
+        },
+    })
+}
+
+export function useGetUserSettings() {
+    return useServerQuery<Models_Settings>({
+        endpoint: "/api/v1/settings/user",
+        method: "GET",
+        queryKey: ["user-settings"],
+        enabled: true,
+    })
+}
+
+export function useUpdateUserSettings() {
+    const queryClient = useQueryClient()
+
+    return useServerMutation<Models_Settings, Models_Settings>({
+        endpoint: "/api/v1/settings/user",
+        method: "PUT",
+        mutationKey: ["update-user-settings"],
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["user-settings"] })
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.SETTINGS.GetSettings.key] })
+            await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.STATUS.GetStatus.key] })
+            toast.success("Personal settings saved")
+        },
+    })
+}

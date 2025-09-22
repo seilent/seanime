@@ -175,10 +175,16 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	// Admin Unmapped Files Management - handled by global-mapping routes
 
 	// Settings
-	v1.GET("/settings", h.HandleGetSettings)
+	v1.GET("/settings", h.HandleGetSettings) // Legacy: merged global + user settings
 	v1.PATCH("/settings", h.HandleSaveSettings)
 	v1.POST("/start", h.HandleGettingStarted)
 	v1.PATCH("/settings/auto-downloader", h.HandleSaveAutoDownloaderSettings)
+
+	// Multi-user settings endpoints
+	v1.GET("/settings/global", h.HandleGetGlobalSettings)        // Admin-only global settings
+	v1.PUT("/settings/global", h.HandleUpdateGlobalSettings)    // Admin-only global settings
+	v1.GET("/settings/user", h.HandleGetUserSettings)           // Current user's settings
+	v1.PUT("/settings/user", h.HandleUpdateUserSettings)       // Current user's settings
 
 	// Auto Downloader
 	v1.POST("/auto-downloader/run", h.HandleRunAutoDownloader)

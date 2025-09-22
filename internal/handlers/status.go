@@ -346,9 +346,16 @@ func (h *Handler) HandleGetAnnouncements(c echo.Context) error {
 	}
 
 	// Legacy: GetAnnouncements still expects Settings type, not GlobalSettings
-	settings, _ := h.App.Database.GetSettings()
+	// Create a minimal settings object with global settings for compatibility
+	globalSettings, _ := h.App.Database.GetGlobalSettings()
+	compatSettings := &models.Settings{
+		Library:        globalSettings.Library,
+		Torrent:        globalSettings.Torrent,
+		AutoDownloader: globalSettings.AutoDownloader,
+		Transcoding:    globalSettings.Transcoding,
+	}
 
-	announcements := h.App.Updater.GetAnnouncements(h.App.Version, b.Platform, settings)
+	announcements := h.App.Updater.GetAnnouncements(h.App.Version, b.Platform, compatSettings)
 
 	return h.RespondWithData(c, announcements)
 

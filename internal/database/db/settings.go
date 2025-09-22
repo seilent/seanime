@@ -54,7 +54,11 @@ func (db *Database) UpsertSettings(settings *models.Settings) (*models.Settings,
 	return settings, nil
 }
 
+// DEPRECATED: Use GetGlobalSettings() for server-wide settings or GetSettingsForUser(userID) for user-specific settings
+// This method is kept for legacy compatibility but should not be used in new code
 func (db *Database) GetSettings() (*models.Settings, error) {
+	db.Logger.Warn().Msg("db: GetSettings() is deprecated. Use GetGlobalSettings() or GetSettingsForUser(userID)")
+
 	var settings models.Settings
 	err := db.gormdb.Where("id = ?", 1).First(&settings).Error
 	if err != nil {

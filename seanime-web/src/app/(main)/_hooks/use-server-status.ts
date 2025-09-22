@@ -3,6 +3,7 @@ import { TORRENT_PROVIDER } from "@/lib/server/settings"
 import { useAtomValue } from "jotai"
 import { useSetAtom } from "jotai/react"
 import React from "react"
+import { useAuth } from "@/contexts/auth-context"
 
 export function useServerStatus() {
     return useAtomValue(serverStatusAtom)
@@ -13,8 +14,8 @@ export function useSetServerStatus() {
 }
 
 export function useCurrentUser() {
-    const serverStatus = useServerStatus()
-    return React.useMemo(() => serverStatus?.user, [serverStatus?.user])
+    const { user } = useAuth()
+    return React.useMemo(() => user, [user])
 }
 
 export function useHasTorrentProvider() {

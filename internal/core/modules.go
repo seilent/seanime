@@ -247,13 +247,30 @@ func (a *App) InitOrRefreshModules() {
 		return
 	}
 
-	// Get user settings (for first user or admin)
-	userSettings, err := a.Database.GetSettings()
-	if err != nil {
-		userSettings = nil // User settings are optional
+	// User-specific settings should not be loaded at app startup
+	// Each user will load their own settings when authenticated
+	// For app initialization, use default user settings
+	var userSettings *models.Settings
+	userSettings = &models.Settings{
+		MediaPlayer: &models.MediaPlayerSettings{
+			Default:     "vlc",
+			Host:        "127.0.0.1",
+			VlcUsername: "",
+			VlcPassword: "",
+			VlcPort:     8080,
+			VlcPath:     "",
+			MpcPort:     13579,
+			MpcPath:     "",
+			MpvSocket:   "",
+			MpvPath:     "",
+			MpvArgs:     "",
+			IinaSocket:  "",
+			IinaPath:    "",
+			IinaArgs:    "",
+		},
 	}
 
-	a.Settings = userSettings // Store user settings instance in app
+	a.Settings = userSettings // Store default user settings instance in app
 	a.GlobalSettings = globalSettings // Store global settings instance in app
 	if globalSettings.Library != nil {
 		a.LibraryDir = globalSettings.GetLibrary().LibraryPath
