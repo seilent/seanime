@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
 import { ExtensionRepo_UpdateData } from "@/api/generated/types"
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 import { WSEvents } from "@/lib/server/ws-events"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -12,36 +12,31 @@ export function useExtensionListener() {
 
     const qc = useQueryClient()
 
-    useWebsocketMessageListener<number>({
-        type: WSEvents.EXTENSIONS_RELOADED,
-        onMessage: () => {
-            (async () => {
-                await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListAnimeTorrentProviderExtensions.key] })
-                await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListMangaProviderExtensions.key] })
-                await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListOnlinestreamProviderExtensions.key] })
-                await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListExtensionData.key] })
-                await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetAllExtensions.key] })
-                await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetExtensionUserConfig.key] })
-                await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetExtensionUpdateData.key] })
-                await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListDevelopmentModeExtensions.key] })
-            })()
-        },
-    })
-
-    useWebsocketMessageListener<number>({
-        type: WSEvents.PLUGIN_UNLOADED,
-        onMessage: () => {
-            (async () => {
-                await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListDevelopmentModeExtensions.key] })
-            })()
-        },
-    })
-
-    useWebsocketMessageListener<ExtensionRepo_UpdateData[]>({
-        type: WSEvents.EXTENSION_UPDATES_FOUND,
-        onMessage: async (data) => {
-            await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetExtensionUpdateData.key] })
-            await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetAllExtensions.key] })
+    useSSEEvents({
+        enabled: true,
+        onEvent: async (evt: any) => {
+            switch (evt.type) {
+                case WSEvents.EXTENSIONS_RELOADED: {
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListAnimeTorrentProviderExtensions.key] })
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListMangaProviderExtensions.key] })
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListOnlinestreamProviderExtensions.key] })
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListExtensionData.key] })
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetAllExtensions.key] })
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetExtensionUserConfig.key] })
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetExtensionUpdateData.key] })
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListDevelopmentModeExtensions.key] })
+                    break
+                }
+                case WSEvents.PLUGIN_UNLOADED: {
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.ListDevelopmentModeExtensions.key] })
+                    break
+                }
+                case WSEvents.EXTENSION_UPDATES_FOUND: {
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetExtensionUpdateData.key] })
+                    await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.EXTENSIONS.GetAllExtensions.key] })
+                    break
+                }
+            }
         },
     })
 

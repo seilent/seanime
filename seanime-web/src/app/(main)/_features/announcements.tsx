@@ -2,7 +2,7 @@
 
 import { Updater_Announcement, Updater_AnnouncementAction, Updater_AnnouncementSeverity } from "@/api/generated/types"
 import { useGetAnnouncements } from "@/api/hooks/status.hooks"
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useUpdateEffect } from "@/components/ui/core/hooks"
@@ -31,10 +31,12 @@ export function Announcements() {
         })
     }
 
-    useWebsocketMessageListener({
-        type: WSEvents.CHECK_FOR_ANNOUNCEMENTS,
-        onMessage: () => {
-            handleCheckForAnnouncements()
+    useSSEEvents({
+        enabled: true,
+        onEvent: (evt: any) => {
+            if (evt.type === WSEvents.CHECK_FOR_ANNOUNCEMENTS) {
+                handleCheckForAnnouncements()
+            }
         },
     })
 

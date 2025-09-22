@@ -1,5 +1,4 @@
 import { usePlaybackCancelManualTracking, usePlaybackStartManualTracking, usePlaybackSyncCurrentProgress } from "@/api/hooks/playback_manager.hooks"
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
 import { Button, IconButton } from "@/components/ui/button"
 import { cn } from "@/components/ui/core/styling"
 import { Modal } from "@/components/ui/modal"
@@ -10,6 +9,7 @@ import Image from "next/image"
 import React from "react"
 import { PiPopcornFill } from "react-icons/pi"
 import { PlaybackManager_PlaybackState } from "./_lib/playback-manager.types"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 
 type ManualProgressTrackingProps = {
     asSidebarButton?: boolean
@@ -63,14 +63,24 @@ export function ManualProgressTracking() {
     const [state, setState] = React.useState<PlaybackManager_PlaybackState | null>(null)
     const [showModal, setShowModal] = useAtom(__mpt_showModalAtom)
 
-    // Playback state
-    useWebsocketMessageListener<PlaybackManager_PlaybackState | null>({
-        type: WSEvents.PLAYBACK_MANAGER_MANUAL_TRACKING_PLAYBACK_STATE,
-        onMessage: data => {
-            if (!isWatching) {
-                setIsWatching(true)
+    // Listen to manual tracking via SSE
+    useSSEEvents({
+        enabled: true,
+        onEvent: (evt) => {
+            switch (evt.type) {
+                case WSEvents.PLAYBACK_MANAGER_MANUAL_TRACKING_PLAYBACK_STATE: {
+                    const data = evt.payload as PlaybackManager_PlaybackState | null
+                    if (!isWatching) setIsWatching(true)
+                    setState(data)
+                    break
+                }
+                case WSEvents.PLAYBACK_MANAGER_MANUAL_TRACKING_STOPPED: {
+                    setIsWatching(false)
+                    setShowModal(false)
+                    setState(null)
+                    break
+                }
             }
-            setState(data)
         },
     })
 
@@ -81,14 +91,7 @@ export function ManualProgressTracking() {
         stateRef.current = state
     }, [state])
 
-    useWebsocketMessageListener({
-        type: WSEvents.PLAYBACK_MANAGER_MANUAL_TRACKING_STOPPED,
-        onMessage: () => {
-            setIsWatching(false)
-            setShowModal(false)
-            setState(null)
-        },
-    })
+    // WebSocket listener removed in favor of SSE above
 
     const { mutate: syncProgress, isPending: isSyncing } = usePlaybackSyncCurrentProgress()
 

@@ -8,7 +8,7 @@ import {
 import { AutoplayCountdownModal } from "@/app/(main)/_features/progress-tracking/_components/autoplay-countdown-modal"
 import { useAutoplay, useNextEpisodeResolver } from "@/app/(main)/_features/progress-tracking/_lib/autoplay"
 import { PlaybackManager_PlaybackState, PlaybackManager_PlaylistState } from "@/app/(main)/_features/progress-tracking/_lib/playback-manager.types"
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+// Switched from WebSocket listeners to SSE for Playback Manager events
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { ConfirmationDialog, useConfirmationDialog } from "@/components/shared/confirmation-dialog"
 import { imageShimmer } from "@/components/shared/image-helpers"
@@ -28,6 +28,7 @@ import { BiSolidSkipNextCircle } from "react-icons/bi"
 import { MdCancel } from "react-icons/md"
 import { PiPopcornFill } from "react-icons/pi"
 import { toast } from "sonner"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 
 const __pt_showModalAtom = atom(false)
 const __pt_isTrackingAtom = atom(false)
@@ -122,101 +123,86 @@ export function PlaybackManagerProgressTracking() {
         isPending: submittingNextEpisode,
     } = usePlaybackPlayNextEpisode([state?.filename])
 
-    // Tracking started
-    useWebsocketMessageListener<PlaybackManager_PlaybackState | null>({
-        type: WSEvents.PLAYBACK_MANAGER_PROGRESS_TRACKING_STARTED,
-        onMessage: data => {
-            logger("PlaybackManagerProgressTracking").info("Tracking started", data)
-            setIsTracking(true)
-            setIsCompleted(false)
-            setShowModal(true) // Show the modal when tracking starts
-            setState(data)
-        },
-    })
-
-    // Video completed
-    useWebsocketMessageListener<PlaybackManager_PlaybackState | null>({
-        type: WSEvents.PLAYBACK_MANAGER_PROGRESS_VIDEO_COMPLETED,
-        onMessage: data => {
-            logger("PlaybackManagerProgressTracking").info("Video completed", data)
-            setIsCompleted(true)
-            setState(data)
-        },
-    })
-
-    // Tracking stopped completely
-    useWebsocketMessageListener<string>({
-        type: WSEvents.PLAYBACK_MANAGER_PROGRESS_TRACKING_STOPPED,
-        onMessage: data => {
-            logger("PlaybackManagerProgressTracking").info("Tracking stopped", data, "Completion percentage:", state?.completionPercentage)
-            setIsTracking(false)
-            // Letting 'isCompleted' be true if the progress hasn't been updated
-            // so the modal is left available for the user to update the progress manually
-            if (state?.progressUpdated) {
-                // Setting 'isCompleted' to 'false' to hide the modal
-                logger("PlaybackManagerProgressTracking").info("Progress updated, setting isCompleted to false")
+    // Convert to SSE-based event handling for Playback Manager
+    const handlePmEvent = React.useCallback((type: string, payload: any) => {
+        switch (type) {
+            case WSEvents.PLAYBACK_MANAGER_PROGRESS_TRACKING_STARTED: {
+                const data = payload as PlaybackManager_PlaybackState | null
+                logger("PlaybackManagerProgressTracking").info("Tracking started (SSE)", data)
+                setIsTracking(true)
                 setIsCompleted(false)
+                setShowModal(true)
+                setState(data)
+                break
             }
-
-            if (data === "Player closed") {
-                toast.info("Player closed")
-
-                if ((state?.completionPercentage || 0) <= 0.8) {
+            case WSEvents.PLAYBACK_MANAGER_PROGRESS_PLAYBACK_STATE: {
+                const data = payload as PlaybackManager_PlaybackState | null
+                if (!isTracking) setIsTracking(true)
+                setState(data)
+                break
+            }
+            case WSEvents.PLAYBACK_MANAGER_PROGRESS_VIDEO_COMPLETED: {
+                const data = payload as PlaybackManager_PlaybackState | null
+                logger("PlaybackManagerProgressTracking").info("Video completed (SSE)", data)
+                setIsCompleted(true)
+                setState(data)
+                break
+            }
+            case WSEvents.PLAYBACK_MANAGER_PROGRESS_TRACKING_STOPPED: {
+                const reason = payload as string
+                logger("PlaybackManagerProgressTracking").info("Tracking stopped (SSE)", reason, "Completion:", state?.completionPercentage)
+                setIsTracking(false)
+                if (state?.progressUpdated) {
+                    logger("PlaybackManagerProgressTracking").info("Progress updated, setting isCompleted to false")
                     setIsCompleted(false)
                 }
-            } else if (data === "Tracking stopped") {
-                toast.info("Tracking stopped")
-            } else {
-                toast.error(data)
-            }
-
-            qc.invalidateQueries({ queryKey: [API_ENDPOINTS.CONTINUITY.GetContinuityWatchHistory.key] }).then()
-
-            // Start unified autoplay if conditions are met
-            if (!playlistState && state && state.completionPercentage && state.completionPercentage > 0.7) {
-                if (!autoplayState.isActive) {
-                    startAutoplay(state, nextEpisodeToPlay || undefined, "local")
+                if (reason === "Player closed") {
+                    toast.info("Player closed")
+                    if ((state?.completionPercentage || 0) <= 0.8) setIsCompleted(false)
+                } else if (reason === "Tracking stopped") {
+                    toast.info("Tracking stopped")
+                } else if (reason) {
+                    toast.error(reason)
                 }
+                qc.invalidateQueries({ queryKey: [API_ENDPOINTS.CONTINUITY.GetContinuityWatchHistory.key] }).then()
+                if (!playlistState && state && state.completionPercentage && state.completionPercentage > 0.7) {
+                    if (!autoplayState.isActive) startAutoplay(state, nextEpisodeToPlay || undefined, "local")
+                }
+                setState(null)
+                break
             }
-            setState(null)
-        },
-    })
-
-
-
-
-    // Playback state
-    useWebsocketMessageListener<PlaybackManager_PlaybackState | null>({
-        type: WSEvents.PLAYBACK_MANAGER_PROGRESS_PLAYBACK_STATE,
-        onMessage: data => {
-            if (!isTracking) {
-                setIsTracking(true)
+            case WSEvents.PLAYBACK_MANAGER_PROGRESS_UPDATED: {
+                const data = payload as PlaybackManager_PlaybackState | null
+                if (data) {
+                    qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetAnimeEntry.key, String(data.mediaId)] })
+                    qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetLibraryCollection.key] })
+                    qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANILIST.GetAnimeCollection.key] })
+                    setState(data)
+                    toast.success("Progress updated")
+                }
+                break
             }
-            setState(data)
-        },
-    })
-
-    const queryClient = useQueryClient()
-
-    // Progress has been updated
-    useWebsocketMessageListener<PlaybackManager_PlaybackState | null>({
-        type: WSEvents.PLAYBACK_MANAGER_PROGRESS_UPDATED,
-        onMessage: data => {
-            if (data) {
-                queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetAnimeEntry.key, String(data.mediaId)] })
-                queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetLibraryCollection.key] })
-                queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANILIST.GetAnimeCollection.key] })
-
-                setState(data)
-                toast.success("Progress updated")
+            case WSEvents.PLAYBACK_MANAGER_PLAYLIST_STATE: {
+                const data = payload as PlaybackManager_PlaylistState | null
+                setPlaylistState(data)
+                break
             }
-        },
-    })
+        }
+    }, [isTracking, state, playlistState, autoplayState.isActive, startAutoplay, nextEpisodeToPlay, qc])
 
-    useWebsocketMessageListener<PlaybackManager_PlaylistState | null>({
-        type: WSEvents.PLAYBACK_MANAGER_PLAYLIST_STATE,
-        onMessage: data => {
-            setPlaylistState(data)
+    useSSEEvents({
+        enabled: true,
+        onEvent: (evt) => {
+            switch (evt.type) {
+                case WSEvents.PLAYBACK_MANAGER_PROGRESS_TRACKING_STARTED:
+                case WSEvents.PLAYBACK_MANAGER_PROGRESS_PLAYBACK_STATE:
+                case WSEvents.PLAYBACK_MANAGER_PROGRESS_VIDEO_COMPLETED:
+                case WSEvents.PLAYBACK_MANAGER_PROGRESS_TRACKING_STOPPED:
+                case WSEvents.PLAYBACK_MANAGER_PROGRESS_UPDATED:
+                case WSEvents.PLAYBACK_MANAGER_PLAYLIST_STATE:
+                    handlePmEvent(evt.type, evt.payload)
+                    break
+            }
         },
     })
 

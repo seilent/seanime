@@ -10,7 +10,7 @@ import { SidebarNavbar } from "@/app/(main)/_features/layout/top-navbar"
 import { useOpenSeaCommand } from "@/app/(main)/_features/sea-command/sea-command"
 import { UpdateModal } from "@/app/(main)/_features/update/update-modal"
 import { useAutoDownloaderQueueCount } from "@/app/(main)/_hooks/autodownloader-queue-count"
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 import { useMissingEpisodeCount } from "@/app/(main)/_hooks/missing-episodes-loader"
 import { useCurrentUser, useServerStatus, useSetServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { TauriUpdateModal } from "@/app/(main)/_tauri/tauri-update-modal"
@@ -117,10 +117,12 @@ export function MainSidebar() {
     })
 
     const [activeTorrentCount, setActiveTorrentCount] = React.useState({ downloading: 0, paused: 0, seeding: 0 })
-    useWebsocketMessageListener<{ downloading: number, paused: number, seeding: number }>({
-        type: WSEvents.ACTIVE_TORRENT_COUNT_UPDATED,
-        onMessage: data => {
-            setActiveTorrentCount(data)
+    useSSEEvents({
+        enabled: true,
+        onEvent: (evt: any) => {
+            if (evt.type === WSEvents.ACTIVE_TORRENT_COUNT_UPDATED) {
+                setActiveTorrentCount(evt.payload as { downloading: number, paused: number, seeding: number })
+            }
         },
     })
 

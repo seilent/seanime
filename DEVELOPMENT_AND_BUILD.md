@@ -20,20 +20,7 @@
 
 ### 2. Building the Server
 
-Choose the appropriate command based on your target platform:
-
-1. **Windows (System Tray)**:
-   ```bash
-   set CGO_ENABLED=1
-   go build -o seanime.exe -trimpath -ldflags="-s -w -H=windowsgui -extldflags '-static'"
-   ```
-
-2. **Windows (No System Tray)** - Used by the desktop app:
-   ```bash
-   go build -o seanime.exe -trimpath -ldflags="-s -w" -tags=nosystray
-   ```
-
-3. **Linux/macOS**:
+1. **Linux/macOS**:
    ```bash
    go build -o seanime -trimpath -ldflags="-s -w"
    ```

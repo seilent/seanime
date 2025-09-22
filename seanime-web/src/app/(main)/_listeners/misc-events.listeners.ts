@@ -1,50 +1,23 @@
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 import { WSEvents } from "@/lib/server/ws-events"
 import { toast } from "sonner"
 
 export function useMiscEventListeners() {
 
-    useWebsocketMessageListener<string>({
-        type: WSEvents.INFO_TOAST, onMessage: data => {
-            if (!!data) {
-                toast.info(data)
+    useSSEEvents({
+        enabled: true,
+        onEvent: (evt: any) => {
+            const t = evt.type
+            const data = evt.payload as string
+            if (!data) return
+            switch (t) {
+                case WSEvents.INFO_TOAST: toast.info(data); break
+                case WSEvents.SUCCESS_TOAST: toast.success(data); break
+                case WSEvents.WARNING_TOAST: toast.warning(data); break
+                case WSEvents.ERROR_TOAST: toast.error(data); break
+                case WSEvents.CONSOLE_LOG: console.log(data); break
+                case WSEvents.CONSOLE_WARN: console.warn(data); break
             }
-        },
-    })
-
-    useWebsocketMessageListener<string>({
-        type: WSEvents.SUCCESS_TOAST, onMessage: data => {
-            if (!!data) {
-                toast.success(data)
-            }
-        },
-    })
-
-    useWebsocketMessageListener<string>({
-        type: WSEvents.WARNING_TOAST, onMessage: data => {
-            if (!!data) {
-                toast.warning(data)
-            }
-        },
-    })
-
-    useWebsocketMessageListener<string>({
-        type: WSEvents.ERROR_TOAST, onMessage: data => {
-            if (!!data) {
-                toast.error(data)
-            }
-        },
-    })
-
-    useWebsocketMessageListener<string>({
-        type: WSEvents.CONSOLE_LOG, onMessage: data => {
-            console.log(data)
-        },
-    })
-
-    useWebsocketMessageListener<string>({
-        type: WSEvents.CONSOLE_WARN, onMessage: data => {
-            console.warn(data)
         },
     })
 

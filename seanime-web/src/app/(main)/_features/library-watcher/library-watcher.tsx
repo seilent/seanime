@@ -1,7 +1,7 @@
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
 import { useSmartLibraryScan } from "@/app/(main)/(library)/_hooks/use-smart-library-scan"
 
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { PageWrapper } from "@/components/shared/page-wrapper"
 import { Button, CloseButton } from "@/components/ui/button"
@@ -36,62 +36,42 @@ export function LibraryWatcher(props: LibraryWatcherProps) {
 
     const { scanLibrary, isPending: isScanning } = useSmartLibraryScan()
 
-    useWebsocketMessageListener<string>({
-        type: WSEvents.LIBRARY_WATCHER_FILE_ADDED,
-        onMessage: data => {
-            console.log("Library watcher", data)
-            if (!serverStatus?.settings?.library?.autoScan) { // Only show the notification if auto scan is disabled
-                fileAdded.on()
-                setFileEvent(data)
+    useSSEEvents({
+        enabled: true,
+        onEvent: (evt: any) => {
+            const type = evt.type
+            const data = evt.payload
+            switch (type) {
+                case WSEvents.LIBRARY_WATCHER_FILE_ADDED: {
+                    if (!serverStatus?.settings?.library?.autoScan) {
+                        fileAdded.on(); setFileEvent(data as string)
+                    }
+                    break
+                }
+                case WSEvents.LIBRARY_WATCHER_FILE_REMOVED: {
+                    if (!serverStatus?.settings?.library?.autoScan) {
+                        fileRemoved.on(); setFileEvent(data as string)
+                    }
+                    break
+                }
+                case WSEvents.SCAN_PROGRESS: {
+                    setFileEvent(null); fileAdded.off(); fileRemoved.off()
+                    const p = data as number
+                    setProgress(p)
+                    if (p === 100) setTimeout(() => setProgress(0), 2000)
+                    break
+                }
+                case WSEvents.AUTO_SCAN_STARTED: {
+                    autoScanning.on(); break
+                }
+                case WSEvents.AUTO_SCAN_COMPLETED: {
+                    autoScanning.off(); toast.success("Library scanned")
+                    qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetLibraryCollection.key] })
+                    qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetMissingEpisodes.key] })
+                    qc.invalidateQueries({ queryKey: [API_ENDPOINTS.AUTO_DOWNLOADER.GetAutoDownloaderItems.key] })
+                    break
+                }
             }
-        },
-    })
-
-    useWebsocketMessageListener<string>({
-        type: WSEvents.LIBRARY_WATCHER_FILE_REMOVED,
-        onMessage: data => {
-            console.log("Library watcher", data)
-            if (!serverStatus?.settings?.library?.autoScan) { // Only show the notification if auto scan is disabled
-                fileRemoved.on()
-                setFileEvent(data)
-            }
-        },
-    })
-
-    // Scan progress event
-    useWebsocketMessageListener<number>({
-        type: WSEvents.SCAN_PROGRESS,
-        onMessage: data => {
-            // Remove notification of file added or removed
-            setFileEvent(null)
-            fileAdded.off()
-            fileRemoved.off()
-            setProgress(data)
-            // reset progress
-            if (data === 100) {
-                setTimeout(() => {
-                    setProgress(0)
-                }, 2000)
-            }
-        },
-    })
-
-    // Auto scan event started
-    useWebsocketMessageListener<string>({
-        type: WSEvents.AUTO_SCAN_STARTED,
-        onMessage: _ => {
-            autoScanning.on()
-        },
-    })
-    // Auto scan event completed
-    useWebsocketMessageListener<string>({
-        type: WSEvents.AUTO_SCAN_COMPLETED,
-        onMessage: _ => {
-            autoScanning.off()
-            toast.success("Library scanned")
-            qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetLibraryCollection.key] })
-            qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetMissingEpisodes.key] })
-            qc.invalidateQueries({ queryKey: [API_ENDPOINTS.AUTO_DOWNLOADER.GetAutoDownloaderItems.key] })
         },
     })
 

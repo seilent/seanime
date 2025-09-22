@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 import { WSEvents } from "@/lib/server/ws-events"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -11,29 +11,22 @@ export function useAnimeCollectionListener() {
 
     const qc = useQueryClient()
 
-    useWebsocketMessageListener({
-        type: WSEvents.REFRESHED_ANILIST_ANIME_COLLECTION,
-        onMessage: data => {
-            (async () => {
+    useSSEEvents({
+        enabled: true,
+        onEvent: async (evt: any) => {
+            if (evt.type === WSEvents.REFRESHED_ANILIST_ANIME_COLLECTION) {
                 await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetLibraryCollection.key] })
                 await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANILIST.GetAnimeCollection.key] })
                 await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANILIST.GetRawAnimeCollection.key] })
                 await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetAnimeEntry.key] })
                 await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetMissingEpisodes.key] })
                 await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetAnimeCollectionSchedule.key] })
-            })()
-        },
-    })
-
-    useWebsocketMessageListener({
-        type: WSEvents.REFRESHED_ANILIST_MANGA_COLLECTION,
-        onMessage: data => {
-            (async () => {
+            }
+            if (evt.type === WSEvents.REFRESHED_ANILIST_MANGA_COLLECTION) {
                 await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.MANGA.GetAnilistMangaCollection.key] })
                 await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.MANGA.GetMangaEntry.key] })
-            })()
+            }
         },
     })
 
 }
-

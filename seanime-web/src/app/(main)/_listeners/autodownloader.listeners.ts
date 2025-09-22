@@ -1,7 +1,7 @@
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
 import { useGetAutoDownloaderItems } from "@/api/hooks/auto_downloader.hooks"
 import { autoDownloaderItemsAtom } from "@/app/(main)/_atoms/autodownloader.atoms"
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 import { WSEvents } from "@/lib/server/ws-events"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSetAtom } from "jotai/react"
@@ -19,10 +19,12 @@ export function useAutoDownloaderItemListener() {
 
     const { data } = useGetAutoDownloaderItems(pathname !== "/auto-downloader")
 
-    useWebsocketMessageListener<string>({
-        type: WSEvents.AUTO_DOWNLOADER_ITEM_ADDED,
-        onMessage: data => {
-            qc.invalidateQueries({ queryKey: [API_ENDPOINTS.AUTO_DOWNLOADER.GetAutoDownloaderItems.key] })
+    useSSEEvents({
+        enabled: true,
+        onEvent: (evt: any) => {
+            if (evt.type === WSEvents.AUTO_DOWNLOADER_ITEM_ADDED) {
+                qc.invalidateQueries({ queryKey: [API_ENDPOINTS.AUTO_DOWNLOADER.GetAutoDownloaderItems.key] })
+            }
         },
     })
 

@@ -1,7 +1,7 @@
 "use client"
 import { __scanner_isScanningAtom } from "@/app/(main)/(library)/_hooks/use-smart-library-scan"
 
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 import { PageWrapper } from "@/components/shared/page-wrapper"
 import { Card, CardDescription, CardHeader } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/loading-spinner"
@@ -24,19 +24,15 @@ export function ScanProgressBar() {
         }
     }, [isScanning])
 
-    useWebsocketMessageListener<number>({
-        type: WSEvents.SCAN_PROGRESS,
-        onMessage: data => {
-            console.log("Scan progress", data)
-            setProgress(data)
-        },
-    })
-
-    useWebsocketMessageListener<string>({
-        type: WSEvents.SCAN_STATUS,
-        onMessage: data => {
-            console.log("Scan status", data)
-            setStatus(data)
+    useSSEEvents({
+        enabled: true,
+        onEvent: (evt: any) => {
+            if (evt.type === WSEvents.SCAN_PROGRESS) {
+                setProgress(evt.payload as number)
+            }
+            if (evt.type === WSEvents.SCAN_STATUS) {
+                setStatus(evt.payload as string)
+            }
         },
     })
 

@@ -1,17 +1,20 @@
 import { WSEvents } from "@/lib/server/ws-events"
 import { useQueryClient } from "@tanstack/react-query"
-import { useWebsocketMessageListener } from "../_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 
 export function useInvalidateQueriesListener() {
 
     const queryClient = useQueryClient()
 
-    useWebsocketMessageListener<string[]>({
-        type: WSEvents.INVALIDATE_QUERIES,
-        onMessage: async (data) => {
-            await Promise.all(data.map(async (queryKey) => {
-                await queryClient.invalidateQueries({ queryKey: [queryKey] })
-            }))
+    useSSEEvents({
+        enabled: true,
+        onEvent: async (evt: any) => {
+            if (evt.type === WSEvents.INVALIDATE_QUERIES) {
+                const data = (evt.payload as string[]) || []
+                await Promise.all(data.map(async (queryKey) => {
+                    await queryClient.invalidateQueries({ queryKey: [queryKey] })
+                }))
+            }
         },
     })
 

@@ -1,4 +1,4 @@
-import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
+import { useSSEEvents } from "@/hooks/use-sse-events"
 import { ProgressBar } from "@/components/ui/progress-bar"
 import { logger } from "@/lib/helpers/debug"
 import { WSEvents } from "@/lib/server/ws-events"
@@ -19,29 +19,18 @@ export function TopIndefiniteLoader() {
         return () => clearTimeout(timeout)
     }, [showStack])
 
-    useWebsocketMessageListener<string>({
-        type: WSEvents.SHOW_INDEFINITE_LOADER,
-        onMessage: data => {
-            if (data) {
+    useSSEEvents({
+        enabled: true,
+        onEvent: (evt: any) => {
+            const type = evt.type
+            const data = evt.payload as string
+            if (type === WSEvents.SHOW_INDEFINITE_LOADER && data) {
                 log.info("Showing indefinite loader", data)
-                setShowStack(prev => {
-                    if (prev.includes(data)) {
-                        return prev
-                    }
-                    return [...prev, data]
-                })
+                setShowStack(prev => (prev.includes(data) ? prev : [...prev, data]))
             }
-        },
-    })
-
-    useWebsocketMessageListener<string>({
-        type: WSEvents.HIDE_INDEFINITE_LOADER,
-        onMessage: data => {
-            if (data) {
+            if (type === WSEvents.HIDE_INDEFINITE_LOADER && data) {
                 log.info("Hiding indefinite loader", data)
-                setShowStack(prev => {
-                    return prev.filter(item => item !== data)
-                })
+                setShowStack(prev => prev.filter(item => item !== data))
             }
         },
     })
