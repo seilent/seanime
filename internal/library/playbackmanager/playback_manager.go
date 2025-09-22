@@ -67,7 +67,7 @@ type (
 		// historyMap stores a PlaybackState whose state is "completed"
 		// Since PlaybackState is sent to client continuously, once a PlaybackState is stored in historyMap, only IT will be sent to the client.
 		// This is so when the user seeks back to a video, the client can show the last known "completed" state of the video
-		historyMap                 map[string]PlaybackState
+		historyMap                 map[string]map[uint]PlaybackState // user-specific history: filename -> user ID -> state
 		currentPlaybackType        PlaybackType
 		currentMediaPlaybackStatus *mediaplayer.PlaybackStatus // The current video playback status (can be nil)
 	currentUserID              uint                        // User ID for the current playback session
@@ -238,7 +238,7 @@ func New(opts *NewPlaybackManagerOptions) *PlaybackManager {
 		mu:                           sync.Mutex{},
 		autoPlayMu:                   sync.Mutex{},
 		eventMu:                      sync.RWMutex{},
-		historyMap:                   make(map[string]PlaybackState),
+		historyMap:                   make(map[string]map[uint]PlaybackState),
 		isOffline:                    opts.IsOffline,
 		nextEpisodeLocalFile:         mo.None[*anime.LocalFile](),
 		currentStreamEpisode:         mo.None[*anime.Episode](),

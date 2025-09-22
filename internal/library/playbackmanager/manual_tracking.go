@@ -55,9 +55,15 @@ func (pm *PlaybackManager) StartManualProgressTracking(opts *StartManualProgress
 		pm.manualTrackingWg.Wait()
 	}
 
-	// Get the media
-	// - Find the media in the collection
-	animeCollection, err := pm.platform.GetAnimeCollection(ctx, false)
+	// Get the media using user-specific platform
+	userPlatform, err := pm.getUserSpecificPlatform()
+	if err != nil {
+		pm.Logger.Error().Err(err).Uint("userID", pm.currentUserID).Msg("playback manager: Failed to get user-specific platform for manual tracking")
+		return err
+	}
+
+	// Find the media in the collection
+	animeCollection, err := userPlatform.GetAnimeCollection(ctx, false)
 	if err != nil {
 		return err
 	}
@@ -71,8 +77,8 @@ func (pm *PlaybackManager) StartManualProgressTracking(opts *StartManualProgress
 	if found {
 		media = listEntry.Media
 	} else {
-		// Fetch the media from AniList
-		media, err = pm.platform.GetAnime(ctx, opts.MediaId)
+		// Fetch the media from AniList using user-specific platform
+		media, err = userPlatform.GetAnime(ctx, opts.MediaId)
 	}
 	if media == nil {
 		pm.Logger.Error().Msg("playback manager: Media not found for manual tracking")

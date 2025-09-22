@@ -65,8 +65,14 @@ func (pm *PlaybackManager) handleTrackingStarted(status *mediaplayer.PlaybackSta
 	// Set the playback type
 	pm.currentPlaybackType = LocalFilePlayback
 
-	// Reset the history map
-	pm.historyMap = make(map[string]PlaybackState)
+	// Reset the history map for current user
+	if pm.historyMap == nil {
+		pm.historyMap = make(map[string]map[uint]PlaybackState)
+	}
+	// Clear existing user-specific history but keep structure for other users
+	for filename := range pm.historyMap {
+		delete(pm.historyMap[filename], pm.currentUserID)
+	}
 
 	// Set the current media playback status
 	pm.currentMediaPlaybackStatus = status
@@ -166,7 +172,11 @@ func (pm *PlaybackManager) handleVideoCompleted(status *mediaplayer.PlaybackStat
 	// The client will use this to notify the user if the progress has been updated
 	pm.wsEventManager.SendEventToUser(pm.currentUserID, events.PlaybackManagerProgressVideoCompleted, _ps)
 	// Push the video playback state to the history
-	pm.historyMap[status.Filename] = _ps
+	// Push the video playback state to the user-specific history
+	if pm.historyMap[status.Filename] == nil {
+		pm.historyMap[status.Filename] = make(map[uint]PlaybackState)
+	}
+	pm.historyMap[status.Filename][pm.currentUserID] = _ps
 
 	// ------- Playlist ------- //
 	if pm.currentMediaListEntry.IsPresent() && pm.currentLocalFile.IsPresent() {
@@ -225,10 +235,12 @@ func (pm *PlaybackManager) handlePlaybackStatus(status *mediaplayer.PlaybackStat
 	pm.currentMediaPlaybackStatus = status
 	// Get the playback state
 	_ps := pm.getLocalFilePlaybackState(status)
-	// If the same PlaybackState is in the history, update the ProgressUpdated flag
+	// If the same PlaybackState is in the user history, update the ProgressUpdated flag
 	// PlaybackStatusCh has no way of knowing if the progress has been updated
-	if h, ok := pm.historyMap[status.Filename]; ok {
-		_ps.ProgressUpdated = h.ProgressUpdated
+	if userHistory, ok := pm.historyMap[status.Filename]; ok {
+		if h, ok := userHistory[pm.currentUserID]; ok {
+			_ps.ProgressUpdated = h.ProgressUpdated
+		}
 	}
 
 	// Notify subscribers
@@ -280,7 +292,7 @@ func (pm *PlaybackManager) handleStreamingTrackingStarted(status *mediaplayer.Pl
 	pm.currentPlaybackType = StreamPlayback
 
 	// Reset the history map
-	pm.historyMap = make(map[string]PlaybackState)
+	pm.historyMap = make(map[string]map[uint]PlaybackState)
 
 	// Set the current media playback status
 	pm.currentMediaPlaybackStatus = status
@@ -340,10 +352,12 @@ func (pm *PlaybackManager) handleStreamingPlaybackStatus(status *mediaplayer.Pla
 	pm.currentMediaPlaybackStatus = status
 	// Get the playback state
 	_ps := pm.getStreamPlaybackState(status)
-	// If the same PlaybackState is in the history, update the ProgressUpdated flag
+	// If the same PlaybackState is in the user history, update the ProgressUpdated flag
 	// PlaybackStatusCh has no way of knowing if the progress has been updated
-	if h, ok := pm.historyMap[status.Filename]; ok {
-		_ps.ProgressUpdated = h.ProgressUpdated
+	if userHistory, ok := pm.historyMap[status.Filename]; ok {
+		if h, ok := userHistory[pm.currentUserID]; ok {
+			_ps.ProgressUpdated = h.ProgressUpdated
+		}
 	}
 
 	// Notify subscribers
@@ -401,7 +415,11 @@ func (pm *PlaybackManager) handleStreamingVideoCompleted(status *mediaplayer.Pla
 	// The client will use this to notify the user if the progress has been updated
 	pm.wsEventManager.SendEventToUser(pm.currentUserID, events.PlaybackManagerProgressVideoCompleted, _ps)
 	// Push the video playback state to the history
-	pm.historyMap[status.Filename] = _ps
+	// Push the video playback state to the user-specific history
+	if pm.historyMap[status.Filename] == nil {
+		pm.historyMap[status.Filename] = make(map[uint]PlaybackState)
+	}
+	pm.historyMap[status.Filename][pm.currentUserID] = _ps
 }
 
 func (pm *PlaybackManager) handleStreamingTrackingStopped(reason string) {
@@ -580,17 +598,20 @@ func (pm *PlaybackManager) SyncCurrentProgress() error {
 		return err
 	}
 
-	// Push the current playback state to the history
+	// Push the current playback state to the user-specific history
 	if pm.currentMediaPlaybackStatus != nil {
 		var _ps PlaybackState
 		switch pm.currentPlaybackType {
 		case LocalFilePlayback:
-			pm.getLocalFilePlaybackState(pm.currentMediaPlaybackStatus)
+			_ps = pm.getLocalFilePlaybackState(pm.currentMediaPlaybackStatus)
 		case StreamPlayback:
-			pm.getStreamPlaybackState(pm.currentMediaPlaybackStatus)
+			_ps = pm.getStreamPlaybackState(pm.currentMediaPlaybackStatus)
 		}
 		_ps.ProgressUpdated = true
-		pm.historyMap[pm.currentMediaPlaybackStatus.Filename] = _ps
+		if pm.historyMap[pm.currentMediaPlaybackStatus.Filename] == nil {
+			pm.historyMap[pm.currentMediaPlaybackStatus.Filename] = make(map[uint]PlaybackState)
+		}
+		pm.historyMap[pm.currentMediaPlaybackStatus.Filename][pm.currentUserID] = _ps
 		pm.wsEventManager.SendEventToUser(pm.currentUserID, events.PlaybackManagerProgressUpdated, _ps)
 	}
 
@@ -665,8 +686,14 @@ func (pm *PlaybackManager) updateProgress() (err error) {
 		return errors.New("media ID not found")
 	}
 
-	// Update the progress on AniList
-	err = pm.platform.UpdateEntryProgress(
+	// Update the progress on AniList using user-specific platform
+	userPlatform, err := pm.getUserSpecificPlatform()
+	if err != nil {
+		pm.Logger.Error().Err(err).Uint("userID", pm.currentUserID).Msg("playback manager: Failed to get user-specific platform for progress update")
+		return err
+	}
+
+	err = userPlatform.UpdateEntryProgress(
 		context.Background(),
 		mediaId,
 		epNum,

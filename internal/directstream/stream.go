@@ -226,10 +226,15 @@ func (m *Manager) listenToNativePlayerEvents() {
 						go m.discordPresence.Close()
 					}
 				case *nativeplayer.VideoStatusEvent:
-					// Get UserID from the stream if it's a BaseStream
-					var userID uint = 1 // fallback
+					// Get UserID from the stream
+					var userID uint
 					if baseStream, ok := cs.(*LocalFileStream); ok {
 						userID = baseStream.userID
+					} else if baseStream, ok := cs.(*BaseStream); ok {
+						userID = baseStream.userID
+					} else {
+						m.Logger.Error().Msg("directstream: VideoStatusEvent: cannot determine user ID from stream")
+						continue
 					}
 					_ = m.continuityManager.UpdateWatchHistoryItemForUser(userID, &continuity.UpdateWatchHistoryItemOptions{
 						CurrentTime:   event.Status.CurrentTime,
