@@ -144,6 +144,23 @@ func (h *Handler) HandleUnignoreFile(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	// Check if user is admin or if they ignored the file themselves
+	if !user.IsAdmin() {
+		var unmappedFile models.UnmappedFile
+		err := h.App.Database.Gorm().Where("local_file_path = ?", body.FilePath).First(&unmappedFile).Error
+		if err != nil {
+			return h.RespondWithError(c, errors.New("file not found"))
+		}
+		if unmappedFile.IgnoredByUserID == 0 || unmappedFile.IgnoredByUserID != user.ID {
+			return h.RespondWithError(c, errors.New("permission denied"))
+		}
+	}
+
 	// Update the unmapped file status back to UNMAPPED
 	err := h.App.Database.Gorm().Model(&models.UnmappedFile{}).
 		Where("local_file_path = ?", body.FilePath).
