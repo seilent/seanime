@@ -103,7 +103,7 @@ export function WebsocketProvider({ children }: { children: React.ReactNode }) {
                 }
             }
 
-            const wsUrl = `${document.location.protocol == "https:" ? "wss" : "ws"}://${getServerBaseUrl(true)}/events`
+            const wsUrl = `${document.location.protocol == "https:" ? "wss" : "ws"}://${getServerBaseUrl(true)}/api/v1/events`
             const clientId = cookies["Seanime-Client-Id"] || uuidv4()
 
             try {
@@ -187,11 +187,30 @@ export function WebsocketProvider({ children }: { children: React.ReactNode }) {
 
                 socketRef.current?.addEventListener("close", (event) => {
                     logger("WebsocketProvider").info(`WebSocket connection closed: ${event.code} ${event.reason}`)
+
+                    // Check for specific error codes
+                    if (event.code === 1008) {
+                        logger("WebsocketProvider").error("WebSocket connection closed due to policy violation - possible authentication issue")
+                    } else if (event.code === 1006) {
+                        logger("WebsocketProvider").error("WebSocket connection closed abnormally - check if server is running")
+                    } else if (event.code === 1000) {
+                        logger("WebsocketProvider").info("WebSocket connection closed normally")
+                    }
+
                     handleDisconnection()
                 })
 
                 socketRef.current?.addEventListener("error", (event) => {
                     logger("WebsocketProvider").error("WebSocket encountered an error:", event)
+
+                    // Check if it's an authentication error (401)
+                    if (event instanceof ErrorEvent) {
+                        logger("WebsocketProvider").error("WebSocket error message:", event.message)
+                        if (event.message.includes("401") || event.message.includes("Unauthorized")) {
+                            logger("WebsocketProvider").error("WebSocket authentication failed - user may need to log in")
+                        }
+                    }
+
                     reconnectSocket()
                 })
 

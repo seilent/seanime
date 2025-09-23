@@ -1581,20 +1581,40 @@
 // mediastream
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// export function useGetMediastreamSettings() {
-//     return useServerQuery<Models_MediastreamSettings>({
-//         endpoint: API_ENDPOINTS.MEDIASTREAM.GetMediastreamSettings.endpoint,
-//         method: API_ENDPOINTS.MEDIASTREAM.GetMediastreamSettings.methods[0],
-//         queryKey: [API_ENDPOINTS.MEDIASTREAM.GetMediastreamSettings.key],
+// export function useGetTranscodingSettings() {
+//     return useServerQuery<Models_ServerTranscodingSettings>({
+//         endpoint: API_ENDPOINTS.MEDIASTREAM.GetTranscodingSettings.endpoint,
+//         method: API_ENDPOINTS.MEDIASTREAM.GetTranscodingSettings.methods[0],
+//         queryKey: [API_ENDPOINTS.MEDIASTREAM.GetTranscodingSettings.key],
 //         enabled: true,
 //     })
 // }
 
-// export function useSaveMediastreamSettings() {
-//     return useServerMutation<Models_MediastreamSettings, SaveMediastreamSettings_Variables>({
-//         endpoint: API_ENDPOINTS.MEDIASTREAM.SaveMediastreamSettings.endpoint,
-//         method: API_ENDPOINTS.MEDIASTREAM.SaveMediastreamSettings.methods[0],
-//         mutationKey: [API_ENDPOINTS.MEDIASTREAM.SaveMediastreamSettings.key],
+// export function useSaveTranscodingSettings() {
+//     return useServerMutation<Models_ServerTranscodingSettings, SaveTranscodingSettings_Variables>({
+//         endpoint: API_ENDPOINTS.MEDIASTREAM.SaveTranscodingSettings.endpoint,
+//         method: API_ENDPOINTS.MEDIASTREAM.SaveTranscodingSettings.methods[0],
+//         mutationKey: [API_ENDPOINTS.MEDIASTREAM.SaveTranscodingSettings.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useGetClientMediaSettings() {
+//     return useServerQuery<Models_ClientMediaSettings>({
+//         endpoint: API_ENDPOINTS.MEDIASTREAM.GetClientMediaSettings.endpoint,
+//         method: API_ENDPOINTS.MEDIASTREAM.GetClientMediaSettings.methods[0],
+//         queryKey: [API_ENDPOINTS.MEDIASTREAM.GetClientMediaSettings.key],
+//         enabled: true,
+//     })
+// }
+
+// export function useSaveClientMediaSettings() {
+//     return useServerMutation<Models_ClientMediaSettings, SaveClientMediaSettings_Variables>({
+//         endpoint: API_ENDPOINTS.MEDIASTREAM.SaveClientMediaSettings.endpoint,
+//         method: API_ENDPOINTS.MEDIASTREAM.SaveClientMediaSettings.methods[0],
+//         mutationKey: [API_ENDPOINTS.MEDIASTREAM.SaveClientMediaSettings.key],
 //         onSuccess: async () => {
 // 
 //         },
@@ -1936,6 +1956,46 @@
 //     })
 // }
 
+// export function useGetGlobalSettings() {
+//     return useServerQuery<Models_GlobalSettings>({
+//         endpoint: API_ENDPOINTS.SETTINGS.GetGlobalSettings.endpoint,
+//         method: API_ENDPOINTS.SETTINGS.GetGlobalSettings.methods[0],
+//         queryKey: [API_ENDPOINTS.SETTINGS.GetGlobalSettings.key],
+//         enabled: true,
+//     })
+// }
+
+// export function useUpdateGlobalSettings() {
+//     return useServerMutation<Models_GlobalSettings>({
+//         endpoint: API_ENDPOINTS.SETTINGS.UpdateGlobalSettings.endpoint,
+//         method: API_ENDPOINTS.SETTINGS.UpdateGlobalSettings.methods[0],
+//         mutationKey: [API_ENDPOINTS.SETTINGS.UpdateGlobalSettings.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
+// export function useGetUserSettings() {
+//     return useServerQuery<Models_Settings>({
+//         endpoint: API_ENDPOINTS.SETTINGS.GetUserSettings.endpoint,
+//         method: API_ENDPOINTS.SETTINGS.GetUserSettings.methods[0],
+//         queryKey: [API_ENDPOINTS.SETTINGS.GetUserSettings.key],
+//         enabled: true,
+//     })
+// }
+
+// export function useUpdateUserSettings() {
+//     return useServerMutation<Models_Settings>({
+//         endpoint: API_ENDPOINTS.SETTINGS.UpdateUserSettings.endpoint,
+//         method: API_ENDPOINTS.SETTINGS.UpdateUserSettings.methods[0],
+//         mutationKey: [API_ENDPOINTS.SETTINGS.UpdateUserSettings.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
 // export function useGettingStarted() {
 //     return useServerMutation<Status, GettingStarted_Variables>({
 //         endpoint: API_ENDPOINTS.SETTINGS.GettingStarted.endpoint,
@@ -1977,6 +2037,28 @@
 //         onSuccess: async () => {
 // 
 //         },
+//     })
+// }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// sse_polling
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// export function useSSEClientEvents() {
+//     return useServerQuery<boolean>({
+//         endpoint: API_ENDPOINTS.SSE_POLLING.SSEClientEvents.endpoint,
+//         method: API_ENDPOINTS.SSE_POLLING.SSEClientEvents.methods[0],
+//         queryKey: [API_ENDPOINTS.SSE_POLLING.SSEClientEvents.key],
+//         enabled: true,
+//     })
+// }
+
+// export function useSSENativePlayerEvents() {
+//     return useServerQuery<boolean>({
+//         endpoint: API_ENDPOINTS.SSE_POLLING.SSENativePlayerEvents.endpoint,
+//         method: API_ENDPOINTS.SSE_POLLING.SSENativePlayerEvents.methods[0],
+//         queryKey: [API_ENDPOINTS.SSE_POLLING.SSENativePlayerEvents.key],
+//         enabled: true,
 //     })
 // }
 

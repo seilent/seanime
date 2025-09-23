@@ -27531,14 +27531,14 @@
         "name": "SecondarySettings",
         "jsonName": "SecondarySettings",
         "goType": "INTERNAL_App_SecondarySettings",
-        "inlineStructType": "struct{\nMediastream models.MediastreamSettings\nTorrentstream models.TorrentstreamSettings\nDebrid models.DebridSettings}",
+        "inlineStructType": "struct{\nMediastream models.MediastreamSettings\nTorrentstream models.TorrentstreamSettings}",
         "typescriptType": "INTERNAL_App_SecondarySettings",
-        "usedTypescriptType": "{ Mediastream: MediastreamSettings; Torrentstream: TorrentstreamSettings; Debrid: DebridSettings; }",
+        "usedTypescriptType": "{ Mediastream: MediastreamSettings; Torrentstream: TorrentstreamSettings; }",
         "usedStructName": "core.App_SecondarySettings",
         "required": true,
         "public": true,
         "comments": [
-          " Struct for other settings sent to clientN"
+          " Struct for other settings sent to client"
         ]
       },
       {
@@ -27784,17 +27784,6 @@
         "typescriptType": "Models_TorrentstreamSettings",
         "usedTypescriptType": "Models_TorrentstreamSettings",
         "usedStructName": "models.TorrentstreamSettings",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Debrid",
-        "jsonName": "Debrid",
-        "goType": "models.DebridSettings",
-        "typescriptType": "Models_DebridSettings",
-        "usedTypescriptType": "Models_DebridSettings",
-        "usedStructName": "models.DebridSettings",
         "required": false,
         "public": true,
         "comments": []
@@ -28993,6 +28982,17 @@
         "required": false,
         "public": true,
         "comments": []
+      },
+      {
+        "name": "Transcoding",
+        "jsonName": "transcoding",
+        "goType": "ServerTranscodingSettings",
+        "typescriptType": "Models_ServerTranscodingSettings",
+        "usedTypescriptType": "Models_ServerTranscodingSettings",
+        "usedStructName": "models.ServerTranscodingSettings",
+        "required": false,
+        "public": true,
+        "comments": []
       }
     ],
     "comments": [
@@ -29105,6 +29105,17 @@
         "comments": []
       },
       {
+        "name": "ClientMedia",
+        "jsonName": "clientMedia",
+        "goType": "ClientMediaSettings",
+        "typescriptType": "Models_ClientMediaSettings",
+        "usedTypescriptType": "Models_ClientMediaSettings",
+        "usedStructName": "models.ClientMediaSettings",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
         "name": "Library",
         "jsonName": "library",
         "goType": "LibrarySettings",
@@ -29137,6 +29148,19 @@
         "typescriptType": "Models_AutoDownloaderSettings",
         "usedTypescriptType": "Models_AutoDownloaderSettings",
         "usedStructName": "models.AutoDownloaderSettings",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Populated from GlobalSettings"
+        ]
+      },
+      {
+        "name": "Transcoding",
+        "jsonName": "transcoding",
+        "goType": "ServerTranscodingSettings",
+        "typescriptType": "Models_ServerTranscodingSettings",
+        "usedTypescriptType": "Models_ServerTranscodingSettings",
+        "usedStructName": "models.ServerTranscodingSettings",
         "required": false,
         "public": true,
         "comments": [
@@ -30566,6 +30590,129 @@
   {
     "filepath": "../internal/database/models/models.go",
     "filename": "models.go",
+    "name": "ServerTranscodingSettings",
+    "formattedName": "Models_ServerTranscodingSettings",
+    "package": "models",
+    "fields": [
+      {
+        "name": "TranscodeEnabled",
+        "jsonName": "transcodeEnabled",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "TranscodeHwAccel",
+        "jsonName": "transcodeHwAccel",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "TranscodeThreads",
+        "jsonName": "transcodeThreads",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "TranscodePreset",
+        "jsonName": "transcodePreset",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "PreTranscodeEnabled",
+        "jsonName": "preTranscodeEnabled",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "PreTranscodeLibraryDir",
+        "jsonName": "preTranscodeLibraryDir",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "FfmpegPath",
+        "jsonName": "ffmpegPath",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "FfprobePath",
+        "jsonName": "ffprobePath",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "TranscodeHwAccelCustomSettings",
+        "jsonName": "transcodeHwAccelCustomSettings",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " Server-side transcoding settings (admin-controlled, stored in GlobalSettings)"
+    ]
+  },
+  {
+    "filepath": "../internal/database/models/models.go",
+    "filename": "models.go",
+    "name": "ClientMediaSettings",
+    "formattedName": "Models_ClientMediaSettings",
+    "package": "models",
+    "fields": [
+      {
+        "name": "DisableAutoSwitchToDirectPlay",
+        "jsonName": "disableAutoSwitchToDirectPlay",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "DirectPlayOnly",
+        "jsonName": "directPlayOnly",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " Client-side media playback settings (user-controlled, stored in user Settings)"
+    ]
+  },
+  {
+    "filepath": "../internal/database/models/models.go",
+    "filename": "models.go",
     "name": "MediastreamSettings",
     "formattedName": "Models_MediastreamSettings",
     "package": "models",
@@ -30670,7 +30817,9 @@
         "comments": []
       }
     ],
-    "comments": [],
+    "comments": [
+      " DEPRECATED: Use ServerTranscodingSettings (in GlobalSettings) and ClientMediaSettings (in user Settings) instead"
+    ],
     "embeddedStructNames": [
       "models.BaseModel"
     ]
@@ -31021,122 +31170,6 @@
         "comments": [
           " ID from search result, used to fetch episodes"
         ]
-      }
-    ],
-    "comments": [],
-    "embeddedStructNames": [
-      "models.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/database/models/models.go",
-    "filename": "models.go",
-    "name": "DebridSettings",
-    "formattedName": "Models_DebridSettings",
-    "package": "models",
-    "fields": [
-      {
-        "name": "Enabled",
-        "jsonName": "enabled",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Provider",
-        "jsonName": "provider",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ApiKey",
-        "jsonName": "apiKey",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IncludeDebridStreamInLibrary",
-        "jsonName": "includeDebridStreamInLibrary",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "StreamAutoSelect",
-        "jsonName": "streamAutoSelect",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "StreamPreferredResolution",
-        "jsonName": "streamPreferredResolution",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [],
-    "embeddedStructNames": [
-      "models.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/database/models/models.go",
-    "filename": "models.go",
-    "name": "DebridTorrentItem",
-    "formattedName": "Models_DebridTorrentItem",
-    "package": "models",
-    "fields": [
-      {
-        "name": "TorrentItemID",
-        "jsonName": "torrentItemId",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Destination",
-        "jsonName": "destination",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Provider",
-        "jsonName": "provider",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MediaId",
-        "jsonName": "mediaId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
       }
     ],
     "comments": [],
@@ -34469,6 +34502,17 @@
         "comments": []
       },
       {
+        "name": "UserID",
+        "jsonName": "UserID",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " User ID associated with this connection"
+        ]
+      },
+      {
         "name": "Writer",
         "jsonName": "Writer",
         "goType": "http.ResponseWriter",
@@ -34529,6 +34573,45 @@
   {
     "filepath": "../internal/events/sse.go",
     "filename": "sse.go",
+    "name": "SSESubscriber",
+    "formattedName": "Events_SSESubscriber",
+    "package": "events",
+    "fields": [
+      {
+        "name": "ConnectionID",
+        "jsonName": "ConnectionID",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "EventFilter",
+        "jsonName": "EventFilter",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "UserID",
+        "jsonName": "UserID",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " SSESubscriber represents a subscription to events"
+    ]
+  },
+  {
+    "filepath": "../internal/events/sse.go",
+    "filename": "sse.go",
     "name": "SSEManager",
     "formattedName": "Events_SSEManager",
     "package": "events",
@@ -34565,10 +34648,57 @@
         "required": false,
         "public": false,
         "comments": []
+      },
+      {
+        "name": "subscribers",
+        "jsonName": "subscribers",
+        "goType": "map[string]SSESubscriber",
+        "typescriptType": "Record\u003cstring, Events_SSESubscriber\u003e",
+        "usedTypescriptType": "Events_SSESubscriber",
+        "usedStructName": "events.SSESubscriber",
+        "required": false,
+        "public": false,
+        "comments": [
+          " ConnectionID -\u003e Subscriber info"
+        ]
+      },
+      {
+        "name": "db",
+        "jsonName": "db",
+        "goType": "",
+        "typescriptType": "any",
+        "required": true,
+        "public": false,
+        "comments": [
+          " Database for media subscriptions (optional)"
+        ]
       }
     ],
     "comments": [
       " SSEManager manages active SSE connections"
+    ]
+  },
+  {
+    "filepath": "../internal/events/sse_interface.go",
+    "filename": "sse_interface.go",
+    "name": "SSEEventManagerAdapter",
+    "formattedName": "Events_SSEEventManagerAdapter",
+    "package": "events",
+    "fields": [
+      {
+        "name": "sseManager",
+        "jsonName": "sseManager",
+        "goType": "SSEManager",
+        "typescriptType": "Events_SSEManager",
+        "usedTypescriptType": "Events_SSEManager",
+        "usedStructName": "events.SSEManager",
+        "required": false,
+        "public": false,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " SSEEventManagerAdapter adapts SSEManager to WSEventManagerInterface"
     ]
   },
   {
@@ -34727,6 +34857,17 @@
         "required": true,
         "public": true,
         "comments": []
+      },
+      {
+        "name": "UserID",
+        "jsonName": "UserID",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " User ID associated with this WebSocket connection"
+        ]
       },
       {
         "name": "Conn",
@@ -39453,6 +39594,54 @@
     "comments": []
   },
   {
+    "filepath": "../internal/handlers/sse_polling.go",
+    "filename": "sse_polling.go",
+    "name": "SSEEvent",
+    "formattedName": "SSEEvent",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "ID",
+        "jsonName": "id",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Type",
+        "jsonName": "type",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Data",
+        "jsonName": "data",
+        "goType": "",
+        "typescriptType": "any",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Timestamp",
+        "jsonName": "timestamp",
+        "goType": "int64",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " SSEEvent represents an event for polling"
+    ]
+  },
+  {
     "filepath": "../internal/handlers/status.go",
     "filename": "status.go",
     "name": "Status",
@@ -40209,6 +40398,17 @@
         "public": true,
         "comments": [
           " AniList access token"
+        ]
+      },
+      {
+        "name": "DryRun",
+        "jsonName": "dryRun",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": [
+          " Validate only, no side effects"
         ]
       }
     ],
@@ -41175,42 +41375,6 @@
       {
         "name": "onMediaPlayerStreamTrackingRequested",
         "jsonName": "onMediaPlayerStreamTrackingRequested",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "onDebridAutoSelectTorrentsFetched",
-        "jsonName": "onDebridAutoSelectTorrentsFetched",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "onDebridSendStreamToMediaPlayer",
-        "jsonName": "onDebridSendStreamToMediaPlayer",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "onDebridLocalDownloadRequested",
-        "jsonName": "onDebridLocalDownloadRequested",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "onDebridSkipStreamCheck",
-        "jsonName": "onDebridSkipStreamCheck",
         "goType": "",
         "typescriptType": "any",
         "required": false,
@@ -45913,6 +46077,26 @@
         "required": true,
         "public": true,
         "comments": []
+      },
+      {
+        "name": "UserID",
+        "jsonName": "UserID",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Platform",
+        "jsonName": "Platform",
+        "goType": "platform.Platform",
+        "typescriptType": "Platform",
+        "usedTypescriptType": "Platform",
+        "usedStructName": "platform.Platform",
+        "required": false,
+        "public": true,
+        "comments": []
       }
     ],
     "comments": []
@@ -46105,13 +46289,15 @@
       {
         "name": "historyMap",
         "jsonName": "historyMap",
-        "goType": "map[string]PlaybackState",
-        "typescriptType": "Record\u003cstring, PlaybackManager_PlaybackState\u003e",
+        "goType": "map[string]map[uint]PlaybackState",
+        "typescriptType": "Record\u003cstring, Record\u003cnumber, PlaybackManager_PlaybackState\u003e\u003e",
         "usedTypescriptType": "PlaybackManager_PlaybackState",
         "usedStructName": "playbackmanager.PlaybackState",
         "required": false,
         "public": false,
-        "comments": []
+        "comments": [
+          " user-specific history: filename -\u003e user ID -\u003e state"
+        ]
       },
       {
         "name": "currentPlaybackType",
@@ -46780,7 +46966,22 @@
         "usedStructName": "events.WSEventManagerInterface",
         "required": false,
         "public": true,
-        "comments": []
+        "comments": [
+          " Deprecated: use SSEEventManager"
+        ]
+      },
+      {
+        "name": "SSEEventManager",
+        "jsonName": "SSEEventManager",
+        "goType": "events.SSEEventManagerAdapter",
+        "typescriptType": "Events_SSEEventManagerAdapter",
+        "usedTypescriptType": "Events_SSEEventManagerAdapter",
+        "usedStructName": "events.SSEEventManagerAdapter",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Preferred: SSE-based event manager"
+        ]
       },
       {
         "name": "Logger",
@@ -61679,8 +61880,7 @@
       "typescriptType": "string",
       "declaredValues": [
         "\"torrent\"",
-        "\"localfile\"",
-        "\"debrid\""
+        "\"localfile\""
       ]
     },
     "comments": []
@@ -62065,8 +62265,7 @@
       "typescriptType": "string",
       "declaredValues": [
         "\"Auto Downloader\"",
-        "\"Auto Scanner\"",
-        "\"Debrid\""
+        "\"Auto Scanner\""
       ]
     },
     "comments": []
@@ -68747,17 +68946,6 @@
         "typescriptType": "Models_Settings",
         "usedTypescriptType": "Models_Settings",
         "usedStructName": "models.Settings",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DebridSettings",
-        "jsonName": "debridSettings",
-        "goType": "models.DebridSettings",
-        "typescriptType": "Models_DebridSettings",
-        "usedTypescriptType": "Models_DebridSettings",
-        "usedStructName": "models.DebridSettings",
         "required": false,
         "public": true,
         "comments": []

@@ -1283,23 +1283,43 @@ export const API_ENDPOINTS = {
     MEDIASTREAM: {
         /**
          *  @description
-         *  Route get mediastream settings.
-         *  This returns the mediastream settings.
+         *  Route get server transcoding settings (admin only).
+         *  This returns the server-side transcoding settings from GlobalSettings.
          */
-        GetMediastreamSettings: {
-            key: "MEDIASTREAM-get-mediastream-settings",
+        GetTranscodingSettings: {
+            key: "MEDIASTREAM-get-transcoding-settings",
             methods: ["GET"],
-            endpoint: "/api/v1/mediastream/settings",
+            endpoint: "/api/v1/transcoding/settings",
         },
         /**
          *  @description
-         *  Route save mediastream settings.
-         *  This saves the mediastream settings.
+         *  Route save server transcoding settings (admin only).
+         *  This saves the server-side transcoding settings to GlobalSettings. Admin access required.
          */
-        SaveMediastreamSettings: {
-            key: "MEDIASTREAM-save-mediastream-settings",
+        SaveTranscodingSettings: {
+            key: "MEDIASTREAM-save-transcoding-settings",
             methods: ["PATCH"],
-            endpoint: "/api/v1/mediastream/settings",
+            endpoint: "/api/v1/transcoding/settings",
+        },
+        /**
+         *  @description
+         *  Route get user client media settings.
+         *  This returns the client-side media playback settings for the current user.
+         */
+        GetClientMediaSettings: {
+            key: "MEDIASTREAM-get-client-media-settings",
+            methods: ["GET"],
+            endpoint: "/api/v1/client-media/settings",
+        },
+        /**
+         *  @description
+         *  Route save user client media settings.
+         *  This saves the client-side media playback settings for the current user.
+         */
+        SaveClientMediaSettings: {
+            key: "MEDIASTREAM-save-client-media-settings",
+            methods: ["PATCH"],
+            endpoint: "/api/v1/client-media/settings",
         },
         /**
          *  @description
@@ -1581,6 +1601,46 @@ export const API_ENDPOINTS = {
         },
         /**
          *  @description
+         *  Route returns the global server settings (admin-only).
+         *  Returns server-wide settings like library paths, torrent settings, etc.
+         */
+        GetGlobalSettings: {
+            key: "SETTINGS-get-global-settings",
+            methods: ["GET"],
+            endpoint: "/api/v1/settings/global",
+        },
+        /**
+         *  @description
+         *  Route updates global server settings (admin-only).
+         *  Updates server-wide settings like library paths, torrent settings, etc.
+         */
+        UpdateGlobalSettings: {
+            key: "SETTINGS-update-global-settings",
+            methods: ["PUT"],
+            endpoint: "/api/v1/settings/global",
+        },
+        /**
+         *  @description
+         *  Route returns the current user's personal settings.
+         *  Returns user-specific settings like media player preferences, display settings, etc.
+         */
+        GetUserSettings: {
+            key: "SETTINGS-get-user-settings",
+            methods: ["GET"],
+            endpoint: "/api/v1/settings/user",
+        },
+        /**
+         *  @description
+         *  Route updates the current user's personal settings.
+         *  Updates user-specific settings like media player preferences, display settings, etc.
+         */
+        UpdateUserSettings: {
+            key: "SETTINGS-update-user-settings",
+            methods: ["PUT"],
+            endpoint: "/api/v1/settings/user",
+        },
+        /**
+         *  @description
          *  Route updates the app settings.
          *  This will update the app settings.
          *  The client should re-fetch the server status after this.
@@ -1617,6 +1677,28 @@ export const API_ENDPOINTS = {
             key: "SETTINGS-save-auto-downloader-settings",
             methods: ["PATCH"],
             endpoint: "/api/v1/settings/auto-downloader",
+        },
+    },
+    SSE_POLLING: {
+        /**
+         *  @description
+         *  Route Poll for client events
+         *  Provides HTTP polling alternative to WebSocket subscriptions for client events
+         */
+        SSEClientEvents: {
+            key: "SSE-POLLING-s-s-e-client-events",
+            methods: ["GET"],
+            endpoint: "/api/v1/sse/client-events",
+        },
+        /**
+         *  @description
+         *  Route Poll for native player events
+         *  Provides HTTP polling alternative to WebSocket subscriptions for native player events
+         */
+        SSENativePlayerEvents: {
+            key: "SSE-POLLING-s-s-e-native-player-events",
+            methods: ["GET"],
+            endpoint: "/api/v1/sse/native-player-events",
         },
     },
     STATUS: {

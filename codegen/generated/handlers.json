@@ -6101,55 +6101,55 @@
     }
   },
   {
-    "name": "HandleGetMediastreamSettings",
-    "trimmedName": "GetMediastreamSettings",
+    "name": "HandleGetTranscodingSettings",
+    "trimmedName": "GetTranscodingSettings",
     "comments": [
-      "HandleGetMediastreamSettings",
+      "HandleGetTranscodingSettings",
       "",
-      "\t@summary get mediastream settings.",
-      "\t@desc This returns the mediastream settings.",
-      "\t@returns models.MediastreamSettings",
-      "\t@route /api/v1/mediastream/settings [GET]",
+      "\t@summary get server transcoding settings (admin only).",
+      "\t@desc This returns the server-side transcoding settings from GlobalSettings.",
+      "\t@returns models.ServerTranscodingSettings",
+      "\t@route /api/v1/transcoding/settings [GET]",
       ""
     ],
     "filepath": "internal/handlers/mediastream.go",
     "filename": "mediastream.go",
     "api": {
-      "summary": "get mediastream settings.",
+      "summary": "get server transcoding settings (admin only).",
       "descriptions": [
-        "This returns the mediastream settings."
+        "This returns the server-side transcoding settings from GlobalSettings."
       ],
-      "endpoint": "/api/v1/mediastream/settings",
+      "endpoint": "/api/v1/transcoding/settings",
       "methods": [
         "GET"
       ],
       "params": [],
       "bodyFields": [],
-      "returns": "models.MediastreamSettings",
-      "returnGoType": "models.MediastreamSettings",
-      "returnTypescriptType": "Models_MediastreamSettings"
+      "returns": "models.ServerTranscodingSettings",
+      "returnGoType": "models.ServerTranscodingSettings",
+      "returnTypescriptType": "Models_ServerTranscodingSettings"
     }
   },
   {
-    "name": "HandleSaveMediastreamSettings",
-    "trimmedName": "SaveMediastreamSettings",
+    "name": "HandleSaveTranscodingSettings",
+    "trimmedName": "SaveTranscodingSettings",
     "comments": [
-      "HandleSaveMediastreamSettings",
+      "HandleSaveTranscodingSettings",
       "",
-      "\t@summary save mediastream settings.",
-      "\t@desc This saves the mediastream settings.",
-      "\t@returns models.MediastreamSettings",
-      "\t@route /api/v1/mediastream/settings [PATCH]",
+      "\t@summary save server transcoding settings (admin only).",
+      "\t@desc This saves the server-side transcoding settings to GlobalSettings. Admin access required.",
+      "\t@returns models.ServerTranscodingSettings",
+      "\t@route /api/v1/transcoding/settings [PATCH]",
       ""
     ],
     "filepath": "internal/handlers/mediastream.go",
     "filename": "mediastream.go",
     "api": {
-      "summary": "save mediastream settings.",
+      "summary": "save server transcoding settings (admin only).",
       "descriptions": [
-        "This saves the mediastream settings."
+        "This saves the server-side transcoding settings to GlobalSettings. Admin access required."
       ],
-      "endpoint": "/api/v1/mediastream/settings",
+      "endpoint": "/api/v1/transcoding/settings",
       "methods": [
         "PATCH"
       ],
@@ -6158,16 +6158,86 @@
         {
           "name": "Settings",
           "jsonName": "settings",
-          "goType": "models.MediastreamSettings",
-          "usedStructType": "models.MediastreamSettings",
-          "typescriptType": "Models_MediastreamSettings",
+          "goType": "models.ServerTranscodingSettings",
+          "usedStructType": "models.ServerTranscodingSettings",
+          "typescriptType": "Models_ServerTranscodingSettings",
           "required": true,
           "descriptions": []
         }
       ],
-      "returns": "models.MediastreamSettings",
-      "returnGoType": "models.MediastreamSettings",
-      "returnTypescriptType": "Models_MediastreamSettings"
+      "returns": "models.ServerTranscodingSettings",
+      "returnGoType": "models.ServerTranscodingSettings",
+      "returnTypescriptType": "Models_ServerTranscodingSettings"
+    }
+  },
+  {
+    "name": "HandleGetClientMediaSettings",
+    "trimmedName": "GetClientMediaSettings",
+    "comments": [
+      "HandleGetClientMediaSettings",
+      "",
+      "\t@summary get user client media settings.",
+      "\t@desc This returns the client-side media playback settings for the current user.",
+      "\t@returns models.ClientMediaSettings",
+      "\t@route /api/v1/client-media/settings [GET]",
+      ""
+    ],
+    "filepath": "internal/handlers/mediastream.go",
+    "filename": "mediastream.go",
+    "api": {
+      "summary": "get user client media settings.",
+      "descriptions": [
+        "This returns the client-side media playback settings for the current user."
+      ],
+      "endpoint": "/api/v1/client-media/settings",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "models.ClientMediaSettings",
+      "returnGoType": "models.ClientMediaSettings",
+      "returnTypescriptType": "Models_ClientMediaSettings"
+    }
+  },
+  {
+    "name": "HandleSaveClientMediaSettings",
+    "trimmedName": "SaveClientMediaSettings",
+    "comments": [
+      "HandleSaveClientMediaSettings",
+      "",
+      "\t@summary save user client media settings.",
+      "\t@desc This saves the client-side media playback settings for the current user.",
+      "\t@returns models.ClientMediaSettings",
+      "\t@route /api/v1/client-media/settings [PATCH]",
+      ""
+    ],
+    "filepath": "internal/handlers/mediastream.go",
+    "filename": "mediastream.go",
+    "api": {
+      "summary": "save user client media settings.",
+      "descriptions": [
+        "This saves the client-side media playback settings for the current user."
+      ],
+      "endpoint": "/api/v1/client-media/settings",
+      "methods": [
+        "PATCH"
+      ],
+      "params": [],
+      "bodyFields": [
+        {
+          "name": "Settings",
+          "jsonName": "settings",
+          "goType": "models.ClientMediaSettings",
+          "usedStructType": "models.ClientMediaSettings",
+          "typescriptType": "Models_ClientMediaSettings",
+          "required": true,
+          "descriptions": []
+        }
+      ],
+      "returns": "models.ClientMediaSettings",
+      "returnGoType": "models.ClientMediaSettings",
+      "returnTypescriptType": "Models_ClientMediaSettings"
     }
   },
   {
@@ -7369,6 +7439,126 @@
     }
   },
   {
+    "name": "HandleGetGlobalSettings",
+    "trimmedName": "GetGlobalSettings",
+    "comments": [
+      "HandleGetGlobalSettings",
+      "",
+      "\t@summary returns the global server settings (admin-only).",
+      "\t@desc Returns server-wide settings like library paths, torrent settings, etc.",
+      "\t@route /api/v1/settings/global [GET]",
+      "\t@returns models.GlobalSettings",
+      ""
+    ],
+    "filepath": "internal/handlers/settings.go",
+    "filename": "settings.go",
+    "api": {
+      "summary": "returns the global server settings (admin-only).",
+      "descriptions": [
+        "Returns server-wide settings like library paths, torrent settings, etc."
+      ],
+      "endpoint": "/api/v1/settings/global",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "models.GlobalSettings",
+      "returnGoType": "models.GlobalSettings",
+      "returnTypescriptType": "Models_GlobalSettings"
+    }
+  },
+  {
+    "name": "HandleUpdateGlobalSettings",
+    "trimmedName": "UpdateGlobalSettings",
+    "comments": [
+      "HandleUpdateGlobalSettings",
+      "",
+      "\t@summary updates global server settings (admin-only).",
+      "\t@desc Updates server-wide settings like library paths, torrent settings, etc.",
+      "\t@route /api/v1/settings/global [PUT]",
+      "\t@returns models.GlobalSettings",
+      ""
+    ],
+    "filepath": "internal/handlers/settings.go",
+    "filename": "settings.go",
+    "api": {
+      "summary": "updates global server settings (admin-only).",
+      "descriptions": [
+        "Updates server-wide settings like library paths, torrent settings, etc."
+      ],
+      "endpoint": "/api/v1/settings/global",
+      "methods": [
+        "PUT"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "models.GlobalSettings",
+      "returnGoType": "models.GlobalSettings",
+      "returnTypescriptType": "Models_GlobalSettings"
+    }
+  },
+  {
+    "name": "HandleGetUserSettings",
+    "trimmedName": "GetUserSettings",
+    "comments": [
+      "HandleGetUserSettings",
+      "",
+      "\t@summary returns the current user's personal settings.",
+      "\t@desc Returns user-specific settings like media player preferences, display settings, etc.",
+      "\t@route /api/v1/settings/user [GET]",
+      "\t@returns models.Settings",
+      ""
+    ],
+    "filepath": "internal/handlers/settings.go",
+    "filename": "settings.go",
+    "api": {
+      "summary": "returns the current user's personal settings.",
+      "descriptions": [
+        "Returns user-specific settings like media player preferences, display settings, etc."
+      ],
+      "endpoint": "/api/v1/settings/user",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "models.Settings",
+      "returnGoType": "models.Settings",
+      "returnTypescriptType": "Models_Settings"
+    }
+  },
+  {
+    "name": "HandleUpdateUserSettings",
+    "trimmedName": "UpdateUserSettings",
+    "comments": [
+      "HandleUpdateUserSettings",
+      "",
+      "\t@summary updates the current user's personal settings.",
+      "\t@desc Updates user-specific settings like media player preferences, display settings, etc.",
+      "\t@route /api/v1/settings/user [PUT]",
+      "\t@returns models.Settings",
+      ""
+    ],
+    "filepath": "internal/handlers/settings.go",
+    "filename": "settings.go",
+    "api": {
+      "summary": "updates the current user's personal settings.",
+      "descriptions": [
+        "Updates user-specific settings like media player preferences, display settings, etc."
+      ],
+      "endpoint": "/api/v1/settings/user",
+      "methods": [
+        "PUT"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "models.Settings",
+      "returnGoType": "models.Settings",
+      "returnTypescriptType": "Models_Settings"
+    }
+  },
+  {
     "name": "HandleGettingStarted",
     "trimmedName": "GettingStarted",
     "comments": [
@@ -7712,6 +7902,69 @@
       "descriptions": [],
       "endpoint": "",
       "methods": null,
+      "params": [],
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "HandleSSEClientEvents",
+    "trimmedName": "SSEClientEvents",
+    "comments": [
+      "HandleSSEClientEvents provides HTTP polling for client events",
+      "This replaces WebSocket subscriptions for client events that need server-\u003eclient communication",
+      "",
+      "@summary Poll for client events",
+      "@desc Provides HTTP polling alternative to WebSocket subscriptions for client events",
+      "@route /api/v1/sse/client-events [GET]",
+      "@param timeout query string false \"Polling timeout in seconds (max 30, default 10)\"",
+      "@param last_event_id query string false \"Last event ID received for resuming\"",
+      ""
+    ],
+    "filepath": "internal/handlers/sse_polling.go",
+    "filename": "sse_polling.go",
+    "api": {
+      "summary": "Poll for client events",
+      "descriptions": [
+        "Provides HTTP polling alternative to WebSocket subscriptions for client events"
+      ],
+      "endpoint": "/api/v1/sse/client-events",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "HandleSSENativePlayerEvents",
+    "trimmedName": "SSENativePlayerEvents",
+    "comments": [
+      "HandleSSENativePlayerEvents provides HTTP polling for native player events",
+      "",
+      "@summary Poll for native player events",
+      "@desc Provides HTTP polling alternative to WebSocket subscriptions for native player events",
+      "@route /api/v1/sse/native-player-events [GET]",
+      "@param timeout query string false \"Polling timeout in seconds (max 30, default 10)\"",
+      "@param last_event_id query string false \"Last event ID received for resuming\"",
+      ""
+    ],
+    "filepath": "internal/handlers/sse_polling.go",
+    "filename": "sse_polling.go",
+    "api": {
+      "summary": "Poll for native player events",
+      "descriptions": [
+        "Provides HTTP polling alternative to WebSocket subscriptions for native player events"
+      ],
+      "endpoint": "/api/v1/sse/native-player-events",
+      "methods": [
+        "GET"
+      ],
       "params": [],
       "bodyFields": [],
       "returns": "bool",
@@ -9305,7 +9558,9 @@
     "name": "webSocketEventHandler",
     "trimmedName": "webSocketEventHandler",
     "comments": [
-      "webSocketEventHandler creates a new websocket handler for real-time event communication",
+      "webSocketEventHandler creates a new websocket handler for bidirectional communication",
+      "Primary use cases: Plugin events and Native Player communication",
+      "Most server-to-client events now use SSE (Server-Sent Events)",
       ""
     ],
     "filepath": "internal/handlers/websocket.go",

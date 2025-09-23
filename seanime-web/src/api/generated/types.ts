@@ -3099,6 +3099,7 @@ export type Models_AutoDownloaderSettings = {
     downloadAutomatically: boolean
     enableEnhancedQueries: boolean
     enableSeasonCheck: boolean
+    useDebrid: boolean
 }
 
 /**
@@ -3123,6 +3124,18 @@ export type Models_ChapterDownloadQueueItem = {
     id: number
     createdAt?: string
     updatedAt?: string
+}
+
+/**
+ * - Filepath: internal/database/models/models.go
+ * - Filename: models.go
+ * - Package: models
+ * @description
+ *  Client-side media playback settings (user-controlled, stored in user Settings)
+ */
+export type Models_ClientMediaSettings = {
+    disableAutoSwitchToDirectPlay: boolean
+    directPlayOnly: boolean
 }
 
 /**
@@ -3170,6 +3183,25 @@ export type Models_GlobalAnimeFileMapping = {
     episodeNumber: number
     fileSize: number
     lastScanned?: string
+    id: number
+    createdAt?: string
+    updatedAt?: string
+}
+
+/**
+ * - Filepath: internal/database/models/models.go
+ * - Filename: models.go
+ * - Package: models
+ * @description
+ *  GlobalSettings - server-wide settings stored in separate table
+ */
+export type Models_GlobalSettings = {
+    setupCompleted: boolean
+    anilistWhitelist: Models_StringSlice
+    library?: Models_LibrarySettings
+    torrent?: Models_TorrentSettings
+    autoDownloader?: Models_AutoDownloaderSettings
+    transcoding?: Models_ServerTranscodingSettings
     id: number
     createdAt?: string
     updatedAt?: string
@@ -3257,6 +3289,8 @@ export type Models_MediaPlayerSettings = {
  * - Filepath: internal/database/models/models.go
  * - Filename: models.go
  * - Package: models
+ * @description
+ *  DEPRECATED: Use ServerTranscodingSettings (in GlobalSettings) and ClientMediaSettings (in user Settings) instead
  */
 export type Models_MediastreamSettings = {
     transcodeEnabled: boolean
@@ -3291,6 +3325,25 @@ export type Models_NotificationSettings = {
  * - Filename: models.go
  * - Package: models
  * @description
+ *  Server-side transcoding settings (admin-controlled, stored in GlobalSettings)
+ */
+export type Models_ServerTranscodingSettings = {
+    transcodeEnabled: boolean
+    transcodeHwAccel: string
+    transcodeThreads: number
+    transcodePreset: string
+    preTranscodeEnabled: boolean
+    preTranscodeLibraryDir: string
+    ffmpegPath: string
+    ffprobePath: string
+    transcodeHwAccelCustomSettings: string
+}
+
+/**
+ * - Filepath: internal/database/models/models.go
+ * - Filename: models.go
+ * - Package: models
+ * @description
  *  Settings - per-user settings
  */
 export type Models_Settings = {
@@ -3306,6 +3359,7 @@ export type Models_Settings = {
     discord?: Models_DiscordSettings
     notifications?: Models_NotificationSettings
     manga?: Models_MangaSettings
+    clientMedia?: Models_ClientMediaSettings
     /**
      * Populated from GlobalSettings
      */
@@ -3318,6 +3372,10 @@ export type Models_Settings = {
      * Populated from GlobalSettings
      */
     autoDownloader?: Models_AutoDownloaderSettings
+    /**
+     * Populated from GlobalSettings
+     */
+    transcoding?: Models_ServerTranscodingSettings
     id: number
     createdAt?: string
     updatedAt?: string
@@ -4196,3 +4254,4 @@ export type Video = {
     height: number
     bitrate: number
 }
+

@@ -36,7 +36,7 @@ const settingsSchema = defineSchema(({ z }) => z.object({
     downloadAutomatically: z.boolean(),
     enableEnhancedQueries: z.boolean(),
     enableSeasonCheck: z.boolean(),
-    
+    useDebrid: z.boolean(),
 }))
 
 export function AutoDownloaderPage() {
@@ -158,7 +158,7 @@ export function AutoDownloaderPage() {
                                 downloadAutomatically: serverStatus?.settings?.autoDownloader?.downloadAutomatically ?? false,
                                 enableEnhancedQueries: serverStatus?.settings?.autoDownloader?.enableEnhancedQueries ?? false,
                                 enableSeasonCheck: serverStatus?.settings?.autoDownloader?.enableSeasonCheck ?? false,
-                                
+                                useDebrid: serverStatus?.settings?.autoDownloader?.useDebrid ?? false,
                             }}
                             stackClass="space-y-6"
                         >

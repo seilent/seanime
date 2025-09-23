@@ -371,9 +371,9 @@ export function MainSidebar() {
                                     { "hidden": ctx.isBelowBreakpoint },
                                 )}
                             >
-                                <Avatar size="sm" className="cursor-pointer" src={user?.viewer?.avatar?.medium || undefined} />
+                                <Avatar size="sm" className="cursor-pointer" />
                                 {expandedSidebar && <div className="flex flex-col items-start">
-                                    <p className="truncate text-sm">{user?.viewer?.name}</p>
+                                    <p className="truncate text-sm">{user?.displayName || user?.username}</p>
                                     <UserProfileInfo />
                                 </div>}
                             </div>}

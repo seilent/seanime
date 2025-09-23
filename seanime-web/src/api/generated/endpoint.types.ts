@@ -18,12 +18,13 @@ import type {
     HibikeTorrent_AnimeTorrent,
     Mediastream_StreamType,
     Models_AnilistSettings,
+    Models_ClientMediaSettings,
     Models_DiscordSettings,
     Models_LibrarySettings,
     Models_MangaSettings,
     Models_MediaPlayerSettings,
-    Models_MediastreamSettings,
     Models_NotificationSettings,
+    Models_ServerTranscodingSettings,
     Models_Theme,
     Models_TorrentSettings,
     Report_ClickLog,
@@ -1109,12 +1110,23 @@ export type DeleteMangaDownloadedChapters_Variables = {
 /**
  * - Filepath: internal/handlers/mediastream.go
  * - Filename: mediastream.go
- * - Endpoint: /api/v1/mediastream/settings
+ * - Endpoint: /api/v1/transcoding/settings
  * @description
- * Route save mediastream settings.
+ * Route save server transcoding settings (admin only).
  */
-export type SaveMediastreamSettings_Variables = {
-    settings: Models_MediastreamSettings
+export type SaveTranscodingSettings_Variables = {
+    settings: Models_ServerTranscodingSettings
+}
+
+/**
+ * - Filepath: internal/handlers/mediastream.go
+ * - Filename: mediastream.go
+ * - Endpoint: /api/v1/client-media/settings
+ * @description
+ * Route save user client media settings.
+ */
+export type SaveClientMediaSettings_Variables = {
+    settings: Models_ClientMediaSettings
 }
 
 /**
@@ -1383,11 +1395,15 @@ export type SaveAutoDownloaderSettings_Variables = {
     downloadAutomatically: boolean
     enableEnhancedQueries: boolean
     enableSeasonCheck: boolean
-    
+    useDebrid: boolean
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // sse
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// sse_polling
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1518,3 +1534,4 @@ export type SearchTorrent_Variables = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // websocket
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+

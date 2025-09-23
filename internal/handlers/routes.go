@@ -109,8 +109,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	h := &Handler{App: app}
 
-	e.GET("/events", h.webSocketEventHandler)
-
 	v1 := e.Group("/api").Group("/v1") // Commented out for now, will be used later
 
 	// SSE endpoint for Server-Sent Events
@@ -127,6 +125,9 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	// Auth middleware
 	//
 	v1.Use(h.UserAuthMiddleware)
+
+	// WebSocket endpoint for real-time communication (requires authentication)
+	v1.GET("/events", h.webSocketEventHandler)
 
 	imageProxy := &util.ImageProxy{}
 	v1.GET("/image-proxy", imageProxy.ProxyImage)
