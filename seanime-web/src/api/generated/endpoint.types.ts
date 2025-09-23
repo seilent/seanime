@@ -24,7 +24,6 @@ import type {
     Models_MangaSettings,
     Models_MediaPlayerSettings,
     Models_NotificationSettings,
-    Models_ServerTranscodingSettings,
     Models_Theme,
     Models_TorrentSettings,
     Report_ClickLog,
@@ -1106,17 +1105,6 @@ export type DeleteMangaDownloadedChapters_Variables = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // mediastream
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/handlers/mediastream.go
- * - Filename: mediastream.go
- * - Endpoint: /api/v1/transcoding/settings
- * @description
- * Route save server transcoding settings (admin only).
- */
-export type SaveTranscodingSettings_Variables = {
-    settings: Models_ServerTranscodingSettings
-}
 
 /**
  * - Filepath: internal/handlers/mediastream.go

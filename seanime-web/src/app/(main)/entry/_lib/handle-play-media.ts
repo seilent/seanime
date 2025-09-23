@@ -70,7 +70,7 @@ export function useHandlePlayMedia() {
         }
 
         // Handle media streaming
-        if (serverStatus?.mediastreamSettings?.transcodeEnabled && mediastreamActiveOnDevice) {
+        if (mediastreamActiveOnDevice) {
             setMediastreamFilePath(path)
             React.startTransition(() => {
                 router.push(`/mediastream?id=${mediaId}`)

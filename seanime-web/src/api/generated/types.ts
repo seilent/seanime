@@ -2401,7 +2401,6 @@ export type Status = {
     version: string
     versionName: string
     themeSettings?: Models_Theme
-    mediastreamSettings?: Models_MediastreamSettings
     anilistClientId: string
     /**
      * If true, a new screen will be displayed
@@ -2763,7 +2762,7 @@ export type Mediastream_MediaContainer = {
  * - Filename: playback.go
  * - Package: mediastream
  */
-export type Mediastream_StreamType = "transcode" | "optimized" | "direct"
+export type Mediastream_StreamType = "direct"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Metadata
@@ -3134,7 +3133,6 @@ export type Models_ChapterDownloadQueueItem = {
  *  Client-side media playback settings (user-controlled, stored in user Settings)
  */
 export type Models_ClientMediaSettings = {
-    disableAutoSwitchToDirectPlay: boolean
     directPlayOnly: boolean
 }
 
@@ -3201,7 +3199,6 @@ export type Models_GlobalSettings = {
     library?: Models_LibrarySettings
     torrent?: Models_TorrentSettings
     autoDownloader?: Models_AutoDownloaderSettings
-    transcoding?: Models_ServerTranscodingSettings
     id: number
     createdAt?: string
     updatedAt?: string
@@ -3289,54 +3286,11 @@ export type Models_MediaPlayerSettings = {
  * - Filepath: internal/database/models/models.go
  * - Filename: models.go
  * - Package: models
- * @description
- *  DEPRECATED: Use ServerTranscodingSettings (in GlobalSettings) and ClientMediaSettings (in user Settings) instead
- */
-export type Models_MediastreamSettings = {
-    transcodeEnabled: boolean
-    transcodeHwAccel: string
-    transcodeThreads: number
-    transcodePreset: string
-    disableAutoSwitchToDirectPlay: boolean
-    directPlayOnly: boolean
-    preTranscodeEnabled: boolean
-    preTranscodeLibraryDir: string
-    ffmpegPath: string
-    ffprobePath: string
-    transcodeHwAccelCustomSettings: string
-    id: number
-    createdAt?: string
-    updatedAt?: string
-}
-
-/**
- * - Filepath: internal/database/models/models.go
- * - Filename: models.go
- * - Package: models
  */
 export type Models_NotificationSettings = {
     disableNotifications: boolean
     disableAutoDownloaderNotifications: boolean
     disableAutoScannerNotifications: boolean
-}
-
-/**
- * - Filepath: internal/database/models/models.go
- * - Filename: models.go
- * - Package: models
- * @description
- *  Server-side transcoding settings (admin-controlled, stored in GlobalSettings)
- */
-export type Models_ServerTranscodingSettings = {
-    transcodeEnabled: boolean
-    transcodeHwAccel: string
-    transcodeThreads: number
-    transcodePreset: string
-    preTranscodeEnabled: boolean
-    preTranscodeLibraryDir: string
-    ffmpegPath: string
-    ffprobePath: string
-    transcodeHwAccelCustomSettings: string
 }
 
 /**
@@ -3372,10 +3326,6 @@ export type Models_Settings = {
      * Populated from GlobalSettings
      */
     autoDownloader?: Models_AutoDownloaderSettings
-    /**
-     * Populated from GlobalSettings
-     */
-    transcoding?: Models_ServerTranscodingSettings
     id: number
     createdAt?: string
     updatedAt?: string

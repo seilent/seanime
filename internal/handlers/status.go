@@ -34,7 +34,6 @@ type Status struct {
 	Version               string                        `json:"version"`
 	VersionName           string                        `json:"versionName"`
 	ThemeSettings         *models.Theme                 `json:"themeSettings"`
-	MediastreamSettings   *models.MediastreamSettings   `json:"mediastreamSettings"`
 	AnilistClientID       string                        `json:"anilistClientId"`
 	Updating              bool                          `json:"updating"`         // If true, a new screen will be displayed
 	IsDesktopSidecar      bool                          `json:"isDesktopSidecar"` // The server is running as a desktop sidecar
@@ -90,7 +89,6 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 			settings.Library = globalSettings.Library
 			settings.Torrent = globalSettings.Torrent
 			settings.AutoDownloader = globalSettings.AutoDownloader
-			settings.Transcoding = globalSettings.Transcoding
 		}
 	} else {
 		// If no user is authenticated, create empty settings with global data
@@ -99,7 +97,6 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 			settings.Library = globalSettings.Library
 			settings.Torrent = globalSettings.Torrent
 			settings.AutoDownloader = globalSettings.AutoDownloader
-			settings.Transcoding = globalSettings.Transcoding
 		}
 	}
 
@@ -125,7 +122,6 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 		Version:               h.App.Version,
 		VersionName:           constants.VersionName,
 		ThemeSettings:         theme,
-		MediastreamSettings:   h.App.SecondarySettings.Mediastream,
 		AnilistClientID:       h.App.Config.Anilist.ClientID,
 		ServerReady:           h.App.ServerReady,
 		Updating:              false, // Set to false for now
@@ -352,7 +348,6 @@ func (h *Handler) HandleGetAnnouncements(c echo.Context) error {
 		Library:        globalSettings.Library,
 		Torrent:        globalSettings.Torrent,
 		AutoDownloader: globalSettings.AutoDownloader,
-		Transcoding:    globalSettings.Transcoding,
 	}
 
 	announcements := h.App.Updater.GetAnnouncements(h.App.Version, b.Platform, compatSettings)

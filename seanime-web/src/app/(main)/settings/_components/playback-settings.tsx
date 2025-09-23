@@ -156,26 +156,20 @@ export function PlaybackSettings(props: PlaybackSettingsProps) {
                                 downloadedMediaPlayback === PlaybackDownloadedMedia.Default && activeOnDevice
                                     ? "border-[--brand] bg-brand-900/10"
                                     : "border-gray-700 hover:border-gray-600",
-                                !serverStatus?.mediastreamSettings?.transcodeEnabled && "opacity-50",
                             )}
                             onClick={() => {
-                                if (serverStatus?.mediastreamSettings?.transcodeEnabled) {
-                                    setDownloadedMediaPlayback(PlaybackDownloadedMedia.Default)
-                                    setActiveOnDevice(true)
-                                    toast.success("Playback settings updated")
-                                }
+                                setDownloadedMediaPlayback(PlaybackDownloadedMedia.Default)
+                                setActiveOnDevice(true)
+                                toast.success("Playback settings updated")
                             }}
                         >
                             <div className="flex items-start gap-3">
                                 <MdOutlineBroadcastOnHome className="text-xl text-brand-600 dark:text-brand-400 mt-1" />
                                 <div className="flex-1 space-y-2">
                                     <div>
-                                        <p className="font-medium">Transcoding / Direct Play</p>
+                                        <p className="font-medium">Direct Play</p>
                                         <p className="text-xs text-gray-600 dark:text-gray-400">
-                                            {serverStatus?.mediastreamSettings?.transcodeEnabled
-                                                ? "Plays in browser with transcoding"
-                                                : "Transcoding not enabled"
-                                            }
+                                            Plays in browser with direct streaming
                                         </p>
                                     </div>
                                 </div>

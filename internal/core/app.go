@@ -93,7 +93,6 @@ type (
 	Settings                        *models.Settings
 	GlobalSettings                  *models.GlobalSettings
         SecondarySettings               struct {
-            Mediastream   *models.MediastreamSettings
             Torrentstream *models.TorrentstreamSettings
         } // Struct for other settings sent to client
 	SelfUpdater        *updater.SelfUpdater
@@ -345,9 +344,8 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		FeatureFlags:                  NewFeatureFlags(cfg, logger),
 		IsDesktopSidecar:              configOpts.IsDesktopSidecar,
         SecondarySettings: struct {
-            Mediastream   *models.MediastreamSettings
             Torrentstream *models.TorrentstreamSettings
-        }{Mediastream: nil, Torrentstream: nil},
+        }{Torrentstream: nil},
 		SelfUpdater:                     selfupdater,
 		moduleMu:                        sync.Mutex{},
 		OnRefreshAnilistCollectionFuncs: result.NewResultMap[string, func()](),
@@ -396,9 +394,7 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Initialize Anilist data
 	app.InitOrRefreshAnilistData()
 
-	// Initialize mediastream settings (for streaming media)
-	app.InitOrRefreshMediastreamSettings()
-
+	
 	// Register sync manager cleanup
 	if app.SyncManager != nil {
 		app.AddCleanupFunction(app.SyncManager.Stop)

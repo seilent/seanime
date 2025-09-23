@@ -272,8 +272,7 @@ func (db *Database) CreateDefaultSettingsForUser(userID uint) (*models.Settings,
 			DisableAutoScannerNotifications:    false,
 		},
 		ClientMedia: &models.ClientMediaSettings{
-			DisableAutoSwitchToDirectPlay: false,
-			DirectPlayOnly:                false,
+			DirectPlayOnly: false,
 		},
 	}
 

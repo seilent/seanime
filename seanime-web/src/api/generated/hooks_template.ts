@@ -1581,26 +1581,6 @@
 // mediastream
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// export function useGetTranscodingSettings() {
-//     return useServerQuery<Models_ServerTranscodingSettings>({
-//         endpoint: API_ENDPOINTS.MEDIASTREAM.GetTranscodingSettings.endpoint,
-//         method: API_ENDPOINTS.MEDIASTREAM.GetTranscodingSettings.methods[0],
-//         queryKey: [API_ENDPOINTS.MEDIASTREAM.GetTranscodingSettings.key],
-//         enabled: true,
-//     })
-// }
-
-// export function useSaveTranscodingSettings() {
-//     return useServerMutation<Models_ServerTranscodingSettings, SaveTranscodingSettings_Variables>({
-//         endpoint: API_ENDPOINTS.MEDIASTREAM.SaveTranscodingSettings.endpoint,
-//         method: API_ENDPOINTS.MEDIASTREAM.SaveTranscodingSettings.methods[0],
-//         mutationKey: [API_ENDPOINTS.MEDIASTREAM.SaveTranscodingSettings.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
 // export function useGetClientMediaSettings() {
 //     return useServerQuery<Models_ClientMediaSettings>({
 //         endpoint: API_ENDPOINTS.MEDIASTREAM.GetClientMediaSettings.endpoint,
@@ -1637,17 +1617,6 @@
 //         endpoint: API_ENDPOINTS.MEDIASTREAM.PreloadMediastreamMediaContainer.endpoint,
 //         method: API_ENDPOINTS.MEDIASTREAM.PreloadMediastreamMediaContainer.methods[0],
 //         mutationKey: [API_ENDPOINTS.MEDIASTREAM.PreloadMediastreamMediaContainer.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useMediastreamShutdownTranscodeStream() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.MEDIASTREAM.MediastreamShutdownTranscodeStream.endpoint,
-//         method: API_ENDPOINTS.MEDIASTREAM.MediastreamShutdownTranscodeStream.methods[0],
-//         mutationKey: [API_ENDPOINTS.MEDIASTREAM.MediastreamShutdownTranscodeStream.key],
 //         onSuccess: async () => {
 // 
 //         },

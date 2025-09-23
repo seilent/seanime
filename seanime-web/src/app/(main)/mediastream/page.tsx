@@ -65,9 +65,7 @@ export default function Page() {
         onCanPlay,
         playNextEpisode,
         onPlayFile,
-        isCodecSupported,
         setStreamType,
-        disabledAutoSwitchToDirectPlay,
         handleUpdateWatchHistory,
         episode,
         duration,
@@ -143,13 +141,10 @@ export default function Page() {
                                     <p className="tracking-wide text-sm text-[--muted] break-all">
                                         {mediaContainer?.mediaInfo?.path}
                                     </p>
-                                    {isCodecSupported(mediaContainer?.mediaInfo?.mimeCodec || "") ? <Alert
+                                    <Alert
                                         intent="success"
-                                        description="File video and audio codecs are compatible with this client. Direct play is recommended."
-                                    /> : <Alert
-                                        intent="warning"
-                                        description="File video and audio codecs are not compatible with this client. Transcoding is needed."
-                                    />}
+                                        description="Direct play enabled. Media will be streamed natively."
+                                    />
 
                                     <p>
                                         <span className="font-bold">Video codec: </span>
@@ -189,24 +184,7 @@ export default function Page() {
 
                                     <Separator />
 
-                                    {(mediaContainer?.streamType === "direct") &&
-                                        <div className="space-y-2">
-                                            <Button
-                                                intent="primary-subtle"
-                                                onClick={() => setStreamType("transcode")}
-                                                disabled={!disabledAutoSwitchToDirectPlay}
-                                            >
-                                                Switch to transcoding
-                                            </Button>
-                                            {!disabledAutoSwitchToDirectPlay && <p className="text-[--muted] text-sm italic opacity-50">
-                                                Enable 'prefer transcoding' in the media streaming settings if you want to switch to transcoding
-                                            </p>}
-                                        </div>}
-
-                                    {(mediaContainer?.streamType === "transcode" && isCodecSupported(mediaContainer?.mediaInfo?.mimeCodec || "")) &&
-                                        <Button intent="success-subtle" onClick={() => setStreamType("direct")}>
-                                            Switch to direct play
-                                        </Button>}
+                                    
                                 </div>
                             </Modal>
                         </div>

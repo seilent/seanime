@@ -1,8 +1,7 @@
 import { getServerBaseUrl } from "@/api/client/server-url"
 import { Anime_Episode, Mediastream_StreamType, Nullish } from "@/api/generated/types"
 import { useHandleContinuityWithMediaPlayer, useHandleCurrentMediaContinuity } from "@/api/hooks/continuity.hooks"
-import { useGetClientMediaSettings, useMediastreamShutdownTranscodeStream, useRequestMediastreamMediaContainer } from "@/api/hooks/mediastream.hooks"
-import { useIsCodecSupported } from "@/app/(main)/_features/sea-media-player/hooks"
+import { useGetClientMediaSettings, useRequestMediastreamMediaContainer } from "@/api/hooks/mediastream.hooks"
 import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
 import { useMediastreamCurrentFile, useMediastreamJassubOffscreenRender } from "@/app/(main)/mediastream/_lib/mediastream.atoms"
 import { clientIdAtom } from "@/app/websocket-provider"
@@ -10,7 +9,6 @@ import { logger } from "@/lib/helpers/debug"
 import { legacy_getAssetUrl } from "@/lib/server/assets"
 import { WSEvents } from "@/lib/server/ws-events"
 import {
-    isHLSProvider,
     LibASSTextRenderer,
     MediaCanPlayDetail,
     MediaPlayerInstance,
@@ -18,7 +16,6 @@ import {
     MediaProviderChangeEvent,
     MediaProviderSetupEvent,
 } from "@vidstack/react"
-import HLS, { LoadPolicy } from "hls.js"
 import { useAtomValue } from "jotai"
 import { useRouter } from "next/navigation"
 import React from "react"
@@ -32,58 +29,6 @@ function uuidv4(): string {
 }
 
 let cId = typeof window === "undefined" ? "-" : uuidv4()
-
-const mediastream_getHlsConfig = () => {
-    const loadPolicy: LoadPolicy = {
-        default: {
-            maxTimeToFirstByteMs: Number.POSITIVE_INFINITY,
-            maxLoadTimeMs: 300_000,
-            timeoutRetry: {
-                maxNumRetry: 2,
-                retryDelayMs: 0,
-                maxRetryDelayMs: 0,
-            },
-            errorRetry: {
-                maxNumRetry: 1,
-                retryDelayMs: 0,
-                maxRetryDelayMs: 0,
-            },
-        },
-    }
-    return {
-        autoStartLoad: true,
-        abrEwmaDefaultEstimate: 35_000_000,
-        abrEwmaDefaultEstimateMax: 50_000_000,
-        // debug: true,
-        startLevel: 0, // Start at level 0
-        lowLatencyMode: false,
-        initialLiveManifestSize: 0,
-        fragLoadPolicy: {
-            default: {
-                maxTimeToFirstByteMs: Number.POSITIVE_INFINITY,
-                maxLoadTimeMs: 60_000,
-                timeoutRetry: {
-                    // maxNumRetry: 15,
-                    maxNumRetry: 5,
-                    retryDelayMs: 100,
-                    maxRetryDelayMs: 0,
-                },
-                errorRetry: {
-                    // maxNumRetry: 5,
-                    // retryDelayMs: 0,
-                    maxNumRetry: 15,
-                    retryDelayMs: 100,
-                    maxRetryDelayMs: 100,
-                },
-            },
-        },
-        keyLoadPolicy: loadPolicy,
-        certLoadPolicy: loadPolicy,
-        playlistLoadPolicy: loadPolicy,
-        manifestLoadPolicy: loadPolicy,
-        steeringManifestLoadPolicy: loadPolicy,
-    }
-}
 
 type HandleMediastreamProps = {
     playerRef: React.RefObject<MediaPlayerInstance>
@@ -109,7 +54,7 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
     const prevUrlRef = React.useRef<string | undefined>(undefined)
     const definedUrlRef = React.useRef<string | undefined>(undefined)
     const [url, setUrl] = React.useState<string | undefined>(undefined)
-    const [streamType, setStreamType] = React.useState<Mediastream_StreamType>("transcode") // do not chance
+    const [streamType] = React.useState<Mediastream_StreamType>("direct")
 
     // Refs
     const previousCurrentTimeRef = React.useRef(0)
@@ -133,10 +78,6 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
 
     const mediaContainer = React.useMemo(() => (!isPending && !isFetching) ? _mediaContainer : undefined, [_mediaContainer, isPending, isFetching])
 
-    // const { mutate: preloadMediaContainer } = usePreloadMediastreamMediaContainer()
-    // const [preloadedFilePath, setPreloadedFilePath] = React.useState<string | undefined>(undefined)
-
-
     // Whether the playback has errored
     const [playbackErrored, setPlaybackErrored] = React.useState<boolean>(false)
 
@@ -151,65 +92,17 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
         }
     }, [isPending])
 
-    const { mutate: shutdownTranscode } = useMediastreamShutdownTranscodeStream()
-
     /**
      * This error happens when the media container is available but the URL has been set to undefined
-     * - This is usually the case when the transcoder has errored out
      */
     const isStreamError = !!mediaContainer && !url
 
-    const { isCodecSupported } = useIsCodecSupported()
-
     /**
      * Effect triggered when media container is available
-     * - Check compatibility
-     * - Set URL and stream type when media container is available
+     * - Set URL when media container is available
      */
     React.useEffect(() => {
         logger("MEDIASTREAM").info("Media container changed, running effect", mediaContainer)
-
-        /**
-         * Check if codec is supported, if it is, switch to direct play
-         */
-        const codecSupported = isCodecSupported(mediaContainer?.mediaInfo?.mimeCodec ?? "")
-        logger("MEDIASTREAM").info("Is codec supported", codecSupported)
-
-        // If the codec is supported, switch to direct play
-        if (mediaContainer?.streamType === "transcode") {
-            logger("MEDIASTREAM").info("Stream type is transcode")
-
-            if (!codecSupported && mediastreamSettings?.directPlayOnly) {
-                logger("MEDIASTREAM").warning("Codec not supported for direct play", mediaContainer?.mediaInfo?.mimeCodec)
-                logger("MEDIASTREAM").warning("Stopping playback")
-                toast.warning("Codec not supported for direct play")
-                changeUrl(undefined)
-                logger("MEDIASTREAM").info("Setting URL to undefined")
-                return
-            }
-
-            if (codecSupported && (!mediastreamSettings?.disableAutoSwitchToDirectPlay || mediastreamSettings?.directPlayOnly)) {
-                logger("MEDIASTREAM").info("Codec supported", mediaContainer?.mediaInfo?.mimeCodec)
-                logger("MEDIASTREAM").warning("Switching to direct play")
-                setStreamType("direct")
-                changeUrl(undefined)
-                logger("MEDIASTREAM").info("Setting URL to undefined")
-                return
-            } else {
-                logger("MEDIASTREAM").info("Codec not supported for direct play", mediaContainer?.mediaInfo?.mimeCodec)
-            }
-        }
-        // If the codec is not supported, switch to transcode
-        if (mediaContainer?.streamType === "direct") {
-            if (!codecSupported) {
-                logger("MEDIASTREAM").warning("Codec not supported for direct play", mediaContainer?.mediaInfo?.mimeCodec)
-                logger("MEDIASTREAM").warning("Switching to transcode")
-                setStreamType("transcode")
-                changeUrl(undefined)
-                logger("MEDIASTREAM").info("Setting URL to undefined")
-                return
-            }
-        }
 
         if (mediaContainer?.streamUrl) {
             logger("MEDIASTREAM").info("Stream URL available", mediaContainer.streamUrl)
@@ -224,7 +117,7 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
             logger("MEDIASTREAM").info("Setting URL to undefined")
         }
 
-    }, [mediaContainer?.streamUrl, mediastreamSettings?.disableAutoSwitchToDirectPlay])
+    }, [mediaContainer?.streamUrl])
 
     //////////////////////////////////////////////////////////////
     // JASSUB
@@ -331,91 +224,12 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
     //////////////////////////////////////////////////////////////
 
     function onProviderChange(provider: MediaProviderAdapter | null, nativeEvent: MediaProviderChangeEvent) {
-        if (isHLSProvider(provider) && mediaContainer?.streamType === "transcode") {
-            logger("MEDIASTREAM").info("[onProviderChange] Provider changed to HLS")
-            provider.library = HLS
-            provider.config = {
-                ...mediastream_getHlsConfig(),
-            }
-        } else {
-            logger("MEDIASTREAM").info("[onProviderChange] Provider changed to native")
-        }
+        logger("MEDIASTREAM").info("[onProviderChange] Provider changed to native")
     }
 
     function onProviderSetup(provider: MediaProviderAdapter, nativeEvent: MediaProviderSetupEvent) {
-        if (isHLSProvider(provider)) {
-            if (url) {
-
-                if (HLS.isSupported() && url.endsWith(".m3u8")) {
-
-                    logger("MEDIASTREAM").info("[onProviderSetup] HLS Provider setup")
-                    logger("MEDIASTREAM").info("[onProviderSetup] Loading source", url)
-
-                    provider.instance?.on(HLS.Events.MANIFEST_PARSED, function (event, data) {
-                        logger("MEDIASTREAM").info("onManifestParsed", data)
-                        // Check if the manifest is live or VOD
-                        data.levels.forEach((level) => {
-                            logger("MEDIASTREAM").info(`Level ${level.id} is live:`, level.details?.live)
-                        })
-                    })
-
-                    provider.instance?.on(HLS.Events.MEDIA_ATTACHED, (event) => {
-                        logger("MEDIASTREAM").info("onMediaAttached")
-                    })
-
-                    provider.instance?.on(HLS.Events.MEDIA_DETACHED, (event) => {
-                        logger("MEDIASTREAM").warning("onMediaDetached")
-                        // When the media is detached, stop the transcoder but only if there was no playback error
-                        if (!playbackErrored) {
-                            if (mediaContainer?.streamType === "transcode") {
-                                // DEVNOTE: Code below kills the transcoder AFTER changing episode due to delay
-                                // shutdownTranscode()
-                            }
-                            changeUrl(undefined)
-                        }
-                        // refetch()
-                    })
-
-                    provider.instance?.on(HLS.Events.FRAG_LOADED, (event, data) => {
-                        previousCurrentTimeRef.current = playerRef.current?.currentTime ?? 0
-                    })
-
-                    /**
-                     * Fatal error
-                     */
-                    provider.instance?.on(HLS.Events.ERROR, (event, data) => {
-                        if (data?.fatal) {
-                            // Record current time
-                            previousCurrentTimeRef.current = playerRef.current?.currentTime ?? 0
-                            logger("MEDIASTREAM").error("handleFatalError", data)
-                            // Shut down transcoder
-                            if (mediaContainer?.streamType === "transcode") {
-                                shutdownTranscode()
-                            }
-                            // Set playback errored
-                            setPlaybackErrored(true)
-                            // Delete URL
-                            changeUrl(undefined)
-                            toast.error("Playback error")
-                            // Refetch media container
-                            refetch()
-                        }
-                    })
-                } else if (!HLS.isSupported() && url.endsWith(".m3u8") && provider.video.canPlayType("application/vnd.apple.mpegurl")) {
-                    logger("MEDIASTREAM").info("HLS not supported, using native HLS")
-                    provider.video.src = url
-                } else {
-                    logger("MEDIASTREAM").info("HLS not supported, using native HLS")
-                    provider.video.src = url
-                }
-            } else {
-                logger("MEDIASTREAM").error("[onProviderSetup] Provider setup - no URL")
-            }
-        } else {
-            logger("MEDIASTREAM").info("[onProviderSetup] Provider setup - not HLS")
-        }
+        logger("MEDIASTREAM").info("[onProviderSetup] Provider setup - native")
     }
-
 
     /**
      * Current episode
@@ -428,7 +242,6 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
      * Continuity
      */
     const { handleUpdateWatchHistory } = useHandleContinuityWithMediaPlayer(playerRef, episode?.episodeNumber, mediaId)
-
 
     const preloadedNextFileForRef = React.useRef<string | undefined>(undefined) // unused
 
@@ -498,18 +311,19 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
         filePath,
         episode,
         duration,
-        disabledAutoSwitchToDirectPlay: mediastreamSettings?.disableAutoSwitchToDirectPlay,
         setStreamType: (type: Mediastream_StreamType) => {
             logger("MEDIASTREAM").info("[setStreamType] Setting stream type", type)
-            setStreamType(type)
-            playerRef.current?.destroy?.()
-            changeUrl(undefined)
+            // Only allow direct stream type now
+            if (type === "direct") {
+                playerRef.current?.destroy?.()
+                changeUrl(undefined)
+            }
         },
         onCanPlay,
         playNextEpisode,
         onProviderChange,
         onProviderSetup,
-        isCodecSupported,
+        isCodecSupported: () => true, // Always return true since we only do direct streaming
         handleUpdateWatchHistory,
     }
 

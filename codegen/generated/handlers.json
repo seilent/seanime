@@ -6101,76 +6101,6 @@
     }
   },
   {
-    "name": "HandleGetTranscodingSettings",
-    "trimmedName": "GetTranscodingSettings",
-    "comments": [
-      "HandleGetTranscodingSettings",
-      "",
-      "\t@summary get server transcoding settings (admin only).",
-      "\t@desc This returns the server-side transcoding settings from GlobalSettings.",
-      "\t@returns models.ServerTranscodingSettings",
-      "\t@route /api/v1/transcoding/settings [GET]",
-      ""
-    ],
-    "filepath": "internal/handlers/mediastream.go",
-    "filename": "mediastream.go",
-    "api": {
-      "summary": "get server transcoding settings (admin only).",
-      "descriptions": [
-        "This returns the server-side transcoding settings from GlobalSettings."
-      ],
-      "endpoint": "/api/v1/transcoding/settings",
-      "methods": [
-        "GET"
-      ],
-      "params": [],
-      "bodyFields": [],
-      "returns": "models.ServerTranscodingSettings",
-      "returnGoType": "models.ServerTranscodingSettings",
-      "returnTypescriptType": "Models_ServerTranscodingSettings"
-    }
-  },
-  {
-    "name": "HandleSaveTranscodingSettings",
-    "trimmedName": "SaveTranscodingSettings",
-    "comments": [
-      "HandleSaveTranscodingSettings",
-      "",
-      "\t@summary save server transcoding settings (admin only).",
-      "\t@desc This saves the server-side transcoding settings to GlobalSettings. Admin access required.",
-      "\t@returns models.ServerTranscodingSettings",
-      "\t@route /api/v1/transcoding/settings [PATCH]",
-      ""
-    ],
-    "filepath": "internal/handlers/mediastream.go",
-    "filename": "mediastream.go",
-    "api": {
-      "summary": "save server transcoding settings (admin only).",
-      "descriptions": [
-        "This saves the server-side transcoding settings to GlobalSettings. Admin access required."
-      ],
-      "endpoint": "/api/v1/transcoding/settings",
-      "methods": [
-        "PATCH"
-      ],
-      "params": [],
-      "bodyFields": [
-        {
-          "name": "Settings",
-          "jsonName": "settings",
-          "goType": "models.ServerTranscodingSettings",
-          "usedStructType": "models.ServerTranscodingSettings",
-          "typescriptType": "Models_ServerTranscodingSettings",
-          "required": true,
-          "descriptions": []
-        }
-      ],
-      "returns": "models.ServerTranscodingSettings",
-      "returnGoType": "models.ServerTranscodingSettings",
-      "returnTypescriptType": "Models_ServerTranscodingSettings"
-    }
-  },
-  {
     "name": "HandleGetClientMediaSettings",
     "trimmedName": "GetClientMediaSettings",
     "comments": [
@@ -6366,32 +6296,19 @@
     }
   },
   {
-    "name": "HandleMediastreamShutdownTranscodeStream",
-    "trimmedName": "MediastreamShutdownTranscodeStream",
+    "name": "getClientId",
+    "trimmedName": "getClientId",
     "comments": [
-      "HandleMediastreamShutdownTranscodeStream",
-      "",
-      "\t@summary shuts down the transcode stream",
-      "\t@desc This requests the transcoder to shut down. It should be called when unmounting the player (playback is no longer needed).",
-      "\t@desc This will also send an events.MediastreamShutdownStream event.",
-      "\t@desc It will not return any error and is safe to call multiple times.",
-      "\t@returns bool",
-      "\t@route /api/v1/mediastream/shutdown-transcode [POST]",
+      "getClientId retrieves the client ID from the request context or creates a new one",
       ""
     ],
     "filepath": "internal/handlers/mediastream.go",
     "filename": "mediastream.go",
     "api": {
-      "summary": "shuts down the transcode stream",
-      "descriptions": [
-        "This requests the transcoder to shut down. It should be called when unmounting the player (playback is no longer needed).",
-        "This will also send an events.MediastreamShutdownStream event.",
-        "It will not return any error and is safe to call multiple times."
-      ],
-      "endpoint": "/api/v1/mediastream/shutdown-transcode",
-      "methods": [
-        "POST"
-      ],
+      "summary": "",
+      "descriptions": [],
+      "endpoint": "",
+      "methods": null,
       "params": [],
       "bodyFields": [],
       "returns": "bool",

@@ -336,18 +336,7 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 			return
 		}
 
-		// Initialize transcoding settings if not present
-		if globalSettings.Transcoding == nil {
-			globalSettings.Transcoding = &models.ServerTranscodingSettings{
-				TranscodeEnabled: b.EnableTranscode,
-				TranscodeHwAccel: "cpu",
-				TranscodePreset:  "fast",
-				TranscodeThreads: 2,
-			}
-		} else {
-			globalSettings.Transcoding.TranscodeEnabled = b.EnableTranscode
-		}
-
+		
 		_, _ = h.App.Database.UpsertGlobalSettings(globalSettings)
 	}()
 

@@ -1283,26 +1283,6 @@ export const API_ENDPOINTS = {
     MEDIASTREAM: {
         /**
          *  @description
-         *  Route get server transcoding settings (admin only).
-         *  This returns the server-side transcoding settings from GlobalSettings.
-         */
-        GetTranscodingSettings: {
-            key: "MEDIASTREAM-get-transcoding-settings",
-            methods: ["GET"],
-            endpoint: "/api/v1/transcoding/settings",
-        },
-        /**
-         *  @description
-         *  Route save server transcoding settings (admin only).
-         *  This saves the server-side transcoding settings to GlobalSettings. Admin access required.
-         */
-        SaveTranscodingSettings: {
-            key: "MEDIASTREAM-save-transcoding-settings",
-            methods: ["PATCH"],
-            endpoint: "/api/v1/transcoding/settings",
-        },
-        /**
-         *  @description
          *  Route get user client media settings.
          *  This returns the client-side media playback settings for the current user.
          */
@@ -1340,18 +1320,6 @@ export const API_ENDPOINTS = {
             key: "MEDIASTREAM-preload-mediastream-media-container",
             methods: ["POST"],
             endpoint: "/api/v1/mediastream/preload",
-        },
-        /**
-         *  @description
-         *  Route shuts down the transcode stream
-         *  This requests the transcoder to shut down. It should be called when unmounting the player (playback is no longer needed).
-         *  This will also send an events.MediastreamShutdownStream event.
-         *  It will not return any error and is safe to call multiple times.
-         */
-        MediastreamShutdownTranscodeStream: {
-            key: "MEDIASTREAM-mediastream-shutdown-transcode-stream",
-            methods: ["POST"],
-            endpoint: "/api/v1/mediastream/shutdown-transcode",
         },
     },
     METADATA: {

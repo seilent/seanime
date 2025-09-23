@@ -39,7 +39,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 		"/icons",
 		"/events",
 		"/api/v1/image-proxy",
-		"/api/v1/mediastream/transcode/",
 		"/api/v1/torrent-client/list",
 		"/api/v1/proxy",
 	}
@@ -444,17 +443,11 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	//
 	// Media Stream
 	//
-	// Server-side transcoding settings (admin only)
-	v1.GET("/transcoding/settings", h.HandleGetTranscodingSettings)
-	v1.PATCH("/transcoding/settings", h.HandleSaveTranscodingSettings)
 	// Client-side media settings (per-user)
 	v1.GET("/client-media/settings", h.HandleGetClientMediaSettings)
 	v1.PATCH("/client-media/settings", h.HandleSaveClientMediaSettings)
 	v1.POST("/mediastream/request", h.HandleRequestMediastreamMediaContainer)
 	v1.POST("/mediastream/preload", h.HandlePreloadMediastreamMediaContainer)
-	// Transcode
-	v1.POST("/mediastream/shutdown-transcode", h.HandleMediastreamShutdownTranscodeStream)
-	v1.GET("/mediastream/transcode/*", h.HandleMediastreamTranscode)
 	v1.GET("/mediastream/subs/*", h.HandleMediastreamGetSubtitles)
 	v1.GET("/mediastream/att/*", h.HandleMediastreamGetAttachments)
 	v1.GET("/mediastream/direct", h.HandleMediastreamDirectPlay)

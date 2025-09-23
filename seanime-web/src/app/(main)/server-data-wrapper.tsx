@@ -172,14 +172,7 @@ export function ServerDataWrapper(props: ServerDataWrapperProps) {
         </div>
     }
 
-    /**
-     * Check feature flag routes
-     */
-
-    if (!serverStatus?.mediastreamSettings?.transcodeEnabled && pathname.startsWith("/mediastream")) {
-        return <LuffyError title="Transcoding not enabled" />
-    }
-
+    
 
     return children
 }

@@ -6,46 +6,8 @@ import { logger } from "@/lib/helpers/debug"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-// Split endpoint types
-export type ServerTranscodingSettings = {
-    transcodeEnabled: boolean
-    transcodeHwAccel: string
-    transcodeThreads: number
-    transcodePreset: string
-    preTranscodeEnabled: boolean
-    preTranscodeLibraryDir: string
-    ffmpegPath: string
-    ffprobePath: string
-    transcodeHwAccelCustomSettings: string
-}
-
 export type ClientMediaSettings = {
-    disableAutoSwitchToDirectPlay: boolean
     directPlayOnly: boolean
-}
-
-// Server transcoding (admin)
-export function useGetTranscodingSettings(enabled?: boolean) {
-    return useServerQuery<ServerTranscodingSettings>({
-        endpoint: "/api/v1/transcoding/settings",
-        method: "GET",
-        queryKey: ["TRANSCODING-get-settings"],
-        enabled,
-    })
-}
-
-export function useSaveTranscodingSettings() {
-    const qc = useQueryClient()
-    return useServerMutation<ServerTranscodingSettings, { settings: ServerTranscodingSettings }>({
-        endpoint: "/api/v1/transcoding/settings",
-        method: "PATCH",
-        mutationKey: ["TRANSCODING-save-settings"],
-        onSuccess: async () => {
-            await qc.invalidateQueries({ queryKey: ["TRANSCODING-get-settings"] })
-            await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.STATUS.GetStatus.key] })
-            toast.success("Transcoding settings saved")
-        },
-    })
 }
 
 // Client media (per-user)
@@ -93,13 +55,3 @@ export function usePreloadMediastreamMediaContainer() {
     })
 }
 
-export function useMediastreamShutdownTranscodeStream() {
-    return useServerMutation<boolean>({
-        endpoint: API_ENDPOINTS.MEDIASTREAM.MediastreamShutdownTranscodeStream.endpoint,
-        method: API_ENDPOINTS.MEDIASTREAM.MediastreamShutdownTranscodeStream.methods[0],
-        mutationKey: [API_ENDPOINTS.MEDIASTREAM.MediastreamShutdownTranscodeStream.key],
-        onSuccess: async () => {
-
-        },
-    })
-}
