@@ -132,6 +132,7 @@ func migrateTables(db *gorm.DB) error {
 		&models.UserEpisodeProgress{},
 		&models.UserActivePlayback{},
 		&models.UserMediaSubscription{},
+		&models.UserPreference{},
 		// Global mapping models
 		&models.GlobalAnimeFileMapping{},
 		&models.UnmappedFile{},

@@ -377,3 +377,34 @@ func (gms *GlobalMappingService) RemoveFromCache(filePath string, aniListID int)
 	// Remove from FileToAniList
 	delete(gms.cache.FileToAniList, filePath)
 }
+
+// DeleteFileMappings removes all mappings and related data for the given file paths
+func (gms *GlobalMappingService) DeleteFileMappings(filePaths []string) error {
+	gms.logger.Info().Int("file_count", len(filePaths)).Msg("global_mapping: Deleting file mappings")
+
+	for _, filePath := range filePaths {
+		// Get the AniList ID for this file if it exists
+		if aniListID, exists := gms.getFileMapping(filePath); exists {
+			// Remove from GlobalAnimeFileMapping table
+			if err := gms.db.Gorm().Where("local_file_path = ?", filePath).Delete(&models.GlobalAnimeFileMapping{}).Error; err != nil {
+				gms.logger.Error().Err(err).Str("path", filePath).Msg("global_mapping: Failed to delete global mapping")
+				return err
+			}
+
+			// Remove from cache
+			gms.RemoveFromCache(filePath, aniListID)
+
+			gms.logger.Debug().Str("path", filePath).Int("anilist_id", aniListID).Msg("global_mapping: Deleted global mapping")
+		}
+
+		// Remove from UnmappedFile table
+		if err := gms.db.Gorm().Where("local_file_path = ?", filePath).Delete(&models.UnmappedFile{}).Error; err != nil {
+			gms.logger.Error().Err(err).Str("path", filePath).Msg("global_mapping: Failed to delete unmapped file")
+			return err
+		}
+
+		gms.logger.Debug().Str("path", filePath).Msg("global_mapping: Deleted unmapped file entry")
+	}
+
+	return nil
+}

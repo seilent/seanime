@@ -7,6 +7,7 @@ import (
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/database/models"
 	"seanime/internal/events"
+	"seanime/internal/global_mapping"
 	"seanime/internal/library/anime"
 	"seanime/internal/library/filesystem"
 	"sync"
@@ -20,11 +21,12 @@ type LocalFileManager struct {
 	db                *db.Database
 	enhancedWS        *events.EnhancedWSEventManager
 	logger            *zerolog.Logger
-	
+	globalMappingSvc  *global_mapping.GlobalMappingService
+
 	// Cache for performance
 	mediaLibraryCache map[int][]uint // MediaID -> []UserID (users who have this media)
 	cacheMu           sync.RWMutex
-	
+
 	// Batch processing
 	batchUpdates      map[int][]*anime.LocalFile // MediaID -> []LocalFile updates
 	batchMu           sync.Mutex
@@ -50,11 +52,12 @@ type BatchLocalFileUpdate struct {
 }
 
 // NewLocalFileManager creates a new LocalFile manager
-func NewLocalFileManager(database *db.Database, enhancedWS *events.EnhancedWSEventManager, logger *zerolog.Logger) *LocalFileManager {
+func NewLocalFileManager(database *db.Database, enhancedWS *events.EnhancedWSEventManager, logger *zerolog.Logger, globalMappingSvc *global_mapping.GlobalMappingService) *LocalFileManager {
 	lfm := &LocalFileManager{
 		db:                database,
 		enhancedWS:        enhancedWS,
 		logger:            logger,
+		globalMappingSvc:  globalMappingSvc,
 		mediaLibraryCache: make(map[int][]uint),
 		batchUpdates:      make(map[int][]*anime.LocalFile),
 		batchInterval:     2 * time.Second, // Batch updates for 2 seconds
@@ -120,16 +123,23 @@ func (lfm *LocalFileManager) ProcessNewLocalFile(lf *anime.LocalFile) error {
 
 // ProcessRemovedLocalFile handles a removed LocalFile
 func (lfm *LocalFileManager) ProcessRemovedLocalFile(filePath string, mediaID int) error {
+	// Clean up global file mappings
+	if lfm.globalMappingSvc != nil {
+		if err := lfm.globalMappingSvc.DeleteFileMappings([]string{filePath}); err != nil {
+			lfm.logger.Error().Err(err).Str("path", filePath).Msg("localfile-manager: Failed to delete global file mappings")
+		}
+	}
+
 	if mediaID == 0 {
 		return nil
 	}
-	
+
 	// Get affected users
 	users := lfm.getUsersWithMedia(mediaID)
 	if len(users) == 0 {
 		return nil
 	}
-	
+
 	// Create removal event
 	update := LocalFileUpdate{
 		Type:      "removed",
@@ -137,7 +147,7 @@ func (lfm *LocalFileManager) ProcessRemovedLocalFile(filePath string, mediaID in
 		MediaID:   mediaID,
 		Timestamp: time.Now(),
 	}
-	
+
 	// Broadcast immediately for removals (more urgent)
 	lfm.enhancedWS.SendEventToUsersWithMedia(mediaID, events.EventLocalFileRemovedForMedia, update)
 	

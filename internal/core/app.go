@@ -200,18 +200,19 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		wsEventManager.ExitIfNoConnsAsDesktopSidecar()
 	}
 
+	// Initialize global mapping services (progressSyncService will be initialized later)
+	globalMappingService := global_mapping.NewGlobalMappingService(database, logger, wsEventManager)
+
 	// Initialize sync manager for real-time LocalFile and progress tracking
 	syncManager, err := libsync.NewSyncManager(&libsync.SyncManagerOptions{
-		Database:     database,
-		Logger:       logger,
-		LibraryPaths: animeLibraryPaths,
+		Database:           database,
+		Logger:             logger,
+		LibraryPaths:       animeLibraryPaths,
+		GlobalMappingService: globalMappingService,
 	})
 	if err != nil {
 		logger.Fatal().Err(err).Msgf("app: Failed to initialize sync manager")
 	}
-
-	// Initialize global mapping services (progressSyncService will be initialized later)
-	globalMappingService := global_mapping.NewGlobalMappingService(database, logger, wsEventManager)
 	userSubscriptionService := global_mapping.NewUserSubscriptionService(database, logger, globalMappingService)
 	fileWatcherService := global_mapping.NewFileWatcherService(logger, globalMappingService)
 

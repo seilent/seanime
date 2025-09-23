@@ -4,6 +4,7 @@ import (
 	"seanime/internal/database/db"
 	"seanime/internal/database/models"
 	"seanime/internal/events"
+	"seanime/internal/global_mapping"
 	"seanime/internal/library/anime"
 	"seanime/internal/library/scanner"
 	"sync"
@@ -15,16 +16,17 @@ import (
 type SyncManager struct {
 	db                *db.Database
 	logger            *zerolog.Logger
-	
+
 	// Core components
 	enhancedWS        *events.EnhancedWSEventManager
 	localFileManager  *LocalFileManager
 	progressManager   *ProgressManager
 	enhancedWatcher   *scanner.EnhancedWatcher
-	
+	globalMappingSvc  *global_mapping.GlobalMappingService
+
 	// Configuration
 	libraryPaths      []string
-	
+
 	// State
 	isRunning         bool
 	mu                sync.RWMutex
@@ -32,17 +34,19 @@ type SyncManager struct {
 
 // SyncManagerOptions contains options for creating a sync manager
 type SyncManagerOptions struct {
-	Database      *db.Database
-	Logger        *zerolog.Logger
-	LibraryPaths  []string
+	Database           *db.Database
+	Logger             *zerolog.Logger
+	LibraryPaths       []string
+	GlobalMappingService *global_mapping.GlobalMappingService
 }
 
 // NewSyncManager creates a new sync manager that coordinates all real-time sync functionality
 func NewSyncManager(opts *SyncManagerOptions) (*SyncManager, error) {
 	sm := &SyncManager{
-		db:           opts.Database,
-		logger:       opts.Logger,
-		libraryPaths: opts.LibraryPaths,
+		db:                opts.Database,
+		logger:            opts.Logger,
+		libraryPaths:      opts.LibraryPaths,
+		globalMappingSvc:  opts.GlobalMappingService,
 	}
 	
 	// Initialize components in order
@@ -62,7 +66,7 @@ func (sm *SyncManager) initializeComponents() error {
 	sm.enhancedWS = events.NewEnhancedWSEventManager(sm.logger, sm.db)
 	
 	// 2. LocalFile Manager
-	sm.localFileManager = NewLocalFileManager(sm.db, sm.enhancedWS, sm.logger)
+	sm.localFileManager = NewLocalFileManager(sm.db, sm.enhancedWS, sm.logger, sm.globalMappingSvc)
 	
 	// 3. Progress Manager
 	sm.progressManager = NewProgressManager(sm.db, sm.enhancedWS, sm.logger)
