@@ -1,8 +1,10 @@
 import { useEffect } from "react"
+import { useAuth } from "@/contexts/auth-context"
 
 interface SSEEvent {
     type: string
     payload: any
+    userId?: number // Add user ID for user-specific events
 }
 
 interface UseSSEEventsOptions {
@@ -12,7 +14,8 @@ interface UseSSEEventsOptions {
 
 // Singleton/shared EventSource and subscriber registry
 let __sse_source: EventSource | null = null
-const __sse_subscribers = new Set<(evt: SSEEvent) => void>()
+const __sse_subscribers = new Map<number, Set<(evt: SSEEvent) => void>>() // User-specific subscribers
+const __global_subscribers = new Set<(evt: SSEEvent) => void>() // Global subscribers
 let __sse_refCount = 0
 
 function ensureEventSource() {
@@ -21,10 +24,22 @@ function ensureEventSource() {
     src.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data) as SSEEvent
-            // Fan out to all subscribers
-            __sse_subscribers.forEach(cb => {
-                try { cb(data) } catch (e) { /* no-op */ }
-            })
+
+            // Route events based on user ID
+            if (data.userId !== undefined) {
+                // User-specific event
+                const userSubscribers = __sse_subscribers.get(data.userId)
+                if (userSubscribers) {
+                    userSubscribers.forEach(cb => {
+                        try { cb(data) } catch (e) { /* no-op */ }
+                    })
+                }
+            } else {
+                // Global event - send to all global subscribers
+                __global_subscribers.forEach(cb => {
+                    try { cb(data) } catch (e) { /* no-op */ }
+                })
+            }
         } catch (error) {
             console.error("Failed to parse SSE event:", error)
         }
@@ -39,27 +54,53 @@ function ensureEventSource() {
 
 export function useSSEEvents(options: UseSSEEventsOptions = {}) {
     const { enabled = true, onEvent } = options
+    const { user } = useAuth()
 
     useEffect(() => {
         if (!enabled) return
         ensureEventSource()
         __sse_refCount += 1
+
         const subscriber = (evt: SSEEvent) => {
             try {
-                onEvent?.(evt)
+                // Only process events meant for this user or global events
+                if (evt.userId === undefined || evt.userId === user?.id) {
+                    onEvent?.(evt)
+                }
             } catch (e) { /* no-op */ }
         }
-        __sse_subscribers.add(subscriber)
+
+        // Add subscriber to appropriate set
+        if (user) {
+            if (!__sse_subscribers.has(user.id)) {
+                __sse_subscribers.set(user.id, new Set())
+            }
+            __sse_subscribers.get(user.id)!.add(subscriber)
+        } else {
+            __global_subscribers.add(subscriber)
+        }
 
         return () => {
-            __sse_subscribers.delete(subscriber)
+            // Remove subscriber from appropriate set
+            if (user) {
+                const userSubscribers = __sse_subscribers.get(user.id)
+                if (userSubscribers) {
+                    userSubscribers.delete(subscriber)
+                    if (userSubscribers.size === 0) {
+                        __sse_subscribers.delete(user.id)
+                    }
+                }
+            } else {
+                __global_subscribers.delete(subscriber)
+            }
+
             __sse_refCount = Math.max(0, __sse_refCount - 1)
             if (__sse_refCount === 0 && __sse_source) {
                 __sse_source.close()
                 __sse_source = null
             }
         }
-    }, [enabled, onEvent])
+    }, [enabled, onEvent, user])
 }
 
 export default useSSEEvents

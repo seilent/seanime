@@ -170,6 +170,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
             console.error('Logout error:', error)
         } finally {
+            // Clear user-specific jotai scopes before logging out
+            if (user) {
+                const { clearUserScope } = await import('@/app/(main)/_atoms/user-scoped-atoms')
+                clearUserScope(user.id)
+            }
             setUser(null)
             setViewer(null)
             router.push('/login')

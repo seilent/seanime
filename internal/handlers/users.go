@@ -761,9 +761,96 @@ func (h *Handler) HandleSetupRequired(c echo.Context) error {
 	}
 
 	isRequired := globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0
-	
+
 	return h.RespondWithData(c, map[string]bool{
 		"required": isRequired,
+	})
+}
+
+// UserPreferenceRequest represents a user preference request payload
+type UserPreferenceRequest struct {
+	Value interface{} `json:"value" validate:"required"`
+}
+
+// UserPreferenceResponse represents a user preference response
+type UserPreferenceResponse struct {
+	Key   string      `json:"key"`
+	Value interface{} `json:"value"`
+}
+
+// HandleGetUserPreference handles getting a user preference
+//	@desc Get a user preference by key
+//	@route /api/v1/users/preferences/:key [GET]
+//	@returns UserPreferenceResponse
+func (h *Handler) HandleGetUserPreference(c echo.Context) error {
+	key := c.Param("key")
+	if key == "" {
+		return h.RespondWithError(c, errors.New("preference key is required"))
+	}
+
+	// Get user from session
+	user, err := h.validateUserSession(h.getSessionToken(c))
+	if err != nil {
+		return h.RespondWithError(c, errors.New("invalid session"))
+	}
+
+	// Get preference from database
+	preference, err := h.App.Database.GetUserPreference(user.ID, key)
+	if err != nil {
+		// If preference doesn't exist, return null
+		return h.RespondWithData(c, UserPreferenceResponse{
+			Key:   key,
+			Value: nil,
+		})
+	}
+
+	var value interface{}
+	if err := json.Unmarshal([]byte(preference.Value), &value); err != nil {
+		return h.RespondWithError(c, errors.New("failed to parse preference value"))
+	}
+
+	return h.RespondWithData(c, UserPreferenceResponse{
+		Key:   key,
+		Value: value,
+	})
+}
+
+// HandleSetUserPreference handles setting a user preference
+//	@desc Set a user preference by key
+//	@route /api/v1/users/preferences/:key [PUT]
+//	@returns UserPreferenceResponse
+func (h *Handler) HandleSetUserPreference(c echo.Context) error {
+	key := c.Param("key")
+	if key == "" {
+		return h.RespondWithError(c, errors.New("preference key is required"))
+	}
+
+	var req UserPreferenceRequest
+	if err := c.Bind(&req); err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Get user from session
+	user, err := h.validateUserSession(h.getSessionToken(c))
+	if err != nil {
+		return h.RespondWithError(c, errors.New("invalid session"))
+	}
+
+	// Convert value to JSON string
+	valueBytes, err := json.Marshal(req.Value)
+	if err != nil {
+		return h.RespondWithError(c, errors.New("failed to serialize preference value"))
+	}
+
+	// Save preference to database
+	err = h.App.Database.SetUserPreference(user.ID, key, string(valueBytes))
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	return h.RespondWithData(c, UserPreferenceResponse{
+		Key:   key,
+		Value: req.Value,
 	})
 }
 

@@ -356,3 +356,54 @@ func (db *Database) CreateFirstTimeSetup(username, password, displayName string)
 
 	return user, nil
 }
+
+// User preference operations
+
+// GetUserPreference retrieves a user preference by user ID and key
+func (db *Database) GetUserPreference(userID uint, key string) (*models.UserPreference, error) {
+	var preference models.UserPreference
+	err := db.gormdb.Where("user_id = ? AND key = ?", userID, key).First(&preference).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("preference not found")
+		}
+		return nil, err
+	}
+	return &preference, nil
+}
+
+// SetUserPreference creates or updates a user preference
+func (db *Database) SetUserPreference(userID uint, key, value string) error {
+	// Try to find existing preference
+	var preference models.UserPreference
+	err := db.gormdb.Where("user_id = ? AND key = ?", userID, key).First(&preference).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Create new preference
+			preference = models.UserPreference{
+				UserID: userID,
+				Key:    key,
+				Value:  value,
+			}
+			return db.gormdb.Create(&preference).Error
+		}
+		return err
+	}
+
+	// Update existing preference
+	preference.Value = value
+	return db.gormdb.Save(&preference).Error
+}
+
+// DeleteUserPreference deletes a user preference
+func (db *Database) DeleteUserPreference(userID uint, key string) error {
+	return db.gormdb.Where("user_id = ? AND key = ?", userID, key).Delete(&models.UserPreference{}).Error
+}
+
+// GetAllUserPreferences retrieves all preferences for a user
+func (db *Database) GetAllUserPreferences(userID uint) ([]models.UserPreference, error) {
+	var preferences []models.UserPreference
+	err := db.gormdb.Where("user_id = ?", userID).Find(&preferences).Error
+	return preferences, err
+}

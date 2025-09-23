@@ -155,6 +155,9 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.GET("/users/viewer", h.HandleGetUserViewer)
 	v1.PATCH("/users/profile", h.HandleUpdateUserProfile)
 	v1.POST("/users/change-password", h.HandleChangePassword)
+	// User Preferences
+	v1.GET("/users/preferences/:key", h.HandleGetUserPreference)
+	v1.PUT("/users/preferences/:key", h.HandleSetUserPreference)
 
 	// Admin User Management
 	v1Admin := v1.Group("/admin")

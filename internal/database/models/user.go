@@ -41,3 +41,17 @@ func (User) TableName() string {
 func (UserSession) TableName() string {
 	return "user_sessions"
 }
+
+// UserPreference represents user-specific preferences/settings
+type UserPreference struct {
+	BaseModel
+	UserID uint   `gorm:"not null;index" json:"userId"`
+	Key    string `gorm:"not null;index" json:"key"`
+	Value  string `gorm:"type:text" json:"value"`
+	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
+}
+
+// TableName returns the table name for UserPreference
+func (UserPreference) TableName() string {
+	return "user_preferences"
+}
