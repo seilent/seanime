@@ -2,6 +2,7 @@ import { API_ENDPOINTS } from "@/api/generated/endpoints"
 import { MKVParser_SubtitleEvent, MKVParser_TrackInfo, NativePlayer_PlaybackInfo, NativePlayer_ServerEvent } from "@/api/generated/types"
 import { useUpdateAnimeEntryProgress } from "@/api/hooks/anime_entries.hooks"
 import { useHandleCurrentMediaContinuity } from "@/api/hooks/continuity.hooks"
+import { useContinuityWithCacheLoading } from "@/app/(main)/_features/progress-tracking/_lib/use-continuity-with-cache-loading"
 import { __seaMediaPlayer_autoNextAtom } from "@/app/(main)/_features/sea-media-player/sea-media-player.atoms"
 import { vc_dispatchAction, vc_miniPlayer, vc_subtitleManager, vc_videoElement, VideoCore } from "@/app/(main)/_features/video-core/video-core"
 import { clientIdAtom } from "@/app/websocket-provider"
@@ -46,8 +47,11 @@ export function NativePlayer() {
     const subtitleManager = useAtomValue(vc_subtitleManager)
     const dispatchEvent = useSetAtom(vc_dispatchAction)
 
-    // Continuity
-    const { watchHistory, waitForWatchHistory, getEpisodeContinuitySeekTo } = useHandleCurrentMediaContinuity(state?.playbackInfo?.media?.id)
+    // Continuity with cache
+    const { watchHistory, waitForWatchHistory, getEpisodeContinuitySeekTo } = useContinuityWithCacheLoading({
+        mediaId: state?.playbackInfo?.media?.id,
+        episodeNumber: state?.playbackInfo?.episode?.progressNumber
+    })
 
     // AniSkip
     const { data: aniSkipData } = useSkipData(state?.playbackInfo?.media?.idMal, state?.playbackInfo?.episode?.progressNumber ?? -1)

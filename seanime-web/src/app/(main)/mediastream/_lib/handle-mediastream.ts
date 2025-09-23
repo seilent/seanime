@@ -1,6 +1,8 @@
 import { getServerBaseUrl } from "@/api/client/server-url"
 import { Anime_Episode, Mediastream_StreamType, Nullish } from "@/api/generated/types"
 import { useHandleContinuityWithMediaPlayer, useHandleCurrentMediaContinuity } from "@/api/hooks/continuity.hooks"
+import { useContinuityWithCache } from "@/app/(main)/_features/progress-tracking/_lib/use-continuity-with-cache"
+import { useContinuityWithCacheLoading } from "@/app/(main)/_features/progress-tracking/_lib/use-continuity-with-cache-loading"
 import { useGetClientMediaSettings, useRequestMediastreamMediaContainer } from "@/api/hooks/mediastream.hooks"
 import { useWebsocketMessageListener } from "@/app/(main)/_hooks/handle-websockets"
 import { useMediastreamCurrentFile, useMediastreamJassubOffscreenRender } from "@/app/(main)/mediastream/_lib/mediastream.atoms"
@@ -63,9 +65,16 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
     const sessionId = useAtomValue(clientIdAtom)
 
     /**
-     * Watch history
+     * Current episode
      */
-    const { waitForWatchHistory } = useHandleCurrentMediaContinuity(mediaId)
+    const episode = React.useMemo(() => {
+        return episodes.find(ep => !!ep.localFile?.path && ep.localFile?.path === filePath)
+    }, [episodes, filePath])
+
+    /**
+     * Watch history with cache
+     */
+    const { waitForWatchHistory, getEpisodeContinuitySeekTo } = useContinuityWithCacheLoading({ mediaId, episodeNumber: episode?.episodeNumber })
 
     /**
      * Fetch media container containing stream URL
@@ -232,16 +241,9 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
     }
 
     /**
-     * Current episode
+     * Continuity with cache
      */
-    const episode = React.useMemo(() => {
-        return episodes.find(ep => !!ep.localFile?.path && ep.localFile?.path === filePath)
-    }, [episodes, filePath])
-
-    /**
-     * Continuity
-     */
-    const { handleUpdateWatchHistory } = useHandleContinuityWithMediaPlayer(playerRef, episode?.episodeNumber, mediaId)
+    const { handleUpdateWatchHistory, manualSync, isCacheEnabled } = useContinuityWithCache({ playerRef, episodeNumber: episode?.episodeNumber, mediaId })
 
     const preloadedNextFileForRef = React.useRef<string | undefined>(undefined) // unused
 
@@ -325,6 +327,8 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
         onProviderSetup,
         isCodecSupported: () => true, // Always return true since we only do direct streaming
         handleUpdateWatchHistory,
+        manualSync,
+        isCacheEnabled,
     }
 
 }

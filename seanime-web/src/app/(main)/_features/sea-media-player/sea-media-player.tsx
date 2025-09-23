@@ -1,5 +1,7 @@
 import { useUpdateAnimeEntryProgress } from "@/api/hooks/anime_entries.hooks"
 import { useHandleContinuityWithMediaPlayer, useHandleCurrentMediaContinuity } from "@/api/hooks/continuity.hooks"
+import { useContinuityWithCacheLoading } from "@/app/(main)/_features/progress-tracking/_lib/use-continuity-with-cache-loading"
+import { useContinuityWithCache } from "@/app/(main)/_features/progress-tracking/_lib/use-continuity-with-cache"
 import {
     useCancelDiscordActivity,
     useSetDiscordAnimeActivityWithProgress,
@@ -169,7 +171,11 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
     /**
      * Continuity
      */
-    const { handleUpdateWatchHistory } = useHandleContinuityWithMediaPlayer(playerRef, progress.currentEpisodeNumber, media?.id)
+    const { handleUpdateWatchHistory, manualSync, isCacheEnabled } = useContinuityWithCache({
+        playerRef,
+        episodeNumber: progress.currentEpisodeNumber,
+        mediaId: media?.id
+    })
 
     /**
      * Discord Rich Presence
@@ -301,9 +307,12 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
     }
 
     /**
-     * Watch continuity
+     * Watch continuity with cache
      */
-    const { watchHistory, waitForWatchHistory, getEpisodeContinuitySeekTo } = useHandleCurrentMediaContinuity(media?.id)
+    const { watchHistory, waitForWatchHistory, getEpisodeContinuitySeekTo } = useContinuityWithCacheLoading({
+        mediaId: media?.id,
+        episodeNumber: progress.currentEpisodeNumber
+    })
 
     const wentToNextEpisodeRef = React.useRef(false)
     const onEnded = (e: MediaEndedEvent) => {
