@@ -224,6 +224,46 @@ func (h *Handler) HandleGetUserProfile(c echo.Context) error {
 	return h.RespondWithData(c, user)
 }
 
+// HandleGetUserViewer gets the current user's AniList viewer data including avatar
+//
+//	@summary Get user AniList viewer data
+//	@desc Gets the current authenticated user's AniList viewer data including avatar information
+//	@route /api/v1/users/viewer [GET]
+//	@returns anilist.GetViewer_Viewer
+func (h *Handler) HandleGetUserViewer(c echo.Context) error {
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Not authenticated",
+		})
+	}
+
+	// Get user's AniList account
+	account, err := h.App.Database.GetAccountForUser(user.ID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "AniList account not found",
+		})
+	}
+
+	if account == nil || len(account.Viewer) == 0 {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "No AniList viewer data available",
+		})
+	}
+
+	// Unmarshal viewer data
+	var viewerData anilist.GetViewer_Viewer
+	if err := json.Unmarshal(account.Viewer, &viewerData); err != nil {
+		h.App.Logger.Err(err).Msg("Could not unmarshal viewer data")
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to parse viewer data",
+		})
+	}
+
+	return h.RespondWithData(c, viewerData)
+}
+
 // HandleUpdateUserProfile updates the current user's profile
 //
 //	@summary Update user profile

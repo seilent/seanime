@@ -44,9 +44,9 @@ import { SiAnilist } from "react-icons/si"
 // User profile info component
 function UserProfileInfo() {
     const { user, isAdmin } = useAuth()
-    
+
     if (!user) return null
-    
+
     return (
         <div className="text-xs text-[--muted]">
             <span>@{user.username}</span>
@@ -77,6 +77,7 @@ export function MainSidebar() {
     const serverStatus = useServerStatus()
     const setServerStatus = useSetServerStatus()
     const user = useCurrentUser()
+    const { viewer } = useAuth()
 
     const { setSeaCommandOpen } = useOpenSeaCommand()
 
@@ -371,7 +372,13 @@ export function MainSidebar() {
                                     { "hidden": ctx.isBelowBreakpoint },
                                 )}
                             >
-                                <Avatar size="sm" className="cursor-pointer" />
+                                <Avatar size="sm" className="cursor-pointer" src={viewer?.avatar?.medium}>
+                                    {!viewer?.avatar?.medium && (
+                                        <div className="w-full h-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white text-xs font-medium">
+                                            {user.displayName?.charAt(0)?.toUpperCase() || user.username?.charAt(0)?.toUpperCase() || 'U'}
+                                        </div>
+                                    )}
+                                </Avatar>
                                 {expandedSidebar && <div className="flex flex-col items-start">
                                     <p className="truncate text-sm">{user?.displayName || user?.username}</p>
                                     <UserProfileInfo />

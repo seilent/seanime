@@ -10,7 +10,7 @@ import { BiUser, BiLogOut, BiCog } from 'react-icons/bi'
 import { HiOutlineServerStack } from 'react-icons/hi2'
 
 export function UserMenu() {
-    const { user, logout, isAdmin } = useAuth()
+    const { user, viewer, logout, isAdmin } = useAuth()
     const router = useRouter()
 
     if (!user) return null
@@ -35,10 +35,12 @@ export function UserMenu() {
                     size="sm"
                     className="flex items-center gap-2 px-2"
                 >
-                    <Avatar className="w-6 h-6">
-                        <div className="w-full h-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white text-xs font-medium">
-                            {user.displayName?.charAt(0)?.toUpperCase() || user.username?.charAt(0)?.toUpperCase() || 'U'}
-                        </div>
+                    <Avatar className="w-6 h-6" src={viewer?.avatar?.medium}>
+                        {!viewer?.avatar?.medium && (
+                            <div className="w-full h-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white text-xs font-medium">
+                                {user.displayName?.charAt(0)?.toUpperCase() || user.username?.charAt(0)?.toUpperCase() || 'U'}
+                            </div>
+                        )}
                     </Avatar>
                     <span className="hidden sm:inline text-sm font-medium">
                         {user.displayName || user.username}

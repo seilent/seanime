@@ -152,6 +152,7 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.POST("/users/login", h.HandleUserLogin)
 	v1.POST("/users/logout", h.HandleUserLogout)
 	v1.GET("/users/profile", h.HandleGetUserProfile)
+	v1.GET("/users/viewer", h.HandleGetUserViewer)
 	v1.PATCH("/users/profile", h.HandleUpdateUserProfile)
 	v1.POST("/users/change-password", h.HandleChangePassword)
 

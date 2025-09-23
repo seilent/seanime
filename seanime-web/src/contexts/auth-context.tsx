@@ -16,8 +16,24 @@ interface User {
     updatedAt: string
 }
 
+interface AniListViewer {
+    name: string
+    avatar?: {
+        large?: string
+        medium?: string
+    }
+    bannerImage?: string
+    isBlocked?: boolean
+    options?: {
+        displayAdultContent?: boolean
+        airingNotifications?: boolean
+        profileColor?: string
+    }
+}
+
 interface AuthContextType {
     user: User | null
+    viewer: AniListViewer | null
     isAuthenticated: boolean
     isLoading: boolean
     isAdmin: boolean
@@ -25,6 +41,7 @@ interface AuthContextType {
     loginWithToken: (token: string) => Promise<{ success: boolean; error?: string }>
     logout: () => Promise<void>
     checkAuth: () => Promise<void>
+    refreshViewer: () => Promise<void>
 }
 
 // Create context
@@ -33,6 +50,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 // Auth provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
+    const [viewer, setViewer] = useState<AniListViewer | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const router = useRouter()
     const serverStatus = useServerStatus()
@@ -53,14 +71,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (response.ok) {
                 const userData = await response.json() as { data: User }
                 setUser(userData.data)
+                // Also fetch viewer data when auth is successful
+                await refreshViewer()
             } else {
                 setUser(null)
+                setViewer(null)
             }
         } catch (error) {
             console.error('Auth check failed:', error)
             setUser(null)
+            setViewer(null)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    // Refresh viewer data
+    const refreshViewer = async () => {
+        try {
+            const response = await fetch('/api/v1/users/viewer', {
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+
+            if (response.ok) {
+                const responseJson = await response.json() as { data: AniListViewer }
+                setViewer(responseJson.data)
+            } else {
+                setViewer(null)
+            }
+        } catch (error) {
+            console.error('Viewer data fetch failed:', error)
+            setViewer(null)
         }
     }
 
@@ -127,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('Logout error:', error)
         } finally {
             setUser(null)
+            setViewer(null)
             router.push('/login')
         }
     }
@@ -197,6 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const value: AuthContextType = {
         user,
+        viewer,
         isAuthenticated,
         isLoading,
         isAdmin,
@@ -204,6 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loginWithToken,
         logout,
         checkAuth,
+        refreshViewer,
     }
 
     return (
