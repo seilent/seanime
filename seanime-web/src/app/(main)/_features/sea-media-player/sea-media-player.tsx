@@ -28,7 +28,7 @@ import {
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { LuffyError } from "@/components/shared/luffy-error"
 import { vidstackLayoutIcons } from "@/components/shared/vidstack"
-import { Button } from "@/components/ui/button"
+import { Button, IconButton } from "@/components/ui/button"
 import { cn } from "@/components/ui/core/styling"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -58,6 +58,7 @@ import capitalize from "lodash/capitalize"
 import mousetrap from "mousetrap"
 import Image from "next/image"
 import React from "react"
+import { LuArrowLeft, LuArrowRight } from "react-icons/lu"
 
 export type SeaMediaPlayerProps = {
     url?: string | { src: string, type: string }
@@ -605,28 +606,28 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
                                     {settingsItems}
                                     <SeaMediaPlayerPlaybackSubmenu />
                                 </>,
-                                // centerControlsGroupStart: <div>
-                                //     {onGoToPreviousEpisode && (
-                                //         <IconButton
-                                //             intent="white-basic"
-                                //             size="lg"
-                                //             onClick={onGoToPreviousEpisode}
-                                //             aria-label="Previous Episode"
-                                //             icon={<LuArrowLeft className="size-12" />}
-                                //         />
-                                //     )}
-                                // </div>,
-                                // centerControlsGroupEnd: <div className="flex items-center justify-center gap-2">
-                                //     {onGoToNextEpisode && (
-                                //         <IconButton
-                                //             intent="white-basic"
-                                //             size="lg"
-                                //             onClick={onGoToNextEpisode}
-                                //             aria-label="Next Episode"
-                                //             icon={<LuArrowRight className="size-12" />}
-                                //         />
-                                //     )}
-                                // </div>
+                                centerControlsGroupStart: <div>
+                                    {onGoToPreviousEpisode && (
+                                        <IconButton
+                                            intent="white-basic"
+                                            size="lg"
+                                            onClick={onGoToPreviousEpisode}
+                                            aria-label="Previous Episode"
+                                            icon={<LuArrowLeft className="size-12" />}
+                                        />
+                                    )}
+                                </div>,
+                                centerControlsGroupEnd: <div className="flex items-center justify-center gap-2">
+                                    {onGoToNextEpisode && (
+                                        <IconButton
+                                            intent="white-basic"
+                                            size="lg"
+                                            onClick={onGoToNextEpisode}
+                                            aria-label="Next Episode"
+                                            icon={<LuArrowRight className="size-12" />}
+                                        />
+                                    )}
+                                </div>
                             }}
                         />
                     </MediaPlayer>

@@ -38,10 +38,20 @@ export function createUserScopedAtom<T>(
  * Hook to use atom with user-specific scope
  */
 export function useUserScopedAtom<T>(baseAtom: PrimitiveAtom<T>): [T, (value: T) => void] {
-    const { user } = useAuth()
+    const { user, isLoading } = useAuth()
+
+    if (isLoading) {
+        // Return a loading state while authentication is being checked
+        const loadingValue = (baseAtom as any).init
+        return [loadingValue, () => {}]
+    }
 
     if (!user) {
-        throw new Error("useUserScopedAtom requires authenticated user")
+        // Instead of throwing an error, return the default value
+        // This allows components to render while authentication is being established
+        console.warn("useUserScopedAtom: user not authenticated, returning default value")
+        const defaultValue = (baseAtom as any).init
+        return [defaultValue, () => {}]
     }
 
     // Use global user values map
@@ -68,6 +78,19 @@ export function useUserScopedAtom<T>(baseAtom: PrimitiveAtom<T>): [T, (value: T)
  * Hook to use atom value with user-specific scope
  */
 export function useUserScopedAtomValue<T>(baseAtom: Atom<T>): T {
+    const { user, isLoading } = useAuth()
+
+    if (isLoading) {
+        // Return loading state while authentication is being checked
+        return (baseAtom as any).init
+    }
+
+    if (!user) {
+        // Return default value instead of throwing error
+        console.warn("useUserScopedAtomValue: user not authenticated, returning default value")
+        return (baseAtom as any).init
+    }
+
     const [value] = useUserScopedAtom(baseAtom as PrimitiveAtom<T>)
     return value
 }
@@ -76,6 +99,15 @@ export function useUserScopedAtomValue<T>(baseAtom: Atom<T>): T {
  * Hook to set atom value with user-specific scope
  */
 export function useUserScopedSetAtom<T>(baseAtom: WritableAtom<T, [T], void>): (value: T) => void {
+    const { user, isLoading } = useAuth()
+
+    if (isLoading || !user) {
+        // Return a no-op function while authentication is being checked
+        return () => {
+            console.warn("useUserScopedSetAtom: user not authenticated, ignoring set operation")
+        }
+    }
+
     const [, setValue] = useUserScopedAtom(baseAtom as PrimitiveAtom<T>)
     return setValue
 }

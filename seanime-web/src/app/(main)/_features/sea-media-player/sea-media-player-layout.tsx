@@ -12,10 +12,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useAtom } from "jotai/react"
 import { atomWithStorage } from "jotai/utils"
 import React from "react"
-import { AiOutlineArrowLeft } from "react-icons/ai"
+import { AiOutlineArrowLeft, AiOutlineExpand } from "react-icons/ai"
 import { useWindowSize } from "react-use"
 
-const theaterModeAtom = atomWithStorage("sea-media-theater-mode", false)
+const theaterModeAtom = atomWithStorage("sea-media-theater-mode", true)
 
 export type SeaMediaPlayerLayoutProps = {
     mediaId?: string | number
@@ -42,7 +42,7 @@ export function SeaMediaPlayerLayout(props: SeaMediaPlayerLayoutProps) {
         loading,
     } = props
 
-    const [theaterMode] = useAtom(theaterModeAtom)
+    const [theaterMode, setTheaterMode] = useAtom(theaterModeAtom)
     const { media, progress } = useSeaMediaPlayer()
     const [currentProgress, setCurrentProgress] = useAtom(__seaMediaPlayer_scopedCurrentProgressAtom)
     const [progressItem, setProgressItem] = useAtom(__seaMediaPlayer_scopedProgressItemAtom)
@@ -103,8 +103,14 @@ export function SeaMediaPlayerLayout(props: SeaMediaPlayerLayoutProps) {
     }, [media, progressItem, isUpdatingProgress, hasUpdatedProgress])
 
     return (
-        <div data-sea-media-player-layout className="space-y-4">
-            <div data-sea-media-player-layout-header className="flex flex-col lg:flex-row gap-2 w-full justify-between">
+        <div data-sea-media-player-layout className="space-y-4 relative">
+            {theaterMode && (
+                <div
+                    className="fixed inset-0 bg-black/70 backdrop-blur-sm z-10 pointer-events-none"
+                    style={{ display: theaterMode ? 'block' : 'none' }}
+                />
+            )}
+            <div data-sea-media-player-layout-header className={`flex flex-col lg:flex-row gap-2 w-full justify-between ${theaterMode ? 'relative z-20' : ''}`}>
                 {!hideBackButton && <div className="flex w-full gap-4 items-center relative">
                     <SeaLink href={`/entry?id=${mediaId}`}>
                         <IconButton icon={<AiOutlineArrowLeft />} rounded intent="gray-outline" size="sm" />
@@ -112,9 +118,15 @@ export function SeaMediaPlayerLayout(props: SeaMediaPlayerLayoutProps) {
                     <h3 className="max-w-full lg:max-w-[50%] text-ellipsis truncate">{title}</h3>
                 </div>}
 
-                <div data-sea-media-player-layout-header-actions className="flex flex-wrap gap-2 items-center lg:justify-end w-full">
+                <div data-sea-media-player-layout-header-actions className={`flex flex-wrap gap-2 items-center lg:justify-end w-full ${theaterMode ? 'relative z-20' : ''}`}>
                     {leftHeaderActions}
                     <div className="flex flex-1"></div>
+                    <IconButton
+                        intent={theaterMode ? "primary" : "gray-outline"}
+                        onClick={() => setTheaterMode(!theaterMode)}
+                        aria-label="Toggle Theater Mode"
+                        icon={<AiOutlineExpand className="size-5" />}
+                    />
                     {(!!progressItem && progressItem.episodeNumber > currentProgress) && (
                         <Button
                             className="animate-pulse"
@@ -141,7 +153,7 @@ export function SeaMediaPlayerLayout(props: SeaMediaPlayerLayoutProps) {
                     data-sea-media-player-layout-content-player
                     className={cn(
                         "aspect-video relative w-full self-start mx-auto",
-                        theaterMode && "max-h-[90vh] !w-auto aspect-video mx-auto",
+                        theaterMode && "max-h-[90vh] !w-auto aspect-video mx-auto z-30",
                     )}
                 >
                     {mediaPlayer}
@@ -152,7 +164,7 @@ export function SeaMediaPlayerLayout(props: SeaMediaPlayerLayoutProps) {
                     data-sea-media-player-layout-content-episode-list
                     className={cn(
                         "2xl:max-w-[450px] w-full relative 2xl:sticky h-[75dvh] overflow-y-auto pr-4 pt-0 -mt-3",
-                        theaterMode && "2xl:max-w-full",
+                        theaterMode && "2xl:max-w-full relative z-20",
                     )}
                 >
                     <div data-sea-media-player-layout-content-episode-list-container className="space-y-3">

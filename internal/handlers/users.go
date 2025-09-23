@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/models"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -95,11 +97,16 @@ func (h *Handler) HandleUserLogin(c echo.Context) error {
     isFirstSetup := globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0
     if !isFirstSetup {
         // Check existing whitelist
+        h.App.Logger.Debug().Str("username", getViewer.Viewer.Name).Strs("whitelist", globalSettings.AnilistWhitelist).Msg("Checking whitelist")
         for _, whitelistedUsername := range globalSettings.AnilistWhitelist {
-            if whitelistedUsername == getViewer.Viewer.Name {
+            if strings.TrimSpace(whitelistedUsername) == strings.TrimSpace(getViewer.Viewer.Name) {
                 isWhitelisted = true
+                h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("User found in whitelist")
                 break
             }
+        }
+        if !isWhitelisted {
+            h.App.Logger.Warn().Str("username", getViewer.Viewer.Name).Strs("whitelist", globalSettings.AnilistWhitelist).Msg("User not found in whitelist")
         }
     } else {
         h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Login blocked: setup not completed (no whitelist)")
@@ -107,9 +114,15 @@ func (h *Handler) HandleUserLogin(c echo.Context) error {
 
 	if !isWhitelisted {
 		h.App.Logger.Warn().Str("username", getViewer.Viewer.Name).Msg("AniList user not in whitelist")
-		return c.JSON(http.StatusForbidden, map[string]string{
-			"error": "User not authorized to access this server",
-		})
+		if isFirstSetup {
+			return c.JSON(http.StatusForbidden, map[string]string{
+				"error": "Server setup not completed. Please contact the administrator to add users to the whitelist.",
+			})
+		} else {
+			return c.JSON(http.StatusForbidden, map[string]string{
+				"error": fmt.Sprintf("User '%s' is not in the whitelist. Please contact the administrator to add your AniList username.", getViewer.Viewer.Name),
+			})
+		}
 	}
 
     // Create or update user
