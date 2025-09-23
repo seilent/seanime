@@ -12,10 +12,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useAtom } from "jotai/react"
 import { atomWithStorage } from "jotai/utils"
 import React from "react"
+import { createPortal } from "react-dom"
 import { AiOutlineArrowLeft, AiOutlineExpand } from "react-icons/ai"
 import { useWindowSize } from "react-use"
 
-const theaterModeAtom = atomWithStorage("sea-media-theater-mode", true)
+export const theaterModeAtom = atomWithStorage("sea-media-theater-mode", true)
 
 export type SeaMediaPlayerLayoutProps = {
     mediaId?: string | number
@@ -103,88 +104,88 @@ export function SeaMediaPlayerLayout(props: SeaMediaPlayerLayoutProps) {
     }, [media, progressItem, isUpdatingProgress, hasUpdatedProgress])
 
     return (
-        <div data-sea-media-player-layout className="space-y-4 relative">
-            {theaterMode && (
+        <>
+            {/* Theater mode portal - renders player outside normal DOM flow */}
+            {theaterMode && typeof window !== 'undefined' && createPortal(
                 <div
-                    className="fixed inset-0 bg-black/70 backdrop-blur-sm z-10 pointer-events-none"
-                    style={{ display: theaterMode ? 'block' : 'none' }}
-                />
-            )}
-            <div data-sea-media-player-layout-header className={`flex flex-col lg:flex-row gap-2 w-full justify-between ${theaterMode ? 'relative z-20' : ''}`}>
-                {!hideBackButton && <div className="flex w-full gap-4 items-center relative">
-                    <SeaLink href={`/entry?id=${mediaId}`}>
-                        <IconButton icon={<AiOutlineArrowLeft />} rounded intent="gray-outline" size="sm" />
-                    </SeaLink>
-                    <h3 className="max-w-full lg:max-w-[50%] text-ellipsis truncate">{title}</h3>
-                </div>}
-
-                <div data-sea-media-player-layout-header-actions className={`flex flex-wrap gap-2 items-center lg:justify-end w-full ${theaterMode ? 'relative z-20' : ''}`}>
-                    {leftHeaderActions}
-                    <div className="flex flex-1"></div>
-                    <IconButton
-                        intent={theaterMode ? "primary" : "gray-outline"}
-                        onClick={() => setTheaterMode(!theaterMode)}
-                        aria-label="Toggle Theater Mode"
-                        icon={<AiOutlineExpand className="size-5" />}
-                    />
-                    {(!!progressItem && progressItem.episodeNumber > currentProgress) && (
-                        <Button
-                            className="animate-pulse"
-                            loading={isUpdatingProgress}
-                            disabled={hasUpdatedProgress}
-                            onClick={handleProgressUpdate}
-                        >
-                            Update progress
-                        </Button>
-                    )}
-                    {rightHeaderActions}
-                </div>
-            </div>
-
-            {!(loading === false) ? <div
-                data-sea-media-player-layout-content
-                className={cn(
-                    "flex gap-4 w-full flex-col 2xl:flex-row",
-                    theaterMode && "block space-y-4",
-                )}
-            >
-                <div
-                    id="sea-media-player-container"
-                    data-sea-media-player-layout-content-player
-                    className={cn(
-                        "aspect-video relative w-full self-start mx-auto",
-                        theaterMode && "max-h-[90vh] !w-auto aspect-video mx-auto z-30",
-                    )}
+                    className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[999] max-h-[95vh] w-[95vw] transition-all duration-300"
                 >
                     {mediaPlayer}
+                </div>,
+                document.body
+            )}
+
+            {/* Normal layout */}
+            <div data-sea-media-player-layout className="space-y-4 relative">
+                <div data-sea-media-player-layout-header className="flex flex-col lg:flex-row gap-2 w-full justify-between">
+                    {!hideBackButton && <div className="flex w-full gap-4 items-center relative">
+                        <SeaLink href={`/entry?id=${mediaId}`}>
+                            <IconButton icon={<AiOutlineArrowLeft />} rounded intent="gray-outline" size="sm" />
+                        </SeaLink>
+                        <h3 className="max-w-full lg:max-w-[50%] text-ellipsis truncate">{title}</h3>
+                    </div>}
+
+                    <div data-sea-media-player-layout-header-actions className="flex flex-wrap gap-2 items-center lg:justify-end w-full">
+                        {leftHeaderActions}
+                        <div className="flex flex-1"></div>
+                        {(!!progressItem && progressItem.episodeNumber > currentProgress) && (
+                            <Button
+                                className="animate-pulse"
+                                loading={isUpdatingProgress}
+                                disabled={hasUpdatedProgress}
+                                onClick={handleProgressUpdate}
+                            >
+                                Update progress
+                            </Button>
+                        )}
+                        {rightHeaderActions}
+                    </div>
                 </div>
 
-                <ScrollArea
-                    ref={episodeListContainerRef}
-                    data-sea-media-player-layout-content-episode-list
+                {!(loading === false) ? <div
+                    data-sea-media-player-layout-content
                     className={cn(
-                        "2xl:max-w-[450px] w-full relative 2xl:sticky h-[75dvh] overflow-y-auto pr-4 pt-0 -mt-3",
-                        theaterMode && "2xl:max-w-full relative z-20",
+                        "flex gap-4 w-full flex-col 2xl:flex-row",
+                        theaterMode && "block space-y-4",
                     )}
                 >
-                    <div data-sea-media-player-layout-content-episode-list-container className="space-y-3">
-                        {episodeList}
+                    {!theaterMode && (
+                        <div
+                            id="sea-media-player-container"
+                            data-sea-media-player-layout-content-player
+                            className="aspect-video relative w-full self-start mx-auto transition-all duration-300"
+                        >
+                            {mediaPlayer}
+                        </div>
+                    )}
+
+                    <ScrollArea
+                        ref={episodeListContainerRef}
+                        data-sea-media-player-layout-content-episode-list
+                        className={cn(
+                            "2xl:max-w-[450px] w-full relative 2xl:sticky h-[75dvh] overflow-y-auto pr-4 pt-0 -mt-3",
+                            theaterMode && "2xl:max-w-full",
+                        )}
+                    >
+                        <div data-sea-media-player-layout-content-episode-list-container className="space-y-3">
+                            {episodeList}
+                        </div>
+                        <div
+                            data-sea-media-player-layout-content-episode-list-bottom-gradient
+                            className={"z-[5] absolute bottom-0 w-full h-[2rem] bg-gradient-to-t from-[--background] to-transparent"}
+                        />
+                    </ScrollArea>
+                </div> : <div
+                    className="grid 2xl:grid-cols-[1fr,450px] gap-4 xl:gap-4"
+                >
+                    <div className="w-full min-h-[70dvh] relative">
+                        <Skeleton className="h-full w-full absolute" />
                     </div>
-                    <div
-                        data-sea-media-player-layout-content-episode-list-bottom-gradient
-                        className={"z-[5] absolute bottom-0 w-full h-[2rem] bg-gradient-to-t from-[--background] to-transparent"}
-                    />
-                </ScrollArea>
-            </div> : <div
-                className="grid 2xl:grid-cols-[1fr,450px] gap-4 xl:gap-4"
-            >
-                <div className="w-full min-h-[70dvh] relative">
-                    <Skeleton className="h-full w-full absolute" />
-                </div>
 
-                <Skeleton className="hidden 2xl:block relative h-[78dvh] overflow-y-auto pr-4 pt-0" />
+                    <Skeleton className="hidden 2xl:block relative h-[78dvh] overflow-y-auto pr-4 pt-0" />
 
-            </div>}
-        </div>
+                </div>}
+            </div>
+        </>
     )
 }

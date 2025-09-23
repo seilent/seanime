@@ -12,6 +12,7 @@ import { ManualProgressTracking } from "@/app/(main)/_features/progress-tracking
 import { PlaybackManagerProgressTracking } from "@/app/(main)/_features/progress-tracking/playback-manager-progress-tracking"
 import { SeaCommand } from "@/app/(main)/_features/sea-command/sea-command"
 import { VideoCoreProvider } from "@/app/(main)/_features/video-core/video-core"
+import { theaterModeAtom } from "@/app/(main)/_features/sea-media-player/sea-media-player-layout"
 import { useAnimeCollectionLoader } from "@/app/(main)/_hooks/anilist-collection-loader"
 import { useAnimeLibraryCollectionLoader } from "@/app/(main)/_hooks/anime-library-collection-loader"
 import { useMissingEpisodesLoader } from "@/app/(main)/_hooks/missing-episodes-loader"
@@ -26,6 +27,7 @@ import { ChapterDownloadsDrawer } from "@/app/(main)/manga/_containers/chapter-d
 import { LoadingOverlayWithLogo } from "@/components/shared/loading-overlay-with-logo"
 import { AppLayout, AppLayoutContent, AppLayoutSidebar, AppSidebarProvider } from "@/components/ui/app-layout"
 import { __isElectronDesktop__ } from "@/types/constants"
+import { useAtom } from "jotai/react"
 import { usePathname, useRouter } from "next/navigation"
 import React from "react"
 import { useServerStatus } from "../../_hooks/use-server-status"
@@ -58,6 +60,8 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
     const serverStatus = useServerStatus()
     const router = useRouter()
     const pathname = usePathname()
+    const [theaterMode, setTheaterMode] = useAtom(theaterModeAtom)
+    const isMediaStreamPage = pathname.includes("/mediastream")
 
 
     return (
@@ -79,6 +83,14 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
             </VideoCoreProvider>}
             <TopIndefiniteLoader />
             <Announcements />
+
+            {isMediaStreamPage && theaterMode && (
+                <div
+                    className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[998] cursor-pointer"
+                    style={{ display: theaterMode ? 'block' : 'none' }}
+                    onClick={() => setTheaterMode(false)}
+                />
+            )}
 
             <AppSidebarProvider>
                 <AppLayout withSidebar sidebarSize="slim">

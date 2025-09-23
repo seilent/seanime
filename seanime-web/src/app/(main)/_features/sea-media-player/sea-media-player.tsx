@@ -54,11 +54,13 @@ import {
 import { DefaultVideoLayout, DefaultVideoLayoutProps } from "@vidstack/react/player/layouts/default"
 import { useAtomValue } from "jotai"
 import { useAtom } from "jotai/react"
+import { theaterModeAtom } from "@/app/(main)/_features/sea-media-player/sea-media-player-layout"
 import capitalize from "lodash/capitalize"
 import mousetrap from "mousetrap"
 import Image from "next/image"
 import React from "react"
 import { LuArrowLeft, LuArrowRight } from "react-icons/lu"
+import { AiOutlineExpand } from "react-icons/ai"
 
 export type SeaMediaPlayerProps = {
     url?: string | { src: string, type: string }
@@ -134,6 +136,7 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
     const autoSkipIntroOutro = useAtomValue(__seaMediaPlayer_autoSkipIntroOutroAtom)
     const [volume, setVolume] = useAtom(__seaMediaPlayer_volumeAtom)
     const [muted, setMuted] = useAtom(__seaMediaPlayer_mutedAtom)
+  const [theaterMode, setTheaterMode] = useAtom(theaterModeAtom)
 
     // Store the updated progress
     const [currentProgress, setCurrentProgress] = useAtom(__seaMediaPlayer_scopedCurrentProgressAtom)
@@ -143,6 +146,7 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
 
     const [showSkipIntroButton, setShowSkipIntroButton] = React.useState(false)
     const [showSkipEndingButton, setShowSkipEndingButton] = React.useState(false)
+    const [showNextButton, setShowNextButton] = React.useState(false)
 
     const watchHistoryRef = React.useRef<number>(0)
     const checkTimeRef = React.useRef<number>(0)
@@ -273,6 +277,19 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
 
         // Use trueDuration if available, otherwise fallback to the dynamic duration
         const effectiveDuration = trueDuration || duration
+
+        // Update next button visibility based on 80% threshold
+        if (
+            effectiveDuration > 0 &&
+            (detail.currentTime / effectiveDuration) >= 0.8 &&
+            media &&
+            progress.currentEpisodeNumber != null &&
+            progress.currentEpisodeNumber > 0
+        ) {
+            setShowNextButton(true)
+        } else {
+            setShowNextButton(false)
+        }
 
         if (
             media &&
@@ -618,7 +635,7 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
                                     )}
                                 </div>,
                                 centerControlsGroupEnd: <div className="flex items-center justify-center gap-2">
-                                    {onGoToNextEpisode && (
+                                    {onGoToNextEpisode && showNextButton && (
                                         <IconButton
                                             intent="white-basic"
                                             size="lg"
@@ -627,6 +644,15 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
                                             icon={<LuArrowRight className="size-12" />}
                                         />
                                     )}
+                                </div>,
+                                topControlsGroupEnd: <div className="flex items-center gap-2">
+                                    <IconButton
+                                        intent="white-basic"
+                                        size="sm"
+                                        onClick={() => setTheaterMode(!theaterMode)}
+                                        aria-label="Toggle Theater Mode"
+                                        icon={<AiOutlineExpand className="size-5" />}
+                                    />
                                 </div>
                             }}
                         />
