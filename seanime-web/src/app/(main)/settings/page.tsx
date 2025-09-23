@@ -5,8 +5,6 @@ import { useSaveSettings } from "@/api/hooks/settings.hooks"
 import { CustomLibraryBanner } from "@/app/(main)/(library)/_containers/custom-library-banner"
 import { __issueReport_overlayOpenAtom } from "@/app/(main)/_features/issue-report/issue-report"
 import { useServerStatus, useSetServerStatus } from "@/app/(main)/_hooks/use-server-status"
-import { ExternalPlayerLinkSettings, MediaplayerSettings } from "@/app/(main)/settings/_components/mediaplayer-settings"
-import { PlaybackSettings } from "@/app/(main)/settings/_components/playback-settings"
 import { __settings_tabAtom } from "@/app/(main)/settings/_components/settings-page.atoms"
 import { SettingsIsDirty, SettingsSubmitButton } from "@/app/(main)/settings/_components/settings-submit-button"
 import { FilecacheSettings } from "@/app/(main)/settings/_containers/filecache-settings"
@@ -49,7 +47,6 @@ import { SettingsCard, SettingsNavCard, SettingsPageHeader } from "./_components
 import { DiscordRichPresenceSettings } from "./_containers/discord-rich-presence-settings"
 import { LocalSettings } from "./_containers/local-settings"
 import { UserManagementSettings } from "./_containers/user-management-settings"
-import { MediastreamSettings } from "./_containers/mediastream-settings"
 
 const tabsRootClass = cn("w-full grid grid-cols-1 lg:grid lg:grid-cols-[300px,1fr] gap-4")
 
@@ -184,24 +181,7 @@ export default function Page() {
                                     Anime playback
                                 </div>
 
-                                <TabsTrigger
-                                    value="playback"
-                                    className="group"
-                                ><IoPlayBackCircleSharp className="text-lg mr-3 transition-transform duration-200" /> Video Playback</TabsTrigger>
-                                <TabsTrigger
-                                    value="media-player"
-                                    className="group"
-                                ><LuLaptop className="text-lg mr-3 transition-transform duration-200" /> Desktop Media Player</TabsTrigger>
-                                <TabsTrigger
-                                    value="external-player-link"
-                                    className="group"
-                                ><LuExternalLink className="text-lg mr-3 transition-transform duration-200" /> External Player Link</TabsTrigger>
-                                {/* Transcoding section visible to all; server params still admin-only inside */}
-                                <TabsTrigger
-                                    value="mediastream"
-                                    className="relative group"
-                                ><MdOutlineBroadcastOnHome className="text-lg mr-3 transition-transform duration-200" /> Transcoding / Direct play</TabsTrigger>
-
+    
                                 {/* Admin-only torrenting section */}
                                 {isAdmin && (
                                     <>
@@ -611,19 +591,10 @@ export default function Page() {
                                         </TabsContent>
                                     )}
 
-                                    <TabsContent value="media-player" className={tabContentClass}>
-                                        <MediaplayerSettings isPending={isPending} />
-                                    </TabsContent>
+  
 
-
-                                    <TabsContent value="external-player-link" className={tabContentClass}>
-                                        <ExternalPlayerLinkSettings />
-                                    </TabsContent>
-
-                                    <TabsContent value="playback" className={tabContentClass}>
-                                        <PlaybackSettings />
-                                    </TabsContent>
-
+    
+  
                                     {isAdmin && (
                                         <TabsContent value="torrent-client" className={tabContentClass}>
 
@@ -764,18 +735,7 @@ export default function Page() {
 
                          </TabsContent> */}
 
-                        <TabsContent value="mediastream" className={tabContentClass}>
-
-                                <SettingsPageHeader
-                                    title="Transcoding / Direct play"
-                                    description="Manage transcoding and direct play settings"
-                                    icon={MdOutlineBroadcastOnHome}
-                                />
-
-                                <MediastreamSettings />
-
-                            </TabsContent>
-
+  
                         <TabsContent value="ui" className={tabContentClass}>
 
                             <SettingsPageHeader
