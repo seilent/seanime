@@ -150,7 +150,6 @@ export function useAutoplay() {
                         playMediaFile({
                             path: episode.localFile.path,
                             mediaId: playbackState.mediaId,
-                            episode: episode,
                         })
                         toast.info("Playing next episode")
                     }

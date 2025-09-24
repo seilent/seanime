@@ -75,7 +75,6 @@ export function EpisodeSection({ entry, details, bottomSection }: EpisodeSection
                 onSelect: () => playMediaFile({
                     path: episode.localFile?.path ?? "",
                     mediaId: entry.mediaId,
-                    episode: episode as Anime_Episode,
                 }),
             })),
             filter: ({ item, input }) => {
@@ -155,7 +154,6 @@ export function EpisodeSection({ entry, details, bottomSection }: EpisodeSection
                                             onClick={() => playMediaFile({
                                                 path: episode.localFile?.path ?? "",
                                                 mediaId: entry.mediaId,
-                                                episode: episode,
                                             })}
                                             anime={{
                                                 id: entry.mediaId,
@@ -180,7 +178,7 @@ export function EpisodeSection({ entry, details, bottomSection }: EpisodeSection
                                 episode={mainEpisodes[index]}
                                 media={media}
                                 isWatched={!!entry.listData?.progress && entry.listData.progress >= mainEpisodes[index].progressNumber}
-                                onPlay={({ path, mediaId }) => playMediaFile({ path, mediaId, episode: mainEpisodes[index] })}
+                                onPlay={({ path, mediaId }) => playMediaFile({ path, mediaId })}
                                 percentageComplete={getEpisodePercentageComplete(watchHistory, entry.mediaId, mainEpisodes[index].episodeNumber)}
                                 minutesRemaining={getEpisodeMinutesRemaining(watchHistory, entry.mediaId, mainEpisodes[index].episodeNumber)}
                             />
@@ -200,7 +198,7 @@ export function EpisodeSection({ entry, details, bottomSection }: EpisodeSection
                                     key={episode.localFile?.path || ""}
                                     episode={episode}
                                     media={media}
-                                    onPlay={({ path, mediaId }) => playMediaFile({ path, mediaId, episode: episode })}
+                                    onPlay={({ path, mediaId }) => playMediaFile({ path, mediaId })}
                                 />
                             ))}
                         </EpisodeListGrid>
@@ -214,7 +212,7 @@ export function EpisodeSection({ entry, details, bottomSection }: EpisodeSection
                                     key={episode.localFile?.path || ""}
                                     episode={episode}
                                     media={media}
-                                    onPlay={({ path, mediaId }) => playMediaFile({ path, mediaId, episode: episode })}
+                                    onPlay={({ path, mediaId }) => playMediaFile({ path, mediaId })}
                                 />
                             ))}
                         </EpisodeListGrid>

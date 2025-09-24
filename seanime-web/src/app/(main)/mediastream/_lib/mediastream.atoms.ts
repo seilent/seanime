@@ -1,7 +1,5 @@
-import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { useAtom } from "jotai/react"
 import { atomWithStorage } from "jotai/utils"
-import React from "react"
 
 const __mediastream_filePath = atomWithStorage<string | undefined>("sea-mediastream-filepath", undefined, undefined, { getOnInit: true })
 
@@ -30,32 +28,11 @@ export function useMediastreamJassubOffscreenRender() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Whether media streaming should be done on this device
+ * Always use media streaming for all devices
  */
-const __mediastream_activeOnDevice = atomWithStorage<boolean | null>("sea-mediastream-active-on-device", null, undefined, { getOnInit: true })
-
 export function useMediastreamActiveOnDevice() {
-    const serverStatus = useServerStatus()
-    const [activeOnDevice, setActiveOnDevice] = useAtom(__mediastream_activeOnDevice)
-
-    // Set default behavior
-    React.useLayoutEffect(() => {
-        if (!!serverStatus) {
-
-            if (activeOnDevice === null) {
-
-                if (serverStatus?.clientDevice !== "desktop") {
-                    setActiveOnDevice(true) // Always active on mobile devices
-                } else {
-                    setActiveOnDevice(false) // Always inactive on desktop devices
-                }
-
-            }
-        }
-    }, [serverStatus?.clientUserAgent, activeOnDevice])
-
     return {
-        activeOnDevice,
-        setActiveOnDevice,
+        activeOnDevice: true,
+        setActiveOnDevice: () => {}, // No-op since it's always enabled
     }
 }

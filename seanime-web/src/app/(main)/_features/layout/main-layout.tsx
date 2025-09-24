@@ -19,7 +19,6 @@ import { useMissingEpisodesLoader } from "@/app/(main)/_hooks/missing-episodes-l
 import { useAnimeCollectionListener } from "@/app/(main)/_listeners/anilist-collection.listeners"
 import { useAutoDownloaderItemListener } from "@/app/(main)/_listeners/autodownloader.listeners"
 import { useExtensionListener } from "@/app/(main)/_listeners/extensions.listeners"
-import { useExternalPlayerLinkListener } from "@/app/(main)/_listeners/external-player-link.listeners"
 import { useMangaListener } from "@/app/(main)/_listeners/manga.listeners"
 import { useMiscEventListeners } from "@/app/(main)/_listeners/misc-events.listeners"
 import { useSyncListener } from "@/app/(main)/_listeners/sync.listeners"
@@ -53,7 +52,6 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
     useMiscEventListeners()
     useExtensionListener()
     useMangaListener()
-    useExternalPlayerLinkListener()
     useSyncListener()
     useInvalidateQueriesListener()
 

@@ -1,7 +1,6 @@
 import { getServerBaseUrl } from "@/api/client/server-url"
 import { AL_BaseAnime, Anime_Episode, Anime_LocalFileType } from "@/api/generated/types"
 import { useUpdateLocalFileData } from "@/api/hooks/localfiles.hooks"
-import { useExternalPlayerLink } from "@/app/(main)/_atoms/playback.atoms"
 import { EpisodeGridItem } from "@/app/(main)/_features/anime/_components/episode-grid-item"
 import { PluginEpisodeGridItemMenuItems } from "@/app/(main)/_features/plugin/actions/plugin-actions"
 import { IconButton } from "@/components/ui/button"
@@ -41,13 +40,8 @@ export const EpisodeItem = memo(({ episode, media, isWatched, onPlay, percentage
     const [_, copyToClipboard] = useCopyToClipboard()
 
 
-    const { encodePath } = useExternalPlayerLink()
-
     function encodeFilePath(filePath: string) {
-        if (encodePath) {
-            return Buffer.from(filePath).toString("base64")
-        }
-        return encodeURIComponent(filePath)
+        return Buffer.from(filePath).toString("base64")
     }
 
     return (
