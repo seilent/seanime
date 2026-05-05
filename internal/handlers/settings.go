@@ -153,12 +153,12 @@ func (h *Handler) HandleUpdateUserSettings(c echo.Context) error {
 func (h *Handler) HandleGettingStarted(c echo.Context) error {
 
 	type body struct {
-		Library           models.LibrarySettings      `json:"library"`
-		Torrent           models.TorrentSettings      `json:"torrent"`
-		Anilist           models.AnilistSettings      `json:"anilist"`
-		Manga             models.MangaSettings        `json:"manga"`
-		Notifications     models.NotificationSettings `json:"notifications"`
-		EnableTranscode   bool                        `json:"enableTranscode"`
+		Library         models.LibrarySettings      `json:"library"`
+		Torrent         models.TorrentSettings      `json:"torrent"`
+		Anilist         models.AnilistSettings      `json:"anilist"`
+		Manga           models.MangaSettings        `json:"manga"`
+		Notifications   models.NotificationSettings `json:"notifications"`
+		EnableTranscode bool                        `json:"enableTranscode"`
 		// Admin AniList token for authentication
 		AdminAnilistToken string `json:"adminAnilistToken,omitempty"`
 	}
@@ -174,76 +174,81 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("setup has already been completed"))
 	}
 
-    // Set up AniList whitelist and admin user during first-time setup
-    // Note: If no admin token is provided, preserve any existing whitelist instead of overwriting it.
-    var anilistWhitelist models.StringSlice
-    var adminUsername string
-    var dbUser *models.User
-    if b.AdminAnilistToken != "" {
+	// Set up AniList whitelist and admin user during first-time setup
+	// Note: If no admin token is provided, preserve any existing whitelist instead of overwriting it.
+	var anilistWhitelist models.StringSlice
+	var adminUsername string
+	var dbUser *models.User
+	if b.AdminAnilistToken != "" {
 		// Validate the AniList token and get user info
 		authenticatedClient := anilist.NewAnilistClient(b.AdminAnilistToken)
 		getViewer, err := authenticatedClient.GetViewer(context.Background())
 		if err != nil {
 			return h.RespondWithError(c, fmt.Errorf("invalid AniList token: %w", err))
-    }
+		}
 
-    // If admin token is not provided, try to preserve an existing whitelist
-    if b.AdminAnilistToken == "" {
-        if existing, err := h.App.Database.GetGlobalSettings(); err == nil && existing != nil {
-            if len(existing.AnilistWhitelist) > 0 {
-                anilistWhitelist = existing.AnilistWhitelist
-            }
-        }
-    }
-		
-        adminUsername = getViewer.Viewer.Name
-        anilistWhitelist = models.StringSlice{adminUsername}
-        h.App.Logger.Info().Str("adminUsername", adminUsername).Msg("Set admin AniList username in whitelist during setup")
-        
-        // Find or create admin user account and authenticate them
-        existingUser, getErr := h.App.Database.GetUserByUsername(adminUsername)
-        if getErr == nil && existingUser != nil {
-            dbUser = existingUser
-        } else {
-            dbUser = &models.User{
-                Username:    adminUsername,
-                DisplayName: getViewer.Viewer.Name,
-                Role:        "admin",
-                IsActive:    true,
-            }
-            dbUser, err = h.App.Database.CreateUser(dbUser)
-            if err != nil {
-                h.App.Logger.Error().Err(err).Msg("Failed to create admin user")
-            }
-        }
+		// If admin token is not provided, try to preserve an existing whitelist
+		if b.AdminAnilistToken == "" {
+			if existing, err := h.App.Database.GetGlobalSettings(); err == nil && existing != nil {
+				if len(existing.AnilistWhitelist) > 0 {
+					anilistWhitelist = existing.AnilistWhitelist
+				}
+			}
+		}
 
-        if dbUser != nil && err == nil {
-            // Create AniList account entry
-            viewerBytes, _ := json.Marshal(getViewer.Viewer)
-            _, err = h.App.Database.UpsertAccount(&models.Account{
-                UserID:   dbUser.ID,
-                Username: getViewer.Viewer.Name,
-                Token:    b.AdminAnilistToken,
-                Viewer:   viewerBytes,
-            })
-            if err != nil {
-                h.App.Logger.Error().Err(err).Msg("Failed to create admin AniList account")
-            }
-            
-            // Create user session and set cookie (7 days expiration)
-            session, err := h.App.Database.CreateUserSession(dbUser.ID, 24*7)
-            if err != nil {
-                h.App.Logger.Error().Err(err).Msg("Failed to create admin user session")
-            } else {
-                // Set session cookie
-                cookie := &http.Cookie{
+		adminUsername = getViewer.Viewer.Name
+		anilistWhitelist = models.StringSlice{adminUsername}
+		h.App.Logger.Info().Str("adminUsername", adminUsername).Msg("Set admin AniList username in whitelist during setup")
+
+		// Find or create admin user account and authenticate them
+		existingUser, getErr := h.App.Database.GetUserByUsername(adminUsername)
+		if getErr == nil && existingUser != nil {
+			dbUser = existingUser
+		} else {
+			dbUser = &models.User{
+				Username:    adminUsername,
+				DisplayName: getViewer.Viewer.Name,
+				Role:        "admin",
+				IsActive:    true,
+			}
+			dbUser, err = h.App.Database.CreateUser(dbUser)
+			if err != nil {
+				h.App.Logger.Error().Err(err).Msg("Failed to create admin user")
+			}
+		}
+
+		if dbUser != nil && err == nil {
+			// Create AniList account entry
+			viewerBytes, _ := json.Marshal(getViewer.Viewer)
+			_, err = h.App.Database.UpsertAccount(&models.Account{
+				UserID:   dbUser.ID,
+				Username: getViewer.Viewer.Name,
+				Token:    b.AdminAnilistToken,
+				Viewer:   viewerBytes,
+			})
+			if err != nil {
+				h.App.Logger.Error().Err(err).Msg("Failed to create admin AniList account")
+			}
+
+			// Create user session and set cookie (persists until manually revoked)
+			session, err := h.App.Database.CreateUserSession(dbUser.ID, 0)
+			if err != nil {
+				h.App.Logger.Error().Err(err).Msg("Failed to create admin user session")
+			} else {
+				// Set session cookie
+				cookie := &http.Cookie{
 					Name:     "seanime-session",
 					Value:    session.Token,
 					Path:     "/",
 					HttpOnly: true,
 					Secure:   false,
 					SameSite: http.SameSiteLaxMode,
-					MaxAge:   24 * 7 * 60 * 60, // 7 days
+				}
+				if !session.ExpiresAt.IsZero() {
+					cookie.Expires = session.ExpiresAt
+					if remaining := time.Until(session.ExpiresAt); remaining > 0 {
+						cookie.MaxAge = int(remaining.Seconds())
+					}
 				}
 				c.SetCookie(cookie)
 				h.App.Logger.Info().Str("username", adminUsername).Msg("Admin user logged in during setup")
@@ -257,8 +262,8 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 	}
 	b.Library.LibraryPath = filepath.ToSlash(b.Library.LibraryPath)
 
-    // Create global settings (server-wide)
-    globalSettings, err := h.App.Database.UpsertGlobalSettings(&models.GlobalSettings{
+	// Create global settings (server-wide)
+	globalSettings, err := h.App.Database.UpsertGlobalSettings(&models.GlobalSettings{
 		BaseModel: models.BaseModel{
 			ID:        1,
 			UpdatedAt: time.Now(),
@@ -327,7 +332,6 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-
 	// Enable transcoding by default during setup
 	go func() {
 		defer util.HandlePanicThen(func() {})
@@ -336,10 +340,8 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 			return
 		}
 
-		
 		_, _ = h.App.Database.UpsertGlobalSettings(globalSettings)
 	}()
-
 
 	// Broadcast settings update to all users via SSE
 	h.App.SSEManager.BroadcastEvent("settings", settings)
@@ -420,7 +422,7 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 
 	// Check if user is admin to determine what settings they can modify
 	isAdmin := user.IsAdmin()
-	
+
 	// Handle global settings (admin-only)
 	if isAdmin {
 		// Admin can modify global settings (library, torrent, auto-downloader)
@@ -438,7 +440,7 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		// Update global settings with admin changes
 		globalSettings.Library = &b.Library
 		globalSettings.Torrent = &b.Torrent
-		
+
 		// Handle auto-downloader settings
 		autoDownloaderSettings := models.AutoDownloaderSettings{}
 		if globalSettings.AutoDownloader != nil {
@@ -449,7 +451,7 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 			autoDownloaderSettings.Enabled = false
 		}
 		globalSettings.AutoDownloader = &autoDownloaderSettings
-		
+
 		// Save global settings
 		_, err = h.App.Database.UpsertGlobalSettings(globalSettings)
 		if err != nil {

@@ -421,6 +421,7 @@ type DatabaseBackend interface {
 	GetAllGlobalMappings() ([]*models.GlobalAnimeFileMapping, error)
 	GetGlobalMapping(filePath string) (*models.GlobalAnimeFileMapping, error)
 	CreateGlobalMapping(mapping *models.GlobalAnimeFileMapping) error
+	ClearAllGlobalMappings() error
 
 	// User anime subscription operations (for multi-token system)
 	UpsertUserAnimeSubscription(userID uint, aniListID int, tokenStatus string) error

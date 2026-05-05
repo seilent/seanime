@@ -31854,6 +31854,59 @@
     ]
   },
   {
+    "filepath": "../internal/database/models/user.go",
+    "filename": "user.go",
+    "name": "UserPreference",
+    "formattedName": "Models_UserPreference",
+    "package": "models",
+    "fields": [
+      {
+        "name": "UserID",
+        "jsonName": "userId",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Key",
+        "jsonName": "key",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Value",
+        "jsonName": "value",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "User",
+        "jsonName": "user",
+        "goType": "User",
+        "typescriptType": "Models_User",
+        "usedTypescriptType": "Models_User",
+        "usedStructName": "models.User",
+        "required": false,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " UserPreference represents user-specific preferences/settings"
+    ],
+    "embeddedStructNames": [
+      "models.BaseModel"
+    ]
+  },
+  {
     "filepath": "../internal/directstream/localfile.go",
     "filename": "localfile.go",
     "name": "LocalFileStream",
@@ -40324,6 +40377,57 @@
     ],
     "comments": [
       " ResetPasswordRequest represents the reset password request payload (admin only)"
+    ]
+  },
+  {
+    "filepath": "../internal/handlers/users.go",
+    "filename": "users.go",
+    "name": "UserPreferenceRequest",
+    "formattedName": "UserPreferenceRequest",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "Value",
+        "jsonName": "value",
+        "goType": "",
+        "typescriptType": "any",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " UserPreferenceRequest represents a user preference request payload"
+    ]
+  },
+  {
+    "filepath": "../internal/handlers/users.go",
+    "filename": "users.go",
+    "name": "UserPreferenceResponse",
+    "formattedName": "UserPreferenceResponse",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "Key",
+        "jsonName": "key",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Value",
+        "jsonName": "value",
+        "goType": "",
+        "typescriptType": "any",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " UserPreferenceResponse represents a user preference response"
     ]
   },
   {
@@ -49615,6 +49719,17 @@
         "comments": []
       },
       {
+        "name": "globalMappingSvc",
+        "jsonName": "globalMappingSvc",
+        "goType": "global_mapping.GlobalMappingService",
+        "typescriptType": "GlobalMappingService",
+        "usedTypescriptType": "GlobalMappingService",
+        "usedStructName": "global_mapping.GlobalMappingService",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
         "name": "mediaLibraryCache",
         "jsonName": "mediaLibraryCache",
         "goType": "map[int][]uint",
@@ -50242,6 +50357,17 @@
         "comments": []
       },
       {
+        "name": "globalMappingSvc",
+        "jsonName": "globalMappingSvc",
+        "goType": "global_mapping.GlobalMappingService",
+        "typescriptType": "GlobalMappingService",
+        "usedTypescriptType": "GlobalMappingService",
+        "usedStructName": "global_mapping.GlobalMappingService",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
         "name": "libraryPaths",
         "jsonName": "libraryPaths",
         "goType": "[]string",
@@ -50309,6 +50435,17 @@
         "jsonName": "LibraryPaths",
         "goType": "[]string",
         "typescriptType": "Array\u003cstring\u003e",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "GlobalMappingService",
+        "jsonName": "GlobalMappingService",
+        "goType": "global_mapping.GlobalMappingService",
+        "typescriptType": "GlobalMappingService",
+        "usedTypescriptType": "GlobalMappingService",
+        "usedStructName": "global_mapping.GlobalMappingService",
         "required": false,
         "public": true,
         "comments": []

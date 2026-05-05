@@ -5,10 +5,10 @@ import {
     vc_isFullscreen,
     vc_isMuted,
     vc_pip,
-    vc_subtitleManager,
     vc_volume,
     VideoCoreChapterCue,
 } from "@/app/(main)/_features/video-core/video-core"
+import { VideoCoreSubtitleManager } from "@/app/(main)/_features/video-core/video-core-subtitles"
 import { useVideoCoreFlashAction } from "@/app/(main)/_features/video-core/video-core-action-display"
 import { vc_fullscreenManager } from "@/app/(main)/_features/video-core/video-core-fullscreen"
 import { vc_defaultKeybindings, vc_keybindingsAtom, VideoCoreKeybindings } from "@/app/(main)/_features/video-core/video-core.atoms"
@@ -320,7 +320,8 @@ export function VideoCoreKeybindingController(props: {
     introEndTime: number | undefined,
     introStartTime: number | undefined
     endingEndTime: number | undefined,
-    endingStartTime: number | undefined
+    endingStartTime: number | undefined,
+    subtitleManager?: VideoCoreSubtitleManager | null
 }) {
     const {
         active,
@@ -330,6 +331,7 @@ export function VideoCoreKeybindingController(props: {
         introStartTime,
         endingEndTime,
         endingStartTime,
+        subtitleManager,
     } = props
 
     const [keybindings] = useAtom(vc_keybindingsAtom)
@@ -344,7 +346,6 @@ export function VideoCoreKeybindingController(props: {
 
     const action = useSetAtom(vc_dispatchAction)
 
-    const subtitleManager = useAtomValue(vc_subtitleManager)
     const audioManager = useAtomValue(vc_audioManager)
     const fullscreenManager = useAtomValue(vc_fullscreenManager)
 

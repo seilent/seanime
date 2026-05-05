@@ -116,7 +116,6 @@ export const vc_busy = atom(true)
 export const vc_videoElement = atom<HTMLVideoElement | null>(null)
 export const vc_containerElement = atom<HTMLDivElement | null>(null)
 
-export const vc_subtitleManager = atom<VideoCoreSubtitleManager | null>(null)
 export const vc_audioManager = atom<VideoCoreAudioManager | null>(null)
 export const vc_previewManager = atom<VideoCorePreviewManager | null>(null)
 export const vc_anime4kManager = atom<VideoCoreAnime4KManager | null>(null)
@@ -198,6 +197,7 @@ export interface VideoCoreProps {
     onError?: (error: string) => void
     onPlaybackRateChange?: () => void
     onFileUploaded: (data: { name: string, content: string }) => void
+    clientId?: string
 }
 
 export function VideoCore(props: VideoCoreProps) {
@@ -218,6 +218,7 @@ export function VideoCore(props: VideoCoreProps) {
         onError,
         onPlaybackRateChange,
         onFileUploaded,
+        clientId,
         ...rest
     } = props
 
@@ -235,7 +236,7 @@ export function VideoCore(props: VideoCoreProps) {
 
     const [, setContainerElement] = useAtom(vc_containerElement)
 
-    const [subtitleManager, setSubtitleManager] = useAtom(vc_subtitleManager)
+    const [subtitleManager, setSubtitleManager] = useState<VideoCoreSubtitleManager | null>(null)
     const [audioManager, setAudioManager] = useAtom(vc_audioManager)
     const [previewManager, setPreviewManager] = useAtom(vc_previewManager)
     const [anime4kManager, setAnime4kManager] = useAtom(vc_anime4kManager)
@@ -363,10 +364,14 @@ export function VideoCore(props: VideoCoreProps) {
         }
 
         if (!!state.playbackInfo && (!currentPlaybackRef.current || state.playbackInfo.id !== currentPlaybackRef.current)) {
+            if (subtitleManager) {
+                subtitleManager.destroy()
+                setSubtitleManager(null)
+            }
             log.info("New stream loaded")
             vc_logGeneralInfo(videoRef.current)
         }
-    }, [state.playbackInfo, videoRef.current])
+    }, [state.playbackInfo, videoRef.current, subtitleManager])
 
     const streamUrl = state?.playbackInfo?.streamUrl?.replace?.("{{SERVER_URL}}", getServerBaseUrl())
 
@@ -402,6 +407,7 @@ export function VideoCore(props: VideoCoreProps) {
                     playbackInfo: state.playbackInfo!,
                     jassubOffscreenRender: true,
                     settings: settings,
+                    clientId: clientId,
                 })
             })
 
@@ -593,6 +599,14 @@ export function VideoCore(props: VideoCoreProps) {
             if (subtitleManager) pipManager.setSubtitleManager(subtitleManager)
         }
     }, [pipManager, subtitleManager, videoRef.current, state.playbackInfo])
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            subtitleManager?.destroy?.()
+            setSubtitleManager(null)
+        }
+    }, [subtitleManager])
 
     // Update fullscreen manager
     React.useEffect(() => {
@@ -825,6 +839,7 @@ export function VideoCore(props: VideoCoreProps) {
                                 introEndTime={aniSkipData?.op?.interval?.endTime}
                                 endingStartTime={aniSkipData?.ed?.interval?.startTime}
                                 endingEndTime={aniSkipData?.ed?.interval?.endTime}
+                                subtitleManager={subtitleManager}
                             />
 
                             <VideoCoreActionDisplay />
@@ -965,7 +980,7 @@ export function VideoCore(props: VideoCoreProps) {
 
                                 <VideoCoreAudioButton />
 
-                                <VideoCoreSubtitleButton />
+                                <VideoCoreSubtitleButton subtitleManager={subtitleManager} />
 
                                 <VideoCorePipButton />
 

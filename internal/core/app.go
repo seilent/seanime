@@ -376,6 +376,9 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
     // Initialize all modules that depend on settings
     app.InitOrRefreshModules()
 
+	// Disable update checker
+	app.Updater.SetEnabled(false)
+
     // Fetch announcements after modules are initialized so updater respects settings
     go app.Updater.FetchAnnouncements()
 

@@ -16,6 +16,7 @@ import { Modal } from "@/components/ui/modal"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MediaPlayerInstance } from "@vidstack/react"
+import type { TrackProps } from "@vidstack/react"
 import "@/app/vidstack-theme.css"
 import "@vidstack/react/player/styles/default/layouts/video.css"
 import { uniq } from "lodash"
@@ -70,6 +71,34 @@ export default function Page() {
         episode,
         duration,
     } = useHandleMediastream({ playerRef, episodes, mediaId })
+
+    const buildSubtitleSrc = React.useCallback((link?: string | null) => {
+        if (!subtitleEndpointUri || !link) return ""
+        const base = `${subtitleEndpointUri}${link}`
+        if (!mediaContainer?.hash) return base
+        const separator = base.includes("?") ? "&" : "?"
+        return `${base}${separator}v=${mediaContainer.hash}`
+    }, [subtitleEndpointUri, mediaContainer?.hash])
+
+    const subtitleTracks = React.useMemo<TrackProps[]>(() => {
+        const list = subtitles ?? []
+        if (!list.length) return []
+        const hasDefault = list.some(n => n.isDefault)
+        return list
+            .map((sub): TrackProps | null => {
+                const src = buildSubtitleSrc(sub.link)
+                if (!src) return null
+                return {
+                    src,
+                    label: sub.title || sub.language || undefined,
+                    lang: sub.language ?? undefined,
+                    type: (sub.extension?.replace(".", "") || "ass") as CaptionsFileFormat,
+                    kind: "subtitles",
+                    default: sub.isDefault || (!hasDefault && sub.language?.startsWith("en") === true),
+                }
+            })
+            .filter((track): track is TrackProps => track !== null)
+    }, [subtitles, buildSubtitleSrc])
 
     const { jassubOffscreenRender, setJassubOffscreenRender } = useMediastreamJassubOffscreenRender()
 
@@ -222,14 +251,7 @@ export default function Page() {
                             onProviderSetup={onProviderSetup}
                             onCanPlay={onCanPlay}
                             onGoToNextEpisode={playNextEpisode}
-                            tracks={subtitles?.map((sub) => ({
-                                src: subtitleEndpointUri + sub.link,
-                                label: sub.title || sub.language,
-                                lang: sub.language,
-                                type: (sub.extension?.replace(".", "") || "ass") as CaptionsFileFormat,
-                                kind: "subtitles",
-                                default: sub.isDefault || (!subtitles.some(n => n.isDefault) && sub.language?.startsWith("en")),
-                            }))}
+                            tracks={subtitleTracks}
                             mediaInfoDuration={mediaContainer?.mediaInfo?.duration}
                             loadingText={<>
                                 <p>Extracting video metadata...</p>

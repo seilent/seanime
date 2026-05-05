@@ -49,6 +49,11 @@ func (db *Database) DeleteGlobalMapping(filePath string) error {
 	return db.gormdb.Where("local_file_path = ?", filePath).Delete(&models.GlobalAnimeFileMapping{}).Error
 }
 
+// ClearAllGlobalMappings deletes all global mappings
+func (db *Database) ClearAllGlobalMappings() error {
+	return db.gormdb.Where("1 = 1").Delete(&models.GlobalAnimeFileMapping{}).Error
+}
+
 // Unmapped Files Operations
 
 // CreateUnmappedFile creates a new unmapped file record

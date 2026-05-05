@@ -93,6 +93,15 @@ func (ss *SystemScanner) ScanSystem(ctx context.Context, options *SystemScanOpti
 		UnmappedFilePaths: make([]string, 0),
 	}
 
+	// Step 0: Clear all global mappings before scanning
+	// This ensures clean mappings when library paths change
+	purgedCount, err := ss.clearAllGlobalMappings()
+	if err != nil {
+		ss.Logger.Warn().Err(err).Msg("system-scanner: Failed to clear global mappings, continuing with scan")
+	} else if purgedCount > 0 {
+		ss.Logger.Info().Int("purgedCount", purgedCount).Msg("system-scanner: Cleared existing global mappings")
+	}
+
 	// Step 1: Discover all media files across all library paths
 	allFiles, err := ss.discoverFiles(options.LibraryPaths)
 	if err != nil {
@@ -203,6 +212,28 @@ func (ss *SystemScanner) discoverFiles(libraryPaths []string) ([]*anime.LocalFil
 	}
 
 	return allFiles, nil
+}
+
+// clearAllGlobalMappings removes all global mappings
+func (ss *SystemScanner) clearAllGlobalMappings() (int, error) {
+	// Get count before clearing for logging
+	existingMappings, err := ss.Database.GetAllGlobalMappings()
+	if err != nil {
+		return 0, err
+	}
+	
+	count := len(existingMappings)
+	if count == 0 {
+		return 0, nil
+	}
+	
+	// Clear all global mappings
+	err = ss.Database.ClearAllGlobalMappings()
+	if err != nil {
+		return 0, err
+	}
+	
+	return count, nil
 }
 
 // filterUnmappedFiles removes files that are already in global mappings

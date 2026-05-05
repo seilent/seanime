@@ -1,13 +1,13 @@
 import { useAtomValue, useSetAtom } from "jotai"
 import React from "react"
-import { vc_anime4kManager, vc_subtitleManager, vc_videoElement } from "./video-core"
+import { vc_anime4kManager, vc_videoElement } from "./video-core"
 import { vc_doFlashAction } from "./video-core-action-display"
 import { vc_anime4kOption } from "./video-core-anime-4k"
 
 export function useVideoCoreScreenshot() {
 
     const videoElement = useAtomValue(vc_videoElement)
-    const subtitleManager = useAtomValue(vc_subtitleManager)
+    // subtitleManager is no longer global - screenshot subtitles disabled for now
     const flashAction = useSetAtom(vc_doFlashAction)
     const anime4kManager = useAtomValue(vc_anime4kManager)
     const anime4kOption = useAtomValue(vc_anime4kOption)
@@ -20,20 +20,9 @@ export function useVideoCoreScreenshot() {
     }
 
     async function addSubtitles(canvas: HTMLCanvasElement): Promise<void> {
-        const libassRenderer = subtitleManager?.libassRenderer
-        if (!libassRenderer) return
-
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return
-
-        return new Promise((resolve) => {
-            libassRenderer.resize(canvas.width, canvas.height)
-            screenshotTimeout.current = setTimeout(() => {
-                ctx.drawImage(libassRenderer._canvas, 0, 0, canvas.width, canvas.height)
-                libassRenderer.resize(0, 0, 0, 0)
-                resolve()
-            }, 300)
-        })
+        // subtitleManager is no longer global - subtitles disabled in screenshots
+        // TODO: Pass subtitleManager as a parameter if needed
+        return
     }
 
     async function createVideoCanvas(source: HTMLVideoElement | HTMLCanvasElement): Promise<Blob | null> {
@@ -100,11 +89,8 @@ export function useVideoCoreScreenshot() {
             if (anime4kOption !== "off" && anime4kManager?.canvas) {
                 const anime4kBlob = await createVideoCanvas(anime4kManager.canvas)
                 if (anime4kBlob) {
-                    if (subtitleManager?.libassRenderer) {
-                        blob = await createEnhancedCanvas(anime4kBlob)
-                    } else {
-                        blob = anime4kBlob
-                    }
+                    // subtitleManager no longer available globally
+                    blob = anime4kBlob
                     isAnime4K = true
                 }
             }

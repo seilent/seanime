@@ -13,8 +13,8 @@ import (
 // We fetch the latest release from the website first, if it fails we fallback to GitHub API
 // This allows updates even if Seanime is removed from GitHub
 var (
-	websiteUrl        = "https://seanime.app/api/release"
-	fallbackGithubUrl = "https://api.github.com/repos/5rahim/seanime/releases/latest"
+	websiteUrl        = "http://127.0.0.1/api/release"
+	fallbackGithubUrl = "http://127.0.0.1/releases/latest"
 )
 
 type (

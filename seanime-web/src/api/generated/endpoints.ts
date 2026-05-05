@@ -1998,6 +1998,16 @@ export const API_ENDPOINTS = {
         },
         /**
          *  @description
+         *  Route Get user AniList viewer data
+         *  Gets the current authenticated user's AniList viewer data including avatar information
+         */
+        GetUserViewer: {
+            key: "USERS-get-user-viewer",
+            methods: ["GET"],
+            endpoint: "/api/v1/users/viewer",
+        },
+        /**
+         *  @description
          *  Route Update user profile
          *  Updates the current authenticated user's profile
          */
@@ -2105,6 +2115,26 @@ export const API_ENDPOINTS = {
             key: "USERS-setup-required",
             methods: ["GET"],
             endpoint: "/api/v1/setup/required",
+        },
+        /**
+         *  @description
+         *  Route 
+         *  Get a user preference by key
+         */
+        GetUserPreference: {
+            key: "USERS-get-user-preference",
+            methods: ["GET"],
+            endpoint: "/api/v1/users/preferences/:key",
+        },
+        /**
+         *  @description
+         *  Route 
+         *  Set a user preference by key
+         */
+        SetUserPreference: {
+            key: "USERS-set-user-preference",
+            methods: ["PUT"],
+            endpoint: "/api/v1/users/preferences/:key",
         },
     },
 } satisfies ApiEndpoints

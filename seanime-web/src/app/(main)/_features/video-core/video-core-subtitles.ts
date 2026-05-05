@@ -46,11 +46,13 @@ Style: Default, Roboto Medium,24,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0
         jassubOffscreenRender,
         playbackInfo,
         settings,
+        clientId,
     }: {
         videoElement: HTMLVideoElement
         jassubOffscreenRender: boolean
         playbackInfo: NativePlayer_PlaybackInfo
         settings: VideoCoreSettings
+        clientId?: string
     }) {
         this.videoElement = videoElement
         this.jassubOffscreenRender = jassubOffscreenRender

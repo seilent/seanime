@@ -4,7 +4,7 @@ import { useUpdateAnimeEntryProgress } from "@/api/hooks/anime_entries.hooks"
 import { useHandleCurrentMediaContinuity } from "@/api/hooks/continuity.hooks"
 import { useContinuityWithCacheLoading } from "@/app/(main)/_features/progress-tracking/_lib/use-continuity-with-cache-loading"
 import { __seaMediaPlayer_autoNextAtom } from "@/app/(main)/_features/sea-media-player/sea-media-player.atoms"
-import { vc_dispatchAction, vc_miniPlayer, vc_subtitleManager, vc_videoElement, VideoCore } from "@/app/(main)/_features/video-core/video-core"
+import { vc_dispatchAction, vc_miniPlayer, vc_videoElement, VideoCore } from "@/app/(main)/_features/video-core/video-core"
 import { clientIdAtom } from "@/app/websocket-provider"
 import { logger } from "@/lib/helpers/debug"
 import { WSEvents } from "@/lib/server/ws-events"
@@ -44,7 +44,6 @@ export function NativePlayer() {
     const videoElement = useAtomValue(vc_videoElement)
     const [state, setState] = useAtom(nativePlayer_stateAtom)
     const [miniPlayer, setMiniPlayer] = useAtom(vc_miniPlayer)
-    const subtitleManager = useAtomValue(vc_subtitleManager)
     const dispatchEvent = useSetAtom(vc_dispatchAction)
 
     // Continuity with cache
@@ -333,10 +332,12 @@ export function NativePlayer() {
                 // 3. Subtitle event (MKV)
                 // We receive the subtitle events after the server received the loaded-metadata event
                 case "subtitle-event":
-                    subtitleManager?.onSubtitleEvent(payload as MKVParser_SubtitleEvent)
+                    // Subtitle manager is now handled locally in VideoCore
+                    // subtitleManager?.onSubtitleEvent(payload as MKVParser_SubtitleEvent)
                     break
                 case "add-subtitle-track":
-                    subtitleManager?.onTrackAdded(payload as MKVParser_TrackInfo)
+                    // Subtitle manager is now handled locally in VideoCore
+                    // subtitleManager?.onTrackAdded(payload as MKVParser_TrackInfo)
                     break
                 case "terminate":
                     log.info("Terminate event received")
@@ -405,6 +406,7 @@ export function NativePlayer() {
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onFileUploaded={handleFileUploaded}
+                clientId={clientId || undefined}
             />
         </>
     )

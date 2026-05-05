@@ -19,8 +19,8 @@ import (
 
 // AniListLoginRequest represents the AniList OAuth login request payload
 type AniListLoginRequest struct {
-    Token  string `json:"token" validate:"required"` // AniList access token
-    DryRun bool   `json:"dryRun"`                     // Validate only, no side effects
+	Token  string `json:"token" validate:"required"` // AniList access token
+	DryRun bool   `json:"dryRun"`                    // Validate only, no side effects
 }
 
 // LoginResponse represents the login response
@@ -62,55 +62,55 @@ type ResetPasswordRequest struct {
 //	@route /api/v1/users/login [POST]
 //	@returns LoginResponse
 func (h *Handler) HandleUserLogin(c echo.Context) error {
-    var req AniListLoginRequest
-    if err := c.Bind(&req); err != nil {
-        return h.RespondWithError(c, err)
-    }
+	var req AniListLoginRequest
+	if err := c.Bind(&req); err != nil {
+		return h.RespondWithError(c, err)
+	}
 
-    // Create AniList client with provided token
-    authenticatedClient := anilist.NewAnilistClient(req.Token)
-    getViewer, err := authenticatedClient.GetViewer(context.Background())
-    if err != nil {
-        h.App.Logger.Error().Err(err).Msg("Failed to get AniList user info")
-        return c.JSON(http.StatusUnauthorized, map[string]string{
-            "error": "Failed to get user information from AniList",
-        })
-    }
+	// Create AniList client with provided token
+	authenticatedClient := anilist.NewAnilistClient(req.Token)
+	getViewer, err := authenticatedClient.GetViewer(context.Background())
+	if err != nil {
+		h.App.Logger.Error().Err(err).Msg("Failed to get AniList user info")
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Failed to get user information from AniList",
+		})
+	}
 
-    // DryRun: only validate token and return username. No whitelist/user/session writes.
-    if req.DryRun {
-        return h.RespondWithData(c, map[string]any{
-            "valid":    true,
-            "username": getViewer.Viewer.Name,
-        })
-    }
+	// DryRun: only validate token and return username. No whitelist/user/session writes.
+	if req.DryRun {
+		return h.RespondWithData(c, map[string]any{
+			"valid":    true,
+			"username": getViewer.Viewer.Name,
+		})
+	}
 
-    // Check if user is in whitelist or if this is first setup
-    globalSettings, err := h.App.Database.GetGlobalSettings()
-    if err != nil {
-        // If global settings don't exist, this is first setup
-        globalSettings = nil
-    }
+	// Check if user is in whitelist or if this is first setup
+	globalSettings, err := h.App.Database.GetGlobalSettings()
+	if err != nil {
+		// If global settings don't exist, this is first setup
+		globalSettings = nil
+	}
 
 	isWhitelisted := false
-    // If setup not completed (no whitelist), block normal login
-    isFirstSetup := globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0
-    if !isFirstSetup {
-        // Check existing whitelist
-        h.App.Logger.Debug().Str("username", getViewer.Viewer.Name).Strs("whitelist", globalSettings.AnilistWhitelist).Msg("Checking whitelist")
-        for _, whitelistedUsername := range globalSettings.AnilistWhitelist {
-            if strings.TrimSpace(whitelistedUsername) == strings.TrimSpace(getViewer.Viewer.Name) {
-                isWhitelisted = true
-                h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("User found in whitelist")
-                break
-            }
-        }
-        if !isWhitelisted {
-            h.App.Logger.Warn().Str("username", getViewer.Viewer.Name).Strs("whitelist", globalSettings.AnilistWhitelist).Msg("User not found in whitelist")
-        }
-    } else {
-        h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Login blocked: setup not completed (no whitelist)")
-    }
+	// If setup not completed (no whitelist), block normal login
+	isFirstSetup := globalSettings == nil || len(globalSettings.AnilistWhitelist) == 0
+	if !isFirstSetup {
+		// Check existing whitelist
+		h.App.Logger.Debug().Str("username", getViewer.Viewer.Name).Strs("whitelist", globalSettings.AnilistWhitelist).Msg("Checking whitelist")
+		for _, whitelistedUsername := range globalSettings.AnilistWhitelist {
+			if strings.TrimSpace(whitelistedUsername) == strings.TrimSpace(getViewer.Viewer.Name) {
+				isWhitelisted = true
+				h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("User found in whitelist")
+				break
+			}
+		}
+		if !isWhitelisted {
+			h.App.Logger.Warn().Str("username", getViewer.Viewer.Name).Strs("whitelist", globalSettings.AnilistWhitelist).Msg("User not found in whitelist")
+		}
+	} else {
+		h.App.Logger.Info().Str("username", getViewer.Viewer.Name).Msg("Login blocked: setup not completed (no whitelist)")
+	}
 
 	if !isWhitelisted {
 		h.App.Logger.Warn().Str("username", getViewer.Viewer.Name).Msg("AniList user not in whitelist")
@@ -125,15 +125,15 @@ func (h *Handler) HandleUserLogin(c echo.Context) error {
 		}
 	}
 
-    // Create or update user
-    user, err := h.App.Database.GetUserByUsername(getViewer.Viewer.Name)
-    if err != nil {
-        // User doesn't exist, create new one
-        // First user during setup becomes admin, or first user in whitelist
-        role := "user"
-        if (!isFirstSetup) && (globalSettings != nil && len(globalSettings.AnilistWhitelist) > 0 && globalSettings.AnilistWhitelist[0] == getViewer.Viewer.Name) {
-            role = "admin"
-        }
+	// Create or update user
+	user, err := h.App.Database.GetUserByUsername(getViewer.Viewer.Name)
+	if err != nil {
+		// User doesn't exist, create new one
+		// First user during setup becomes admin, or first user in whitelist
+		role := "user"
+		if (!isFirstSetup) && (globalSettings != nil && len(globalSettings.AnilistWhitelist) > 0 && globalSettings.AnilistWhitelist[0] == getViewer.Viewer.Name) {
+			role = "admin"
+		}
 
 		user = &models.User{
 			Username:    getViewer.Viewer.Name,
@@ -164,8 +164,8 @@ func (h *Handler) HandleUserLogin(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Create user session (7 days expiration)
-	session, err := h.App.Database.CreateUserSession(user.ID, 24*7)
+	// Create user session (persists until manually revoked)
+	session, err := h.App.Database.CreateUserSession(user.ID, 0)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -178,7 +178,12 @@ func (h *Handler) HandleUserLogin(c echo.Context) error {
 		HttpOnly: true,
 		Secure:   false, // Set to true in production with HTTPS
 		SameSite: http.SameSiteStrictMode,
-		Expires:  session.ExpiresAt,
+	}
+	if !session.ExpiresAt.IsZero() {
+		cookie.Expires = session.ExpiresAt
+		if remaining := time.Until(session.ExpiresAt); remaining > 0 {
+			cookie.MaxAge = int(remaining.Seconds())
+		}
 	}
 	c.SetCookie(cookie)
 
@@ -427,7 +432,7 @@ func (h *Handler) HandleCreateUser(c echo.Context) error {
 		Role:        req.Role,
 		IsActive:    true,
 	}
-	
+
 	newUser, err := h.App.Database.CreateUser(newUser)
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -792,6 +797,7 @@ type UserPreferenceResponse struct {
 }
 
 // HandleGetUserPreference handles getting a user preference
+//
 //	@desc Get a user preference by key
 //	@route /api/v1/users/preferences/:key [GET]
 //	@returns UserPreferenceResponse
@@ -829,6 +835,7 @@ func (h *Handler) HandleGetUserPreference(c echo.Context) error {
 }
 
 // HandleSetUserPreference handles setting a user preference
+//
 //	@desc Set a user preference by key
 //	@route /api/v1/users/preferences/:key [PUT]
 //	@returns UserPreferenceResponse
@@ -889,7 +896,6 @@ func (h *Handler) getSessionToken(c echo.Context) string {
 
 	return ""
 }
-
 
 // validateUserSession validates a session token and returns the user
 func (h *Handler) validateUserSession(token string) (*models.User, error) {

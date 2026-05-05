@@ -140,21 +140,27 @@ func generateSessionToken() (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-// CreateUserSession creates a new user session
+// CreateUserSession creates a new user session.
+// Pass expirationHours <= 0 for a long-lived ("permanent") session.
 func (db *Database) CreateUserSession(userID uint, expirationHours int) (*models.UserSession, error) {
 	token, err := generateSessionToken()
 	if err != nil {
 		return nil, err
 	}
 
+	const permanentSessionYears = 10 // effectively permanent without overflowing cookie Max-Age
+
+	var expiresAt time.Time
 	if expirationHours <= 0 {
-		expirationHours = 24 * 7 // Default to 7 days
+		expiresAt = time.Now().AddDate(permanentSessionYears, 0, 0)
+	} else {
+		expiresAt = time.Now().Add(time.Duration(expirationHours) * time.Hour)
 	}
 
 	session := &models.UserSession{
 		UserID:    userID,
 		Token:     token,
-		ExpiresAt: time.Now().Add(time.Duration(expirationHours) * time.Hour),
+		ExpiresAt: expiresAt,
 	}
 
 	if err := db.gormdb.Create(session).Error; err != nil {

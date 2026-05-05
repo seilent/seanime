@@ -366,8 +366,8 @@ func (pm *ProgressManager) GetResumePoint(userID uint, mediaID int, episodeNumbe
 		return nil, err
 	}
 	
-	// Only provide resume point if watched less than 90% and more than 30 seconds
-	if progress.CompletionPercent < 90.0 && progress.WatchTimeSeconds > 30 {
+	// Only provide resume point if watched less than 90%
+	if progress.CompletionPercent < 90.0 {
 		return &ResumePoint{
 			MediaID:           mediaID,
 			EpisodeNumber:     episodeNumber,

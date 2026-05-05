@@ -2374,6 +2374,15 @@
 //     })
 // }
 
+// export function useGetUserViewer() {
+//     return useServerQuery<AL_GetViewer_Viewer>({
+//         endpoint: API_ENDPOINTS.USERS.GetUserViewer.endpoint,
+//         method: API_ENDPOINTS.USERS.GetUserViewer.methods[0],
+//         queryKey: [API_ENDPOINTS.USERS.GetUserViewer.key],
+//         enabled: true,
+//     })
+// }
+
 // export function useUpdateUserProfile() {
 //     return useServerMutation<Models_User>({
 //         endpoint: API_ENDPOINTS.USERS.UpdateUserProfile.endpoint,
@@ -2486,6 +2495,26 @@
 //         method: API_ENDPOINTS.USERS.SetupRequired.methods[0],
 //         queryKey: [API_ENDPOINTS.USERS.SetupRequired.key],
 //         enabled: true,
+//     })
+// }
+
+// export function useGetUserPreference() {
+//     return useServerQuery<UserPreferenceResponse>({
+//         endpoint: API_ENDPOINTS.USERS.GetUserPreference.endpoint,
+//         method: API_ENDPOINTS.USERS.GetUserPreference.methods[0],
+//         queryKey: [API_ENDPOINTS.USERS.GetUserPreference.key],
+//         enabled: true,
+//     })
+// }
+
+// export function useSetUserPreference() {
+//     return useServerMutation<UserPreferenceResponse>({
+//         endpoint: API_ENDPOINTS.USERS.SetUserPreference.endpoint,
+//         method: API_ENDPOINTS.USERS.SetUserPreference.methods[0],
+//         mutationKey: [API_ENDPOINTS.USERS.SetUserPreference.key],
+//         onSuccess: async () => {
+// 
+//         },
 //     })
 // }
 

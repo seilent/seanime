@@ -18,11 +18,11 @@ import {
     vc_pip,
     vc_playbackRate,
     vc_seeking,
-    vc_subtitleManager,
     vc_videoElement,
     vc_volume,
     VIDEOCORE_DEBUG_ELEMENTS,
 } from "@/app/(main)/_features/video-core/video-core"
+import { VideoCoreSubtitleManager } from "@/app/(main)/_features/video-core/video-core-subtitles"
 import { anime4kOptions, getAnime4KOptionByValue, vc_anime4kOption } from "@/app/(main)/_features/video-core/video-core-anime-4k"
 import { vc_fullscreenManager } from "@/app/(main)/_features/video-core/video-core-fullscreen"
 import { videoCoreKeybindingsModalAtom } from "@/app/(main)/_features/video-core/video-core-keybindings"
@@ -78,8 +78,9 @@ const VIDEOCORE_CONTROL_BAR_TYPE: VideoCoreControlBarType = "default"
 export function VideoCoreControlBar(props: {
     children?: React.ReactNode
     timeRange: React.ReactNode
+    subtitleManager?: VideoCoreSubtitleManager | null
 }) {
-    const { children, timeRange } = props
+    const { children, timeRange, subtitleManager } = props
 
     const paused = useAtomValue(vc_paused)
     const isMiniPlayer = useAtomValue(vc_miniPlayer)
@@ -543,11 +544,10 @@ export function VideoCoreAudioButton() {
     )
 }
 
-export function VideoCoreSubtitleButton() {
+export function VideoCoreSubtitleButton({ subtitleManager }: { subtitleManager?: VideoCoreSubtitleManager | null }) {
     const action = useSetAtom(vc_dispatchAction)
     const isMiniPlayer = useAtomValue(vc_miniPlayer)
     const state = useAtomValue(nativePlayer_stateAtom)
-    const subtitleManager = useAtomValue(vc_subtitleManager)
     const videoElement = useAtomValue(vc_videoElement)
     const [selectedTrack, setSelectedTrack] = React.useState<number | null>(null)
 

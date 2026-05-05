@@ -360,11 +360,13 @@ func (f *LocalFile) GetTitleVariations() []*string {
 	// e.g. "Bungou Stray Dogs"
 	// e.g. "Bungou Stray Dogs Season 1"
 	if noSeasonsOrParts || eitherSeasonFirst {
-		if len(f.ParsedData.Title) > 0 { // Add filename title
-			titleVariations = append(titleVariations, f.ParsedData.Title)
-		}
-		if len(folderTitle) > 0 { // Both titles are present and similar, add folder title
+		// Prioritize folder title over filename title for better matching accuracy
+		if len(folderTitle) > 0 {
 			titleVariations = append(titleVariations, folderTitle)
+		}
+		// Only add filename title if folder title is not available
+		if len(f.ParsedData.Title) > 0 && len(folderTitle) == 0 {
+			titleVariations = append(titleVariations, f.ParsedData.Title)
 		}
 	}
 
@@ -404,11 +406,11 @@ func (f *LocalFile) GetTitleVariations() []*string {
 			seas = season
 		}
 
-		// Both titles are present
+		// Both titles are present - prioritize folder title
 		if bothTitles {
-			// Add both titles
-			arr = append(arr, f.ParsedData.Title)
+			// Add folder title first for better matching accuracy
 			arr = append(arr, folderTitle)
+			// Only add filename title if folder title is not available
 			if !bothTitlesSimilar { // Combine both titles if they are not similar
 				arr = append(arr, fmt.Sprintf("%s %s", folderTitle, f.ParsedData.Title))
 			}

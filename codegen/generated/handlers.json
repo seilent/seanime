@@ -9100,6 +9100,36 @@
     }
   },
   {
+    "name": "HandleGetUserViewer",
+    "trimmedName": "GetUserViewer",
+    "comments": [
+      "HandleGetUserViewer gets the current user's AniList viewer data including avatar",
+      "",
+      "\t@summary Get user AniList viewer data",
+      "\t@desc Gets the current authenticated user's AniList viewer data including avatar information",
+      "\t@route /api/v1/users/viewer [GET]",
+      "\t@returns anilist.GetViewer_Viewer",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "Get user AniList viewer data",
+      "descriptions": [
+        "Gets the current authenticated user's AniList viewer data including avatar information"
+      ],
+      "endpoint": "/api/v1/users/viewer",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "anilist.GetViewer_Viewer",
+      "returnGoType": "anilist.GetViewer_Viewer",
+      "returnTypescriptType": "AL_GetViewer_Viewer"
+    }
+  },
+  {
     "name": "HandleUpdateUserProfile",
     "trimmedName": "UpdateUserProfile",
     "comments": [
@@ -9427,6 +9457,62 @@
       "returns": "map[string]bool",
       "returnGoType": "bool",
       "returnTypescriptType": "Record\u003cstring, boolean\u003e"
+    }
+  },
+  {
+    "name": "HandleGetUserPreference",
+    "trimmedName": "GetUserPreference",
+    "comments": [
+      "HandleGetUserPreference handles getting a user preference",
+      "\t@desc Get a user preference by key",
+      "\t@route /api/v1/users/preferences/:key [GET]",
+      "\t@returns UserPreferenceResponse",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "",
+      "descriptions": [
+        "Get a user preference by key"
+      ],
+      "endpoint": "/api/v1/users/preferences/:key",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "UserPreferenceResponse",
+      "returnGoType": "UserPreferenceResponse",
+      "returnTypescriptType": "UserPreferenceResponse"
+    }
+  },
+  {
+    "name": "HandleSetUserPreference",
+    "trimmedName": "SetUserPreference",
+    "comments": [
+      "HandleSetUserPreference handles setting a user preference",
+      "\t@desc Set a user preference by key",
+      "\t@route /api/v1/users/preferences/:key [PUT]",
+      "\t@returns UserPreferenceResponse",
+      ""
+    ],
+    "filepath": "internal/handlers/users.go",
+    "filename": "users.go",
+    "api": {
+      "summary": "",
+      "descriptions": [
+        "Set a user preference by key"
+      ],
+      "endpoint": "/api/v1/users/preferences/:key",
+      "methods": [
+        "PUT"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "UserPreferenceResponse",
+      "returnGoType": "UserPreferenceResponse",
+      "returnTypescriptType": "UserPreferenceResponse"
     }
   },
   {
