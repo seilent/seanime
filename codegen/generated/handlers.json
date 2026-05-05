@@ -1441,6 +1441,50 @@
     }
   },
   {
+    "name": "HandleValidateAnimeEntryLocalFiles",
+    "trimmedName": "ValidateAnimeEntryLocalFiles",
+    "comments": [
+      "HandleValidateAnimeEntryLocalFiles",
+      "",
+      "\t@summary validates and removes non-existent local files for a specific media.",
+      "\t@desc This checks if the local files associated with the given media ID actually exist on disk.",
+      "\t@desc If a file doesn't exist, it's removed from the global mappings database.",
+      "\t@desc This is called automatically when opening an anime entry page to ensure data consistency.",
+      "\t@route /api/v1/library/anime-entry/validate-local-files [POST]",
+      "\treturns bool",
+      ""
+    ],
+    "filepath": "internal/handlers/anime_entries.go",
+    "filename": "anime_entries.go",
+    "api": {
+      "summary": "validates and removes non-existent local files for a specific media.",
+      "descriptions": [
+        "This checks if the local files associated with the given media ID actually exist on disk.",
+        "If a file doesn't exist, it's removed from the global mappings database.",
+        "This is called automatically when opening an anime entry page to ensure data consistency."
+      ],
+      "endpoint": "/api/v1/library/anime-entry/validate-local-files",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [
+        {
+          "name": "MediaId",
+          "jsonName": "mediaId",
+          "goType": "int",
+          "usedStructType": "",
+          "typescriptType": "number",
+          "required": true,
+          "descriptions": []
+        }
+      ],
+      "returns": "bool",
+      "returnGoType": "bool",
+      "returnTypescriptType": "boolean"
+    }
+  },
+  {
     "name": "UserAuthMiddleware",
     "trimmedName": "UserAuthMiddleware",
     "comments": [
@@ -9464,6 +9508,7 @@
     "trimmedName": "GetUserPreference",
     "comments": [
       "HandleGetUserPreference handles getting a user preference",
+      "",
       "\t@desc Get a user preference by key",
       "\t@route /api/v1/users/preferences/:key [GET]",
       "\t@returns UserPreferenceResponse",
@@ -9492,6 +9537,7 @@
     "trimmedName": "SetUserPreference",
     "comments": [
       "HandleSetUserPreference handles setting a user preference",
+      "",
       "\t@desc Set a user preference by key",
       "\t@route /api/v1/users/preferences/:key [PUT]",
       "\t@returns UserPreferenceResponse",

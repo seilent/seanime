@@ -228,4 +228,5 @@ const (
 	UpdateUserSettingsEndpoint                         = "SETTINGS-update-user-settings"
 	UserLoginEndpoint                                  = "USERS-user-login"
 	UserLogoutEndpoint                                 = "USERS-user-logout"
+	ValidateAnimeEntryLocalFilesEndpoint               = "ANIME-ENTRIES-validate-anime-entry-local-files"
 )

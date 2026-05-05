@@ -287,6 +287,7 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Library.POST("/anime-entry/update-repeat", h.HandleUpdateAnimeEntryRepeat)
 	v1Library.GET("/anime-entry/silence/:id", h.HandleGetAnimeEntrySilenceStatus)
 	v1Library.POST("/anime-entry/silence", h.HandleToggleAnimeEntrySilenceStatus)
+	v1Library.POST("/anime-entry/validate-local-files", h.HandleValidateAnimeEntryLocalFiles)
 
 	v1Library.POST("/unknown-media", h.HandleAddUnknownMedia)
 

@@ -346,6 +346,17 @@
 //     })
 // }
 
+// export function useValidateAnimeEntryLocalFiles() {
+//     return useServerMutation<boolean, ValidateAnimeEntryLocalFiles_Variables>({
+//         endpoint: API_ENDPOINTS.ANIME_ENTRIES.ValidateAnimeEntryLocalFiles.endpoint,
+//         method: API_ENDPOINTS.ANIME_ENTRIES.ValidateAnimeEntryLocalFiles.methods[0],
+//         mutationKey: [API_ENDPOINTS.ANIME_ENTRIES.ValidateAnimeEntryLocalFiles.key],
+//         onSuccess: async () => {
+// 
+//         },
+//     })
+// }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // auto_downloader
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

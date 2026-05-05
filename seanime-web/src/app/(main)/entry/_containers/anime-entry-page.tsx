@@ -1,5 +1,5 @@
 import { useGetAnilistAnimeDetails } from "@/api/hooks/anilist.hooks"
-import { useGetAnimeEntry } from "@/api/hooks/anime_entries.hooks"
+import { useGetAnimeEntry, useValidateAnimeEntryLocalFiles } from "@/api/hooks/anime_entries.hooks"
 import { MediaEntryCharactersSection } from "@/app/(main)/_features/media/_components/media-entry-characters-section"
 import { MediaEntryPageLoadingDisplay } from "@/app/(main)/_features/media/_components/media-entry-page-loading-display"
 import { useSeaCommandInject } from "@/app/(main)/_features/sea-command/use-inject"
@@ -42,6 +42,18 @@ export function AnimeEntryPage() {
     const ts = useThemeSettings()
 
     const { currentView, isLibraryView, setView } = useAnimeEntryPageView()
+
+    // Validate local files when entry is loaded
+    const validatedEntryRef = React.useRef<Set<string>>(new Set())
+    const { mutate: validateLocalFiles } = useValidateAnimeEntryLocalFiles(mediaId ? parseInt(mediaId) : undefined)
+
+    React.useEffect(() => {
+        // Only validate once per entry per session
+        if (animeEntry && mediaId && !validatedEntryRef.current.has(mediaId)) {
+            validatedEntryRef.current.add(mediaId)
+            validateLocalFiles({ mediaId: parseInt(mediaId) })
+        }
+    }, [animeEntry, mediaId, validateLocalFiles])
 
     React.useEffect(() => {
         try {

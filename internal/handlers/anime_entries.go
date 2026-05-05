@@ -698,3 +698,96 @@ func (h *Handler) HandleUpdateAnimeEntryRepeat(c echo.Context) error {
 
 	return h.RespondWithData(c, true)
 }
+
+//-----------------------------------------------------------------------------------------------------------------------------
+
+// HandleValidateAnimeEntryLocalFiles
+//
+//	@summary validates and removes non-existent local files for a specific media.
+//	@desc This checks if the local files associated with the given media ID actually exist on disk.
+//	@desc If a file doesn't exist, it's removed from the global mappings database.
+//	@desc This is called automatically when opening an anime entry page to ensure data consistency.
+//	@route /api/v1/library/anime-entry/validate-local-files [POST]
+//	returns bool
+func (h *Handler) HandleValidateAnimeEntryLocalFiles(c echo.Context) error {
+
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("authentication required"))
+	}
+
+	type body struct {
+		MediaId int `json:"mediaId"`
+	}
+
+	b := new(body)
+	if err := c.Bind(b); err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	if b.MediaId == 0 {
+		return h.RespondWithError(c, errors.New("invalid media id"))
+	}
+
+	// Get all local files from global mappings
+	lfs, lfsId, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	// Filter files for this specific media
+	var mediaFiles []*anime.LocalFile
+	var otherFiles []*anime.LocalFile
+	for _, lf := range lfs {
+		if lf.MediaId == b.MediaId {
+			mediaFiles = append(mediaFiles, lf)
+		} else {
+			otherFiles = append(otherFiles, lf)
+		}
+	}
+
+	if len(mediaFiles) == 0 {
+		// No files to validate
+		return h.RespondWithData(c, true)
+	}
+
+	// Validate file existence
+	removedCount := 0
+	validFiles := make([]*anime.LocalFile, 0, len(mediaFiles))
+
+	for _, lf := range mediaFiles {
+		if _, err := os.Stat(lf.Path); err == nil {
+			// File exists
+			validFiles = append(validFiles, lf)
+		} else {
+			// File doesn't exist, log and skip
+			h.App.Logger.Debug().
+				Str("path", lf.Path).
+				Int("mediaId", b.MediaId).
+				Msg("anime-entry: Removing non-existent local file from database")
+			removedCount++
+		}
+	}
+
+	// If no files were removed, no need to update database
+	if removedCount == 0 {
+		return h.RespondWithData(c, true)
+	}
+
+	// Recombine valid files for this media with all other files
+	updatedLfs := append(otherFiles, validFiles...)
+
+	// Save the updated local files
+	_, err = db_bridge.SaveLocalFiles(h.App.Database, lfsId, updatedLfs)
+	if err != nil {
+		h.App.Logger.Error().Err(err).Msg("anime-entry: Failed to save local files after validation")
+		return h.RespondWithError(c, err)
+	}
+
+	h.App.Logger.Info().
+		Int("mediaId", b.MediaId).
+		Int("removedCount", removedCount).
+		Msg("anime-entry: Validated local files and removed stale entries")
+
+	return h.RespondWithData(c, true)
+}

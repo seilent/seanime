@@ -66,7 +66,7 @@ export function useHandleTorrentSearch(props: TorrentSearchHookProps) {
     const [selectedTorrents, setSelectedTorrents] = useAtom(__torrentSearch_selectedTorrentsAtom)
     const [smartSearchBatch, setSmartSearchBatch] = React.useState<boolean>(shouldLookForBatches || false)
     // const [smartSearchEpisode, setSmartSearchEpisode] = React.useState<number>(downloadInfo?.episodesToDownload?.[0]?.episode?.episodeNumber || 1)
-    const [smartSearchResolution, setSmartSearchResolution] = React.useState("")
+    const [smartSearchResolution, setSmartSearchResolution] = React.useState("1080")
     const [smartSearchBest, setSmartSearchBest] = React.useState(false)
     const [smartSearchEpisode, debouncedSmartSearchEpisode, setSmartSearchEpisode] = useDebounceWithSet(downloadInfo?.episodesToDownload?.[0]?.episode?.episodeNumber || 1,
         500)

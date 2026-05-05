@@ -327,6 +327,18 @@ export const API_ENDPOINTS = {
             methods: ["POST"],
             endpoint: "/api/v1/library/anime-entry/update-repeat",
         },
+        /**
+         *  @description
+         *  Route validates and removes non-existent local files for a specific media.
+         *  This checks if the local files associated with the given media ID actually exist on disk.
+         *  If a file doesn't exist, it's removed from the global mappings database.
+         *  This is called automatically when opening an anime entry page to ensure data consistency.
+         */
+        ValidateAnimeEntryLocalFiles: {
+            key: "ANIME-ENTRIES-validate-anime-entry-local-files",
+            methods: ["POST"],
+            endpoint: "/api/v1/library/anime-entry/validate-local-files",
+        },
     },
     AUTO_DOWNLOADER: {
         /**

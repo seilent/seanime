@@ -312,6 +312,17 @@ export type UpdateAnimeEntryRepeat_Variables = {
     repeat: number
 }
 
+/**
+ * - Filepath: internal/handlers/anime_entries.go
+ * - Filename: anime_entries.go
+ * - Endpoint: /api/v1/library/anime-entry/validate-local-files
+ * @description
+ * Route validates and removes non-existent local files for a specific media.
+ */
+export type ValidateAnimeEntryLocalFiles_Variables = {
+    mediaId: number
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // auth_middleware
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -7,6 +7,7 @@ import {
     ToggleAnimeEntrySilenceStatus_Variables,
     UpdateAnimeEntryProgress_Variables,
     UpdateAnimeEntryRepeat_Variables,
+    ValidateAnimeEntryLocalFiles_Variables,
 } from "@/api/generated/endpoint.types"
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
 import { AL_BaseAnime, Anime_Entry, Anime_LocalFile, Anime_MissingEpisodes, Nullish } from "@/api/generated/types"
@@ -138,6 +139,21 @@ export function useUpdateAnimeEntryRepeat(id: Nullish<string | number>) {
             //     await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetAnimeEntry.key, String(id)] })
             // }
             // toast.success("Updated successfully")
+        },
+    })
+}
+
+export function useValidateAnimeEntryLocalFiles(id: Nullish<number>) {
+    const queryClient = useQueryClient()
+
+    return useServerMutation<boolean, ValidateAnimeEntryLocalFiles_Variables>({
+        endpoint: API_ENDPOINTS.ANIME_ENTRIES.ValidateAnimeEntryLocalFiles.endpoint,
+        method: API_ENDPOINTS.ANIME_ENTRIES.ValidateAnimeEntryLocalFiles.methods[0],
+        mutationKey: [API_ENDPOINTS.ANIME_ENTRIES.ValidateAnimeEntryLocalFiles.key, String(id)],
+        onSuccess: async () => {
+            if (id) {
+                await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetAnimeEntry.key, String(id)] })
+            }
         },
     })
 }

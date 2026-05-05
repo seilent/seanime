@@ -264,21 +264,16 @@ export function TorrentSearchContainer({ type, entry }: { type: TorrentSelection
                                     {selectedProviderExtension?.settings?.smartSearchFilters?.includes("resolution") && <Select
                                         data-torrent-search-smart-search-resolution-select
                                         label="Resolution"
-                                        value={smartSearchResolution || "-"}
-                                        onValueChange={v => setSmartSearchResolution(v != "-" ? v : "")}
+                                        value="1080"
+                                        onValueChange={() => {}}
                                         options={[
-                                            { value: "-", label: "Any" },
                                             { value: "1080", label: "1080p" },
-                                            { value: "720", label: "720p" },
-                                            { value: "540", label: "540p" },
-                                            { value: "480", label: "480p" },
-                                            { value: "2160", label: "2160p" },
                                         ]}
-                                        disabled={smartSearchBest || searchType != Torrent_SearchType.SMART}
+                                        disabled={true}
                                         size="sm"
                                         fieldClass={cn(
                                             "flex flex-none w-fit md:justify-center gap-3 space-y-0",
-                                            { "opacity-50 cursor-not-allowed pointer-events-none": searchType != Torrent_SearchType.SMART || smartSearchBest },
+                                            "opacity-50 cursor-not-allowed pointer-events-none",
                                         )}
                                         fieldLabelClass="flex-none self-center font-normal !text-md sm:text-md lg:text-md"
                                         className="w-[6rem]"
