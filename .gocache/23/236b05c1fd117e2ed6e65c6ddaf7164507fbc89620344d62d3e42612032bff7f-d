@@ -1,0 +1,10 @@
+./agg.go
+./chan.go
+./errors.go
+./future.go
+./generics.go
+./map.go
+./option.go
+./result.go
+./slice.go
+./zero-value.go

@@ -8866,6 +8866,15 @@
           "typescriptType": "AL_BaseAnime",
           "required": false,
           "descriptions": []
+        },
+        {
+          "name": "DeleteExistingFiles",
+          "jsonName": "deleteExistingFiles",
+          "goType": "bool",
+          "usedStructType": "",
+          "typescriptType": "boolean",
+          "required": true,
+          "descriptions": []
         }
       ],
       "returns": "bool",

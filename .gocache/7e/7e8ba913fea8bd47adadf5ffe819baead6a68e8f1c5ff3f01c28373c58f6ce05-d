@@ -1,0 +1,8 @@
+./api.go
+./bytes.go
+./decode.go
+./encode.go
+./misc.go
+./scanner.go
+./string_go120.go
+./tags.go

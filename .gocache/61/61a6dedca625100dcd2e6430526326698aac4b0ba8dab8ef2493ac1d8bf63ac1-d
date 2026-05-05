@@ -1,0 +1,5 @@
+./ffprobe.go
+./probedata.go
+./proc_attr_unix.go
+./sidedata.go
+./tags.go

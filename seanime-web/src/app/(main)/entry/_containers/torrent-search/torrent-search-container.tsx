@@ -112,16 +112,30 @@ export function TorrentSearchContainer({ type, entry }: { type: TorrentSelection
 
     /**
      * Select torrent
-     * - Download: Select multiple torrents
+     * - Download: Select multiple torrents, but only ONE batch torrent at a time
      * - Select: Select only one torrent
      */
     const handleToggleTorrent = React.useCallback((t: HibikeTorrent_AnimeTorrent) => {
         if (type === "download") {
             setSelectedTorrents(prev => {
                 const idx = prev.findIndex(n => n.link === t.link)
+
+                // Deselecting
                 if (idx !== -1) {
                     return prev.filter(n => n.link !== t.link)
                 }
+
+                // Selecting - check if trying to select multiple batches
+                const isBatchTorrent = t.isBatch
+                const hasBatchInSelection = prev.some(torrent => torrent.isBatch)
+
+                if (isBatchTorrent && hasBatchInSelection) {
+                    // Prevent selecting multiple batches
+                    // TODO: Show toast/notification to user
+                    console.warn("Only one batch can be selected at a time")
+                    return prev // Don't add the new batch
+                }
+
                 return [...prev, t]
             })
         } else {

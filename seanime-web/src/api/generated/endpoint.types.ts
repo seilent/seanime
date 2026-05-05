@@ -1483,6 +1483,7 @@ export type TorrentClientDownload_Variables = {
     destination: string
     smartSelect: { enabled: boolean; missingEpisodeNumbers: Array<number>; }
     media?: AL_BaseAnime
+    deleteExistingFiles: boolean
 }
 
 /**

@@ -1,0 +1,5 @@
+./commands.go
+./mpc_hc.go
+./start.go
+./status.go
+./variables.go

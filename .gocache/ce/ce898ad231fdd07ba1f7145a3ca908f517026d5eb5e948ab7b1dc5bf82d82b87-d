@@ -1,0 +1,6 @@
+./bank.go
+./extension.go
+./manga_provider.go
+./onlinestream_provider.go
+./plugin.go
+./torrent_provider.go

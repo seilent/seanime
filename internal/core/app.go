@@ -20,6 +20,7 @@ import (
 	"seanime/internal/library/autodownloader"
 	"seanime/internal/library/autoscanner"
 	"seanime/internal/library/fillermanager"
+	"seanime/internal/library/filecleanup"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/library/scanner"
 	libsync "seanime/internal/library/sync"
@@ -112,6 +113,7 @@ type (
 	ProgressSyncService     *global_mapping.ProgressSyncService
 	FileWatcherService      *global_mapping.FileWatcherService
 	SystemScanService       *SystemScanService
+	FileCleanupManager      *filecleanup.Manager
 }
 )
 

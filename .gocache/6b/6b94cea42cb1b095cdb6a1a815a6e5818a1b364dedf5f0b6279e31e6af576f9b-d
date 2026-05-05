@@ -1,0 +1,5 @@
+./cache.go
+./conn.go
+./dns.go
+./doh.go
+./dot.go

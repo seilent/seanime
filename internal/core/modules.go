@@ -11,6 +11,7 @@ import (
 	"seanime/internal/library/autodownloader"
 	"seanime/internal/library/autoscanner"
 	"seanime/internal/library/fillermanager"
+	"seanime/internal/library/filecleanup"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/manga"
 	"seanime/internal/mediastream"
@@ -207,6 +208,14 @@ func (a *App) initModulesOnce() {
 
 	// This is run in a goroutine
 	a.AutoScanner.Start()
+
+	// +---------------------+
+	// |  File Cleanup Manager |
+	// +---------------------+
+
+	a.FileCleanupManager = filecleanup.NewManager(a.Logger, a.Database)
+
+	a.Logger.Info().Msg("app: File cleanup manager initialized")
 
 
 }

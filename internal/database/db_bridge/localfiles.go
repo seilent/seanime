@@ -236,3 +236,10 @@ func IsLocalFilesCacheStale(db *db.Database) (bool, error) {
 	// Cache is stale if database is newer than cache
 	return dbTimestamp.After(*cacheTimestamp), nil
 }
+
+// GetLocalFilesByMediaId retrieves all global file mappings for a specific media ID
+func GetLocalFilesByMediaId(database *db.Database, mediaId int) ([]*models.GlobalAnimeFileMapping, error) {
+	var mappings []*models.GlobalAnimeFileMapping
+	err := database.Gorm().Where("anilist_id = ?", mediaId).Find(&mappings).Error
+	return mappings, err
+}

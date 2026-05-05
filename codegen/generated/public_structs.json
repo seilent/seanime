@@ -27701,6 +27701,17 @@
         "required": false,
         "public": true,
         "comments": []
+      },
+      {
+        "name": "FileCleanupManager",
+        "jsonName": "FileCleanupManager",
+        "goType": "filecleanup.Manager",
+        "typescriptType": "Manager",
+        "usedTypescriptType": "Manager",
+        "usedStructName": "filecleanup.Manager",
+        "required": false,
+        "public": true,
+        "comments": []
       }
     ],
     "comments": []
@@ -45415,6 +45426,135 @@
         "typescriptType": "string",
         "required": true,
         "public": true,
+        "comments": []
+      }
+    ],
+    "comments": []
+  },
+  {
+    "filepath": "../internal/library/filecleanup/manager.go",
+    "filename": "manager.go",
+    "name": "CleanupTask",
+    "formattedName": "CleanupTask",
+    "package": "filecleanup",
+    "fields": [
+      {
+        "name": "FilePath",
+        "jsonName": "FilePath",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "MediaID",
+        "jsonName": "MediaID",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "LocalFile",
+        "jsonName": "LocalFile",
+        "goType": "models.LocalFile",
+        "typescriptType": "Models_LocalFile",
+        "usedTypescriptType": "Models_LocalFile",
+        "usedStructName": "models.LocalFile",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Retries",
+        "jsonName": "Retries",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": []
+  },
+  {
+    "filepath": "../internal/library/filecleanup/manager.go",
+    "filename": "manager.go",
+    "name": "Manager",
+    "formattedName": "Manager",
+    "package": "filecleanup",
+    "fields": [
+      {
+        "name": "logger",
+        "jsonName": "logger",
+        "goType": "zerolog.Logger",
+        "typescriptType": "Logger",
+        "usedTypescriptType": "Logger",
+        "usedStructName": "zerolog.Logger",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "database",
+        "jsonName": "database",
+        "goType": "db.Database",
+        "typescriptType": "DB_Database",
+        "usedTypescriptType": "DB_Database",
+        "usedStructName": "db.Database",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "taskQueue",
+        "jsonName": "taskQueue",
+        "goType": "",
+        "typescriptType": "any",
+        "required": true,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "workerWg",
+        "jsonName": "workerWg",
+        "goType": "sync.WaitGroup",
+        "typescriptType": "WaitGroup",
+        "usedTypescriptType": "WaitGroup",
+        "usedStructName": "sync.WaitGroup",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "stopChan",
+        "jsonName": "stopChan",
+        "goType": "",
+        "typescriptType": "any",
+        "required": true,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "maxRetries",
+        "jsonName": "maxRetries",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "retryDelay",
+        "jsonName": "retryDelay",
+        "goType": "time.Duration",
+        "typescriptType": "Duration",
+        "usedTypescriptType": "Duration",
+        "usedStructName": "time.Duration",
+        "required": false,
+        "public": false,
         "comments": []
       }
     ],

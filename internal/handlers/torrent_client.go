@@ -102,7 +102,8 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 			Enabled               bool  `json:"enabled"`
 			MissingEpisodeNumbers []int `json:"missingEpisodeNumbers"`
 		} `json:"smartSelect"`
-		Media *anilist.BaseAnime `json:"media"`
+		Media               *anilist.BaseAnime `json:"media"`
+		DeleteExistingFiles bool                `json:"deleteExistingFiles"`
 	}
 
 	var b body
@@ -142,6 +143,29 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 	completeAnime, err := userPlatform.GetAnimeWithRelations(c.Request().Context(), b.Media.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
+	}
+
+	// Check if downloading a batch torrent
+	isBatchDownload := len(b.Torrents) == 1 && b.Torrents[0].IsBatch
+
+	// For batch downloads or explicit request, delete existing files
+	if isBatchDownload || b.DeleteExistingFiles {
+		if b.Media != nil {
+			// Get all local files for this media
+			localFiles, err := db_bridge.GetLocalFilesByMediaId(h.App.Database, b.Media.ID)
+			if err != nil {
+				// Log but don't block the download
+				h.App.Logger.Warn().Err(err).Int("mediaId", b.Media.ID).
+					Msg("Failed to get local files for cleanup")
+			} else if len(localFiles) > 0 {
+				// Attempt to delete files
+				err = h.App.FileCleanupManager.CleanupFiles(localFiles)
+				if err != nil {
+					h.App.Logger.Warn().Err(err).
+						Msg("Some files could not be deleted immediately, added to cleanup queue")
+				}
+			}
+		}
 	}
 
 	if b.SmartSelect.Enabled {

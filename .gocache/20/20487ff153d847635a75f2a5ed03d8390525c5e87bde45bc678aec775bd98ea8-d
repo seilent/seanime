@@ -1,0 +1,17 @@
+./do.go
+./either.go
+./either3.go
+./either4.go
+./either5.go
+./fold.go
+./future.go
+./io.go
+./io_either.go
+./option.go
+./option_go122.go
+./result.go
+./state.go
+./task.go
+./task_either.go
+./types.go
+./utils.go

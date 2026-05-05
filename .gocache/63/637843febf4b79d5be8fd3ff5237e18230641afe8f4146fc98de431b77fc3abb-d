@@ -1,0 +1,16 @@
+./announcelist.go
+./bep47.go
+./bep52.go
+./file-tree.go
+./fileinfo.go
+./hash.go
+./info.go
+./magnet-v2.go
+./magnet.go
+./metainfo.go
+./nodes.go
+./piece-length.go
+./piece.go
+./piece_key.go
+./pieces.go
+./urllist.go

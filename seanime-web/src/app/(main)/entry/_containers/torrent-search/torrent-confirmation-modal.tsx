@@ -87,27 +87,22 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
     const isDisabled = isPending || isDownloadingFiles
 
     function handleLaunchDownload(smartSelect: boolean) {
-        if (smartSelect) {
-            mutate({
-                torrents: selectedTorrents,
-                destination,
-                smartSelect: {
-                    enabled: true,
-                    missingEpisodeNumbers: entry.downloadInfo?.episodesToDownload?.map(n => n.episodeNumber) || [],
-                },
-                media,
-            })
-        } else {
-            mutate({
-                torrents: selectedTorrents,
-                destination,
-                smartSelect: {
-                    enabled: false,
-                    missingEpisodeNumbers: [],
-                },
-                media,
-            })
-        }
+        // Check if downloading a batch
+        const isBatchDownload = selectedTorrents.length === 1 && !!selectedTorrents[0].isBatch
+
+        mutate({
+            torrents: selectedTorrents,
+            destination,
+            smartSelect: smartSelect ? {
+                enabled: true,
+                missingEpisodeNumbers: entry.downloadInfo?.episodesToDownload?.map(n => n.episodeNumber) || [],
+            } : {
+                enabled: false,
+                missingEpisodeNumbers: [],
+            },
+            media,
+            deleteExistingFiles: isBatchDownload, // Auto-delete for batches
+        })
     }
 
     function handleDownloadFiles() {
