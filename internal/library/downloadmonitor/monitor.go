@@ -8,6 +8,7 @@ import (
 	"seanime/internal/torrent_clients/torrent_client"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/5rahim/habari"
@@ -28,15 +29,34 @@ func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logge
 	return &Monitor{db: db, repo: repo, logger: logger}
 }
 
+var (
+	monitorMu  sync.Mutex
+	activeStop chan struct{}
+)
+
+// Start launches the monitor loop, stopping any previously started monitor first
+// so that module refreshes (which reconstruct the monitor) don't leak goroutines.
 func (m *Monitor) Start() {
-	go m.run()
+	monitorMu.Lock()
+	if activeStop != nil {
+		close(activeStop)
+	}
+	stop := make(chan struct{})
+	activeStop = stop
+	monitorMu.Unlock()
+	go m.run(stop)
 }
 
-func (m *Monitor) run() {
+func (m *Monitor) run(stop chan struct{}) {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
-	for range ticker.C {
-		m.tick()
+	for {
+		select {
+		case <-ticker.C:
+			m.tick()
+		case <-stop:
+			return
+		}
 	}
 }
 
