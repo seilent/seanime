@@ -230,17 +230,6 @@ export type AnimeEntryBulkAction_Variables = {
 /**
  * - Filepath: internal/handlers/anime_entries.go
  * - Filename: anime_entries.go
- * - Endpoint: /api/v1/library/anime-entry/open-in-explorer
- * @description
- * Route opens the directory of a media entry in the file explorer.
- */
-export type OpenAnimeEntryInExplorer_Variables = {
-    mediaId: number
-}
-
-/**
- * - Filepath: internal/handlers/anime_entries.go
- * - Filename: anime_entries.go
  * - Endpoint: /api/v1/library/anime-entry/suggestions
  * @description
  * Route returns a list of media suggestions for files in the given directory.
@@ -317,7 +306,7 @@ export type UpdateAnimeEntryRepeat_Variables = {
  * - Filename: anime_entries.go
  * - Endpoint: /api/v1/library/anime-entry/validate-local-files
  * @description
- * Route validates and removes non-existent local files for a specific media.
+ * Route validates and removes non-existent local files, and scans for new files for a specific media.
  */
 export type ValidateAnimeEntryLocalFiles_Variables = {
     mediaId: number
@@ -575,21 +564,6 @@ export type DownloadRelease_Variables = {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// explorer
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/handlers/explorer.go
- * - Filename: explorer.go
- * - Endpoint: /api/v1/open-in-explorer
- * @description
- * Route opens the given directory in the file explorer.
- */
-export type OpenInExplorer_Variables = {
-    path: string
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // extensions
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -726,75 +700,8 @@ export type RemoveFileCacheBucket_Variables = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// local
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/handlers/local.go
- * - Filename: local.go
- * - Endpoint: /api/v1/local/track
- * @description
- * Route adds one or multiple media to be tracked for offline sync.
- */
-export type LocalAddTrackedMedia_Variables = {
-    media: Array<{ mediaId: number; type: string; }>
-}
-
-/**
- * - Filepath: internal/handlers/local.go
- * - Filename: local.go
- * - Endpoint: /api/v1/local/track
- * @description
- * Route remove media from being tracked for offline sync.
- */
-export type LocalRemoveTrackedMedia_Variables = {
-    mediaId: number
-    type: string
-}
-
-/**
- * - Filepath: internal/handlers/local.go
- * - Filename: local.go
- * - Endpoint: /api/v1/local/track/{id}/{type}
- * @description
- * Route checks if media is being tracked for offline sync.
- */
-export type LocalGetIsMediaTracked_Variables = {
-    /**
-     *  AniList anime media ID
-     */
-    id: number
-    /**
-     *  Type of media (anime/manga)
-     */
-    type: string
-}
-
-/**
- * - Filepath: internal/handlers/local.go
- * - Filename: local.go
- * - Endpoint: /api/v1/local/updated
- * @description
- * Route sets the flag to determine if there are local changes that need to be synced with AniList.
- */
-export type LocalSetHasLocalChanges_Variables = {
-    updated: boolean
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // localfiles
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/handlers/localfiles.go
- * - Filename: localfiles.go
- * - Endpoint: /api/v1/library/local-files/import
- * @description
- * Route imports local files from the given path.
- */
-export type ImportLocalFiles_Variables = {
-    dataFilePath: string
-}
 
 /**
  * - Filepath: internal/handlers/localfiles.go
@@ -1110,10 +1017,6 @@ export type DeleteMangaDownloadedChapters_Variables = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// mediaplayer
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // mediastream
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1188,28 +1091,6 @@ export type RemoveFillerData_Variables = {
 /**
  * - Filepath: internal/handlers/playback_manager.go
  * - Filename: playback_manager.go
- * - Endpoint: /api/v1/playback-manager/play
- * @description
- * Route plays the video with the given path using the default media player.
- */
-export type PlaybackPlayVideo_Variables = {
-    path: string
-}
-
-/**
- * - Filepath: internal/handlers/playback_manager.go
- * - Filename: playback_manager.go
- * - Endpoint: /api/v1/playback-manager/start-playlist
- * @description
- * Route starts playing a playlist.
- */
-export type PlaybackStartPlaylist_Variables = {
-    dbId: number
-}
-
-/**
- * - Filepath: internal/handlers/playback_manager.go
- * - Filename: playback_manager.go
  * - Endpoint: /api/v1/playback-manager/manual-tracking/start
  * @description
  * Route starts manual tracking of a media.
@@ -1218,64 +1099,6 @@ export type PlaybackStartManualTracking_Variables = {
     mediaId: number
     episodeNumber: number
     clientId: string
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// playlist
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/handlers/playlist.go
- * - Filename: playlist.go
- * - Endpoint: /api/v1/playlist
- * @description
- * Route creates a new playlist.
- */
-export type CreatePlaylist_Variables = {
-    name: string
-    paths: Array<string>
-}
-
-/**
- * - Filepath: internal/handlers/playlist.go
- * - Filename: playlist.go
- * - Endpoint: /api/v1/playlist
- * @description
- * Route updates a playlist.
- */
-export type UpdatePlaylist_Variables = {
-    dbId: number
-    name: string
-    paths: Array<string>
-}
-
-/**
- * - Filepath: internal/handlers/playlist.go
- * - Filename: playlist.go
- * - Endpoint: /api/v1/playlist
- * @description
- * Route deletes a playlist.
- */
-export type DeletePlaylist_Variables = {
-    dbId: number
-}
-
-/**
- * - Filepath: internal/handlers/playlist.go
- * - Filename: playlist.go
- * - Endpoint: /api/v1/playlist/episodes/{id}/{progress}
- * @description
- * Route returns all the local files of a playlist media entry that have not been watched.
- */
-export type GetPlaylistEpisodes_Variables = {
-    /**
-     *  The ID of the media entry.
-     */
-    id: number
-    /**
-     *  The progress of the media entry.
-     */
-    progress: number
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

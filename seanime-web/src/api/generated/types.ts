@@ -360,13 +360,6 @@ export type AL_AnimeDetailsById_Media_Trailer = {
 }
 
 /**
- * - Filepath: internal/api/anilist/collection_helper.go
- * - Filename: collection_helper.go
- * - Package: anilist
- */
-export type AL_AnimeListEntry = AL_AnimeCollection_MediaListCollection_Lists_Entries
-
-/**
  * - Filepath: internal/api/anilist/stats.go
  * - Filename: stats.go
  * - Package: anilist
@@ -1013,13 +1006,6 @@ export type AL_MangaDetailsById_Media_Relations_Edges = {
 }
 
 /**
- * - Filepath: internal/api/anilist/manga.go
- * - Filename: manga.go
- * - Package: anilist
- */
-export type AL_MangaListEntry = AL_MangaCollection_MediaListCollection_Lists_Entries
-
-/**
  * - Filepath: internal/api/anilist/stats.go
  * - Filename: stats.go
  * - Package: anilist
@@ -1630,26 +1616,6 @@ export type Anime_LocalFileType = "main" | "special" | "nc"
 export type Anime_MissingEpisodes = {
     episodes?: Array<Anime_Episode>
     silencedEpisodes?: Array<Anime_Episode>
-}
-
-/**
- * - Filepath: internal/library/anime/playlist.go
- * - Filename: playlist.go
- * - Package: anime
- */
-export type Anime_Playlist = {
-    /**
-     * DbId is the database ID of the models.PlaylistEntry
-     */
-    dbId: number
-    /**
-     * Name is the name of the playlist
-     */
-    name: string
-    /**
-     * LocalFiles is a list of local files in the playlist, in order
-     */
-    localFiles?: Array<Anime_LocalFile>
 }
 
 /**
@@ -2406,10 +2372,6 @@ export type Status = {
      * If true, a new screen will be displayed
      */
     updating: boolean
-    /**
-     * The server is running as a desktop sidecar
-     */
-    isDesktopSidecar: boolean
     featureFlags?: INTERNAL_FeatureFlags
     serverReady: boolean
     serverHasPassword: boolean
@@ -2531,44 +2493,6 @@ export type HibikeTorrent_AnimeTorrent = {
     releaseGroup?: string
     isBestRelease: boolean
     confirmed: boolean
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Local
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * - Filepath: internal/local/sync.go
- * - Filename: sync.go
- * - Package: local
- */
-export type Local_QueueMediaTask = {
-    mediaId: number
-    image: string
-    title: string
-    type: string
-}
-
-/**
- * - Filepath: internal/local/sync.go
- * - Filename: sync.go
- * - Package: local
- */
-export type Local_QueueState = {
-    animeTasks?: Record<number, Local_QueueMediaTask>
-    mangaTasks?: Record<number, Local_QueueMediaTask>
-}
-
-/**
- * - Filepath: internal/local/manager.go
- * - Filename: manager.go
- * - Package: local
- */
-export type Local_TrackedMediaItem = {
-    mediaId: number
-    type: string
-    animeEntry?: AL_AnimeListEntry
-    mangaEntry?: AL_MangaListEntry
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3181,6 +3105,11 @@ export type Models_GlobalAnimeFileMapping = {
     episodeNumber: number
     fileSize: number
     lastScanned?: string
+    ignored: boolean
+    /**
+     * "main", "special", "nc"
+     */
+    fileType: string
     id: number
     createdAt?: string
     updatedAt?: string

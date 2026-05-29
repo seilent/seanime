@@ -27227,17 +27227,6 @@
         "comments": []
       },
       {
-        "name": "LocalManager",
-        "jsonName": "LocalManager",
-        "goType": "local.Manager",
-        "typescriptType": "Local_Manager",
-        "usedTypescriptType": "Local_Manager",
-        "usedStructName": "local.Manager",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "FillerManager",
         "jsonName": "FillerManager",
         "goType": "fillermanager.FillerManager",
@@ -27321,29 +27310,6 @@
         "typescriptType": "NativePlayer_NativePlayer",
         "usedTypescriptType": "NativePlayer_NativePlayer",
         "usedStructName": "nativeplayer.NativePlayer",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MediaPlayer",
-        "jsonName": "MediaPlayer",
-        "goType": "INTERNAL_App_MediaPlayer",
-        "inlineStructType": "struct{\nVLC vlc.VLC\nMpcHc mpchc.MpcHc\nMpv mpv.Mpv\nIina iina.Iina}",
-        "typescriptType": "INTERNAL_App_MediaPlayer",
-        "usedTypescriptType": "{ VLC: VLC; MpcHc: MpcHc; Mpv: Mpv; Iina: Iina; }",
-        "usedStructName": "core.App_MediaPlayer",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MediaPlayerRepository",
-        "jsonName": "MediaPlayerRepository",
-        "goType": "mediaplayer.Repository",
-        "typescriptType": "Repository",
-        "usedTypescriptType": "Repository",
-        "usedStructName": "mediaplayer.Repository",
         "required": false,
         "public": true,
         "comments": []
@@ -27584,15 +27550,6 @@
         "comments": []
       },
       {
-        "name": "IsDesktopSidecar",
-        "jsonName": "IsDesktopSidecar",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "previousVersion",
         "jsonName": "previousVersion",
         "goType": "string",
@@ -27709,60 +27666,6 @@
         "typescriptType": "Manager",
         "usedTypescriptType": "Manager",
         "usedStructName": "filecleanup.Manager",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/core/app.go",
-    "filename": "app.go",
-    "name": "App_MediaPlayer",
-    "formattedName": "INTERNAL_App_MediaPlayer",
-    "package": "core",
-    "fields": [
-      {
-        "name": "VLC",
-        "jsonName": "VLC",
-        "goType": "vlc.VLC",
-        "typescriptType": "VLC",
-        "usedTypescriptType": "VLC",
-        "usedStructName": "vlc.VLC",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MpcHc",
-        "jsonName": "MpcHc",
-        "goType": "mpchc.MpcHc",
-        "typescriptType": "MpcHc",
-        "usedTypescriptType": "MpcHc",
-        "usedStructName": "mpchc.MpcHc",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Mpv",
-        "jsonName": "Mpv",
-        "goType": "mpv.Mpv",
-        "typescriptType": "Mpv",
-        "usedTypescriptType": "Mpv",
-        "usedStructName": "mpv.Mpv",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Iina",
-        "jsonName": "Iina",
-        "goType": "iina.Iina",
-        "typescriptType": "Iina",
-        "usedTypescriptType": "Iina",
-        "usedStructName": "iina.Iina",
         "required": false,
         "public": true,
         "comments": []
@@ -28251,28 +28154,6 @@
         "required": false,
         "public": true,
         "comments": []
-      },
-      {
-        "name": "EmbeddedLogo",
-        "jsonName": "EmbeddedLogo",
-        "goType": "string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": [
-          " The embedded logo"
-        ]
-      },
-      {
-        "name": "IsDesktopSidecar",
-        "jsonName": "IsDesktopSidecar",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": [
-          " Run as the desktop sidecar"
-        ]
       }
     ],
     "comments": []
@@ -28333,15 +28214,6 @@
       {
         "name": "Update",
         "jsonName": "Update",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsDesktopSidecar",
-        "jsonName": "IsDesktopSidecar",
         "goType": "bool",
         "typescriptType": "boolean",
         "required": true,
@@ -28878,39 +28750,6 @@
       {
         "name": "Viewer",
         "jsonName": "viewer",
-        "goType": "string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [],
-    "embeddedStructNames": [
-      "models.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/database/models/models.go",
-    "filename": "models.go",
-    "name": "LocalFiles",
-    "formattedName": "Models_LocalFiles",
-    "package": "models",
-    "fields": [
-      {
-        "name": "UserID",
-        "jsonName": "userId",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " Foreign key to User"
-        ]
-      },
-      {
-        "name": "Value",
-        "jsonName": "value",
         "goType": "string",
         "typescriptType": "Array\u003cstring\u003e",
         "required": false,
@@ -30444,48 +30283,6 @@
   {
     "filepath": "../internal/database/models/models.go",
     "filename": "models.go",
-    "name": "PlaylistEntry",
-    "formattedName": "Models_PlaylistEntry",
-    "package": "models",
-    "fields": [
-      {
-        "name": "UserID",
-        "jsonName": "userId",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " Foreign key to User"
-        ]
-      },
-      {
-        "name": "Name",
-        "jsonName": "name",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Value",
-        "jsonName": "value",
-        "goType": "string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [],
-    "embeddedStructNames": [
-      "models.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/database/models/models.go",
-    "filename": "models.go",
     "name": "ChapterDownloadQueueItem",
     "formattedName": "Models_ChapterDownloadQueueItem",
     "package": "models",
@@ -31425,6 +31222,26 @@
         "required": false,
         "public": true,
         "comments": []
+      },
+      {
+        "name": "Ignored",
+        "jsonName": "ignored",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "FileType",
+        "jsonName": "fileType",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": [
+          " \"main\", \"special\", \"nc\""
+        ]
       }
     ],
     "comments": [
@@ -31750,6 +31567,48 @@
     ],
     "comments": [
       " UserProgressSyncItem queues user progress updates for batch sync to AniList"
+    ],
+    "embeddedStructNames": [
+      "models.BaseModel"
+    ]
+  },
+  {
+    "filepath": "../internal/database/models/models.go",
+    "filename": "models.go",
+    "name": "PendingDownloadIntent",
+    "formattedName": "Models_PendingDownloadIntent",
+    "package": "models",
+    "fields": [
+      {
+        "name": "Hash",
+        "jsonName": "hash",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "MediaID",
+        "jsonName": "mediaId",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Completed",
+        "jsonName": "completed",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " PendingDownloadIntent tracks torrents started by seanime so completion can be detected"
     ],
     "embeddedStructNames": [
       "models.BaseModel"
@@ -39578,17 +39437,6 @@
         ]
       },
       {
-        "name": "IsDesktopSidecar",
-        "jsonName": "isDesktopSidecar",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": [
-          " The server is running as a desktop sidecar"
-        ]
-      },
-      {
         "name": "FeatureFlags",
         "jsonName": "featureFlags",
         "goType": "core.FeatureFlags",
@@ -44404,51 +44252,6 @@
     ]
   },
   {
-    "filepath": "../internal/library/anime/playlist.go",
-    "filename": "playlist.go",
-    "name": "Playlist",
-    "formattedName": "Anime_Playlist",
-    "package": "anime",
-    "fields": [
-      {
-        "name": "DbId",
-        "jsonName": "dbId",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " DbId is the database ID of the models.PlaylistEntry"
-        ]
-      },
-      {
-        "name": "Name",
-        "jsonName": "name",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": [
-          " Name is the name of the playlist"
-        ]
-      },
-      {
-        "name": "LocalFiles",
-        "jsonName": "localFiles",
-        "goType": "[]LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": [
-          " LocalFiles is a list of local files in the playlist, in order"
-        ]
-      }
-    ],
-    "comments": []
-  },
-  {
     "filepath": "../internal/library/anime/schedule.go",
     "filename": "schedule.go",
     "name": "ScheduleItem",
@@ -45432,6 +45235,49 @@
     "comments": []
   },
   {
+    "filepath": "../internal/library/downloadmonitor/monitor.go",
+    "filename": "monitor.go",
+    "name": "Monitor",
+    "formattedName": "Monitor",
+    "package": "downloadmonitor",
+    "fields": [
+      {
+        "name": "db",
+        "jsonName": "db",
+        "goType": "db.Database",
+        "typescriptType": "DB_Database",
+        "usedTypescriptType": "DB_Database",
+        "usedStructName": "db.Database",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "repo",
+        "jsonName": "repo",
+        "goType": "torrent_client.Repository",
+        "typescriptType": "TorrentClient_Repository",
+        "usedTypescriptType": "TorrentClient_Repository",
+        "usedStructName": "torrent_client.Repository",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "logger",
+        "jsonName": "logger",
+        "goType": "zerolog.Logger",
+        "typescriptType": "Logger",
+        "usedTypescriptType": "Logger",
+        "usedStructName": "zerolog.Logger",
+        "required": false,
+        "public": false,
+        "comments": []
+      }
+    ],
+    "comments": []
+  },
+  {
     "filepath": "../internal/library/filecleanup/manager.go",
     "filename": "manager.go",
     "name": "CleanupTask",
@@ -45457,12 +45303,12 @@
         "comments": []
       },
       {
-        "name": "LocalFile",
-        "jsonName": "LocalFile",
-        "goType": "models.LocalFile",
-        "typescriptType": "Models_LocalFile",
-        "usedTypescriptType": "Models_LocalFile",
-        "usedStructName": "models.LocalFile",
+        "name": "Mapping",
+        "jsonName": "Mapping",
+        "goType": "models.GlobalAnimeFileMapping",
+        "typescriptType": "Models_GlobalAnimeFileMapping",
+        "usedTypescriptType": "Models_GlobalAnimeFileMapping",
+        "usedStructName": "models.GlobalAnimeFileMapping",
         "required": false,
         "public": true,
         "comments": []
@@ -45553,6 +45399,26 @@
         "typescriptType": "Duration",
         "usedTypescriptType": "Duration",
         "usedStructName": "time.Duration",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "roots",
+        "jsonName": "roots",
+        "goType": "[]string",
+        "typescriptType": "Array\u003cstring\u003e",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "rootsOnce",
+        "jsonName": "rootsOnce",
+        "goType": "sync.Once",
+        "typescriptType": "Once",
+        "usedTypescriptType": "Once",
+        "usedStructName": "sync.Once",
         "required": false,
         "public": false,
         "comments": []
@@ -46036,54 +45902,6 @@
     "comments": []
   },
   {
-    "filepath": "../internal/library/playbackmanager/play_random_episode.go",
-    "filename": "play_random_episode.go",
-    "name": "StartRandomVideoOptions",
-    "formattedName": "PlaybackManager_StartRandomVideoOptions",
-    "package": "playbackmanager",
-    "fields": [
-      {
-        "name": "UserAgent",
-        "jsonName": "UserAgent",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ClientId",
-        "jsonName": "ClientId",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UserID",
-        "jsonName": "UserID",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Platform",
-        "jsonName": "Platform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
     "filepath": "../internal/library/playbackmanager/playback_manager.go",
     "filename": "playback_manager.go",
     "name": "PlaybackType",
@@ -46131,19 +45949,6 @@
         "comments": []
       },
       {
-        "name": "MediaPlayerRepository",
-        "jsonName": "MediaPlayerRepository",
-        "goType": "mediaplayer.Repository",
-        "typescriptType": "Repository",
-        "usedTypescriptType": "Repository",
-        "usedStructName": "mediaplayer.Repository",
-        "required": false,
-        "public": true,
-        "comments": [
-          " MediaPlayerRepository is used to control the media player"
-        ]
-      },
-      {
         "name": "continuityManager",
         "jsonName": "continuityManager",
         "goType": "continuity.Manager",
@@ -46176,19 +45981,6 @@
         "public": false,
         "comments": [
           " DiscordPresence is used to update the user's Discord presence"
-        ]
-      },
-      {
-        "name": "mediaPlayerRepoSubscriber",
-        "jsonName": "mediaPlayerRepoSubscriber",
-        "goType": "mediaplayer.RepositorySubscriber",
-        "typescriptType": "RepositorySubscriber",
-        "usedTypescriptType": "RepositorySubscriber",
-        "usedStructName": "mediaplayer.RepositorySubscriber",
-        "required": false,
-        "public": false,
-        "comments": [
-          " Used to listen for media player events"
         ]
       },
       {
@@ -46277,9 +46069,7 @@
         "usedStructName": "playbackmanager.PlaybackState",
         "required": false,
         "public": false,
-        "comments": [
-          " user-specific history: filename -\u003e user ID -\u003e state"
-        ]
+        "comments": []
       },
       {
         "name": "currentPlaybackType",
@@ -46291,19 +46081,6 @@
         "required": true,
         "public": false,
         "comments": []
-      },
-      {
-        "name": "currentMediaPlaybackStatus",
-        "jsonName": "currentMediaPlaybackStatus",
-        "goType": "mediaplayer.PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": false,
-        "comments": [
-          " The current video playback status (can be nil)"
-        ]
       },
       {
         "name": "currentUserID",
@@ -46345,9 +46122,7 @@
         "typescriptType": "any",
         "required": true,
         "public": false,
-        "comments": [
-          " List Entry for the current video playback"
-        ]
+        "comments": []
       },
       {
         "name": "currentLocalFile",
@@ -46356,9 +46131,7 @@
         "typescriptType": "any",
         "required": true,
         "public": false,
-        "comments": [
-          " Local file for the current video playback"
-        ]
+        "comments": []
       },
       {
         "name": "currentLocalFileWrapperEntry",
@@ -46367,9 +46140,7 @@
         "typescriptType": "any",
         "required": true,
         "public": false,
-        "comments": [
-          " This contains the current media entry local file data"
-        ]
+        "comments": []
       },
       {
         "name": "currentStreamEpisode",
@@ -46450,19 +46221,6 @@
         "required": false,
         "public": false,
         "comments": []
-      },
-      {
-        "name": "playlistHub",
-        "jsonName": "playlistHub",
-        "goType": "playlistHub",
-        "typescriptType": "PlaybackManager_playlistHub",
-        "usedTypescriptType": "PlaybackManager_playlistHub",
-        "usedStructName": "playbackmanager.playlistHub",
-        "required": false,
-        "public": false,
-        "comments": [
-          " The playlist hub"
-        ]
       },
       {
         "name": "isOffline",
@@ -46600,17 +46358,6 @@
     "package": "playbackmanager",
     "fields": [
       {
-        "name": "Status",
-        "jsonName": "Status",
-        "goType": "mediaplayer.PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "State",
         "jsonName": "State",
         "goType": "PlaybackState",
@@ -46717,19 +46464,7 @@
     "name": "StreamStatusChangedEvent",
     "formattedName": "PlaybackManager_StreamStatusChangedEvent",
     "package": "playbackmanager",
-    "fields": [
-      {
-        "name": "Status",
-        "jsonName": "Status",
-        "goType": "mediaplayer.PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
+    "fields": [],
     "comments": []
   },
   {
@@ -46826,9 +46561,7 @@
         "typescriptType": "number",
         "required": true,
         "public": true,
-        "comments": [
-          " The episode number"
-        ]
+        "comments": []
       },
       {
         "name": "AniDbEpisode",
@@ -46837,9 +46570,7 @@
         "typescriptType": "string",
         "required": true,
         "public": true,
-        "comments": [
-          " The AniDB episode number"
-        ]
+        "comments": []
       },
       {
         "name": "MediaTitle",
@@ -46848,9 +46579,7 @@
         "typescriptType": "string",
         "required": true,
         "public": true,
-        "comments": [
-          " The title of the media"
-        ]
+        "comments": []
       },
       {
         "name": "MediaCoverImage",
@@ -46859,9 +46588,7 @@
         "typescriptType": "string",
         "required": true,
         "public": true,
-        "comments": [
-          " The cover image of the media"
-        ]
+        "comments": []
       },
       {
         "name": "MediaTotalEpisodes",
@@ -46870,9 +46597,7 @@
         "typescriptType": "number",
         "required": true,
         "public": true,
-        "comments": [
-          " The total number of episodes"
-        ]
+        "comments": []
       },
       {
         "name": "Filename",
@@ -46881,9 +46606,7 @@
         "typescriptType": "string",
         "required": true,
         "public": true,
-        "comments": [
-          " The filename"
-        ]
+        "comments": []
       },
       {
         "name": "CompletionPercentage",
@@ -46892,9 +46615,7 @@
         "typescriptType": "number",
         "required": true,
         "public": true,
-        "comments": [
-          " The completion percentage"
-        ]
+        "comments": []
       },
       {
         "name": "CanPlayNext",
@@ -46903,9 +46624,7 @@
         "typescriptType": "boolean",
         "required": true,
         "public": true,
-        "comments": [
-          " Whether the next episode can be played"
-        ]
+        "comments": []
       },
       {
         "name": "ProgressUpdated",
@@ -46914,9 +46633,7 @@
         "typescriptType": "boolean",
         "required": true,
         "public": true,
-        "comments": [
-          " Whether the progress has been updated"
-        ]
+        "comments": []
       },
       {
         "name": "MediaId",
@@ -46925,9 +46642,7 @@
         "typescriptType": "number",
         "required": true,
         "public": true,
-        "comments": [
-          " The media ID"
-        ]
+        "comments": []
       }
     ],
     "comments": []
@@ -46948,9 +46663,7 @@
         "usedStructName": "events.WSEventManagerInterface",
         "required": false,
         "public": true,
-        "comments": [
-          " Deprecated: use SSEEventManager"
-        ]
+        "comments": []
       },
       {
         "name": "SSEEventManager",
@@ -46961,9 +46674,7 @@
         "usedStructName": "events.SSEEventManagerAdapter",
         "required": false,
         "public": true,
-        "comments": [
-          " Preferred: SSE-based event manager"
-        ]
+        "comments": []
       },
       {
         "name": "Logger",
@@ -47016,9 +46727,7 @@
         "typescriptType": "any",
         "required": true,
         "public": true,
-        "comments": [
-          " This function is called to refresh the AniList collection"
-        ]
+        "comments": []
       },
       {
         "name": "DiscordPresence",
@@ -47066,125 +46775,6 @@
         "jsonName": "AutoPlayNextEpisode",
         "goType": "bool",
         "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/playbackmanager/playback_manager.go",
-    "filename": "playback_manager.go",
-    "name": "StartPlayingOptions",
-    "formattedName": "PlaybackManager_StartPlayingOptions",
-    "package": "playbackmanager",
-    "fields": [
-      {
-        "name": "Payload",
-        "jsonName": "Payload",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": [
-          " url or path"
-        ]
-      },
-      {
-        "name": "UserAgent",
-        "jsonName": "UserAgent",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ClientId",
-        "jsonName": "ClientId",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UserID",
-        "jsonName": "UserID",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " User ID for continuity tracking"
-        ]
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/playbackmanager/playlist.go",
-    "filename": "playlist.go",
-    "name": "PlaylistState",
-    "formattedName": "PlaybackManager_PlaylistState",
-    "package": "playbackmanager",
-    "fields": [
-      {
-        "name": "Current",
-        "jsonName": "current",
-        "goType": "PlaylistStateItem",
-        "typescriptType": "PlaybackManager_PlaylistStateItem",
-        "usedTypescriptType": "PlaybackManager_PlaylistStateItem",
-        "usedStructName": "playbackmanager.PlaylistStateItem",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Next",
-        "jsonName": "next",
-        "goType": "PlaylistStateItem",
-        "typescriptType": "PlaybackManager_PlaylistStateItem",
-        "usedTypescriptType": "PlaybackManager_PlaylistStateItem",
-        "usedStructName": "playbackmanager.PlaylistStateItem",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Remaining",
-        "jsonName": "remaining",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/playbackmanager/playlist.go",
-    "filename": "playlist.go",
-    "name": "PlaylistStateItem",
-    "formattedName": "PlaybackManager_PlaylistStateItem",
-    "package": "playbackmanager",
-    "fields": [
-      {
-        "name": "Name",
-        "jsonName": "name",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MediaImage",
-        "jsonName": "mediaImage",
-        "goType": "string",
-        "typescriptType": "string",
         "required": true,
         "public": true,
         "comments": []
@@ -50594,1297 +50184,6 @@
     "comments": [
       " SyncManagerOptions contains options for creating a sync manager"
     ]
-  },
-  {
-    "filepath": "../internal/local/database.go",
-    "filename": "database.go",
-    "name": "Database",
-    "formattedName": "Local_Database",
-    "package": "local",
-    "fields": [
-      {
-        "name": "gormdb",
-        "jsonName": "gormdb",
-        "goType": "gorm.DB",
-        "typescriptType": "DB",
-        "usedTypescriptType": "DB",
-        "usedStructName": "gorm.DB",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "logger",
-        "jsonName": "logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/database_models.go",
-    "filename": "database_models.go",
-    "name": "BaseModel",
-    "formattedName": "Local_BaseModel",
-    "package": "local",
-    "fields": [
-      {
-        "name": "ID",
-        "jsonName": "id",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CreatedAt",
-        "jsonName": "createdAt",
-        "goType": "time.Time",
-        "typescriptType": "string",
-        "usedStructName": "time.Time",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UpdatedAt",
-        "jsonName": "updatedAt",
-        "goType": "time.Time",
-        "typescriptType": "string",
-        "usedStructName": "time.Time",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/database_models.go",
-    "filename": "database_models.go",
-    "name": "Settings",
-    "formattedName": "Local_Settings",
-    "package": "local",
-    "fields": [
-      {
-        "name": "Updated",
-        "jsonName": "updated",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [],
-    "embeddedStructNames": [
-      "local.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/local/database_models.go",
-    "filename": "database_models.go",
-    "name": "LocalCollection",
-    "formattedName": "Local_LocalCollection",
-    "package": "local",
-    "fields": [
-      {
-        "name": "Type",
-        "jsonName": "type",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": [
-          " \"anime\" or \"manga\""
-        ]
-      },
-      {
-        "name": "Value",
-        "jsonName": "value",
-        "goType": "string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": [
-          " Marshalled struct"
-        ]
-      }
-    ],
-    "comments": [
-      " LocalCollection is an anilist collection that is stored locally for offline use.",
-      " It is meant to be kept in sync with the real AniList collection when online."
-    ],
-    "embeddedStructNames": [
-      "local.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/local/database_models.go",
-    "filename": "database_models.go",
-    "name": "TrackedMedia",
-    "formattedName": "Local_TrackedMedia",
-    "package": "local",
-    "fields": [
-      {
-        "name": "MediaId",
-        "jsonName": "mediaId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Type",
-        "jsonName": "type",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": [
-          " \"anime\" or \"manga\""
-        ]
-      }
-    ],
-    "comments": [
-      " TrackedMedia tracks media that should be stored locally."
-    ],
-    "embeddedStructNames": [
-      "local.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/local/database_models.go",
-    "filename": "database_models.go",
-    "name": "AnimeSnapshot",
-    "formattedName": "Local_AnimeSnapshot",
-    "package": "local",
-    "fields": [
-      {
-        "name": "MediaId",
-        "jsonName": "mediaId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AnimeMetadata",
-        "jsonName": "animeMetadata",
-        "goType": "LocalAnimeMetadata",
-        "typescriptType": "Local_LocalAnimeMetadata",
-        "usedTypescriptType": "Local_LocalAnimeMetadata",
-        "usedStructName": "local.LocalAnimeMetadata",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "BannerImagePath",
-        "jsonName": "bannerImagePath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CoverImagePath",
-        "jsonName": "coverImagePath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "EpisodeImagePaths",
-        "jsonName": "episodeImagePaths",
-        "goType": "StringMap",
-        "typescriptType": "Local_StringMap",
-        "usedTypescriptType": "Local_StringMap",
-        "usedStructName": "local.StringMap",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ReferenceKey",
-        "jsonName": "referenceKey",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [],
-    "embeddedStructNames": [
-      "local.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/local/database_models.go",
-    "filename": "database_models.go",
-    "name": "MangaSnapshot",
-    "formattedName": "Local_MangaSnapshot",
-    "package": "local",
-    "fields": [
-      {
-        "name": "MediaId",
-        "jsonName": "mediaId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ChapterContainers",
-        "jsonName": "chapterContainers",
-        "goType": "LocalMangaChapterContainers",
-        "typescriptType": "Local_LocalMangaChapterContainers",
-        "usedTypescriptType": "Local_LocalMangaChapterContainers",
-        "usedStructName": "local.LocalMangaChapterContainers",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "BannerImagePath",
-        "jsonName": "bannerImagePath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CoverImagePath",
-        "jsonName": "coverImagePath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ReferenceKey",
-        "jsonName": "referenceKey",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [],
-    "embeddedStructNames": [
-      "local.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/local/database_models.go",
-    "filename": "database_models.go",
-    "name": "SimulatedCollection",
-    "formattedName": "Local_SimulatedCollection",
-    "package": "local",
-    "fields": [
-      {
-        "name": "Type",
-        "jsonName": "type",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": [
-          " \"anime\" or \"manga\""
-        ]
-      },
-      {
-        "name": "Value",
-        "jsonName": "value",
-        "goType": "string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": [
-          " Marshalled struct"
-        ]
-      }
-    ],
-    "comments": [
-      " SimulatedCollection is used for users without an account."
-    ],
-    "embeddedStructNames": [
-      "local.BaseModel"
-    ]
-  },
-  {
-    "filepath": "../internal/local/database_models.go",
-    "filename": "database_models.go",
-    "name": "StringMap",
-    "formattedName": "Local_StringMap",
-    "package": "local",
-    "fields": [],
-    "aliasOf": {
-      "goType": "map[string]string",
-      "typescriptType": "Record\u003cstring, string\u003e",
-      "declaredValues": null
-    },
-    "comments": null
-  },
-  {
-    "filepath": "../internal/local/database_models.go",
-    "filename": "database_models.go",
-    "name": "LocalMangaChapterContainers",
-    "formattedName": "Local_LocalMangaChapterContainers",
-    "package": "local",
-    "fields": [],
-    "aliasOf": {
-      "goType": "[]manga.ChapterContainer",
-      "typescriptType": "Array\u003cManga_ChapterContainer\u003e",
-      "declaredValues": null,
-      "usedStructName": "manga.ChapterContainer"
-    },
-    "comments": null
-  },
-  {
-    "filepath": "../internal/local/diff.go",
-    "filename": "diff.go",
-    "name": "Diff",
-    "formattedName": "Local_Diff",
-    "package": "local",
-    "fields": [
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/diff.go",
-    "filename": "diff.go",
-    "name": "DiffType",
-    "formattedName": "Local_DiffType",
-    "package": "local",
-    "fields": [],
-    "aliasOf": {
-      "goType": "int",
-      "typescriptType": "number",
-      "declaredValues": []
-    },
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/diff.go",
-    "filename": "diff.go",
-    "name": "GetAnimeDiffOptions",
-    "formattedName": "Local_GetAnimeDiffOptions",
-    "package": "local",
-    "fields": [
-      {
-        "name": "Collection",
-        "jsonName": "Collection",
-        "goType": "anilist.AnimeCollection",
-        "typescriptType": "AL_AnimeCollection",
-        "usedTypescriptType": "AL_AnimeCollection",
-        "usedStructName": "anilist.AnimeCollection",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LocalCollection",
-        "jsonName": "LocalCollection",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LocalFiles",
-        "jsonName": "LocalFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "TrackedAnime",
-        "jsonName": "TrackedAnime",
-        "goType": "map[int]TrackedMedia",
-        "typescriptType": "Record\u003cnumber, Local_TrackedMedia\u003e",
-        "usedTypescriptType": "Local_TrackedMedia",
-        "usedStructName": "local.TrackedMedia",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Snapshots",
-        "jsonName": "Snapshots",
-        "goType": "map[int]AnimeSnapshot",
-        "typescriptType": "Record\u003cnumber, Local_AnimeSnapshot\u003e",
-        "usedTypescriptType": "Local_AnimeSnapshot",
-        "usedStructName": "local.AnimeSnapshot",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/diff.go",
-    "filename": "diff.go",
-    "name": "AnimeDiffResult",
-    "formattedName": "Local_AnimeDiffResult",
-    "package": "local",
-    "fields": [
-      {
-        "name": "AnimeEntry",
-        "jsonName": "AnimeEntry",
-        "goType": "anilist.AnimeListEntry",
-        "typescriptType": "AL_AnimeListEntry",
-        "usedTypescriptType": "AL_AnimeListEntry",
-        "usedStructName": "anilist.AnimeListEntry",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AnimeSnapshot",
-        "jsonName": "AnimeSnapshot",
-        "goType": "AnimeSnapshot",
-        "typescriptType": "Local_AnimeSnapshot",
-        "usedTypescriptType": "Local_AnimeSnapshot",
-        "usedStructName": "local.AnimeSnapshot",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DiffType",
-        "jsonName": "DiffType",
-        "goType": "DiffType",
-        "typescriptType": "Local_DiffType",
-        "usedTypescriptType": "Local_DiffType",
-        "usedStructName": "local.DiffType",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/diff.go",
-    "filename": "diff.go",
-    "name": "GetMangaDiffOptions",
-    "formattedName": "Local_GetMangaDiffOptions",
-    "package": "local",
-    "fields": [
-      {
-        "name": "Collection",
-        "jsonName": "Collection",
-        "goType": "anilist.MangaCollection",
-        "typescriptType": "AL_MangaCollection",
-        "usedTypescriptType": "AL_MangaCollection",
-        "usedStructName": "anilist.MangaCollection",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LocalCollection",
-        "jsonName": "LocalCollection",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DownloadedChapterContainers",
-        "jsonName": "DownloadedChapterContainers",
-        "goType": "[]manga.ChapterContainer",
-        "typescriptType": "Array\u003cManga_ChapterContainer\u003e",
-        "usedTypescriptType": "Manga_ChapterContainer",
-        "usedStructName": "manga.ChapterContainer",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "TrackedManga",
-        "jsonName": "TrackedManga",
-        "goType": "map[int]TrackedMedia",
-        "typescriptType": "Record\u003cnumber, Local_TrackedMedia\u003e",
-        "usedTypescriptType": "Local_TrackedMedia",
-        "usedStructName": "local.TrackedMedia",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Snapshots",
-        "jsonName": "Snapshots",
-        "goType": "map[int]MangaSnapshot",
-        "typescriptType": "Record\u003cnumber, Local_MangaSnapshot\u003e",
-        "usedTypescriptType": "Local_MangaSnapshot",
-        "usedStructName": "local.MangaSnapshot",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/diff.go",
-    "filename": "diff.go",
-    "name": "MangaDiffResult",
-    "formattedName": "Local_MangaDiffResult",
-    "package": "local",
-    "fields": [
-      {
-        "name": "MangaEntry",
-        "jsonName": "MangaEntry",
-        "goType": "anilist.MangaListEntry",
-        "typescriptType": "AL_MangaListEntry",
-        "usedTypescriptType": "AL_MangaListEntry",
-        "usedStructName": "anilist.MangaListEntry",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MangaSnapshot",
-        "jsonName": "MangaSnapshot",
-        "goType": "MangaSnapshot",
-        "typescriptType": "Local_MangaSnapshot",
-        "usedTypescriptType": "Local_MangaSnapshot",
-        "usedStructName": "local.MangaSnapshot",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DiffType",
-        "jsonName": "DiffType",
-        "goType": "DiffType",
-        "typescriptType": "Local_DiffType",
-        "usedTypescriptType": "Local_DiffType",
-        "usedStructName": "local.DiffType",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/manager.go",
-    "filename": "manager.go",
-    "name": "ManagerImpl",
-    "formattedName": "Local_ManagerImpl",
-    "package": "local",
-    "fields": [
-      {
-        "name": "db",
-        "jsonName": "db",
-        "goType": "db.Database",
-        "typescriptType": "DB_Database",
-        "usedTypescriptType": "DB_Database",
-        "usedStructName": "db.Database",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "localDb",
-        "jsonName": "localDb",
-        "goType": "Database",
-        "typescriptType": "Local_Database",
-        "usedTypescriptType": "Local_Database",
-        "usedStructName": "local.Database",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "localDir",
-        "jsonName": "localDir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "localAssetsDir",
-        "jsonName": "localAssetsDir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "isOffline",
-        "jsonName": "isOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "logger",
-        "jsonName": "logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "metadataProvider",
-        "jsonName": "metadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mangaRepository",
-        "jsonName": "mangaRepository",
-        "goType": "manga.Repository",
-        "typescriptType": "Manga_Repository",
-        "usedTypescriptType": "Manga_Repository",
-        "usedStructName": "manga.Repository",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "wsEventManager",
-        "jsonName": "wsEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "offlineMetadataProvider",
-        "jsonName": "offlineMetadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "anilistPlatform",
-        "jsonName": "anilistPlatform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "syncer",
-        "jsonName": "syncer",
-        "goType": "Syncer",
-        "typescriptType": "Local_Syncer",
-        "usedTypescriptType": "Local_Syncer",
-        "usedStructName": "local.Syncer",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "localAnimeCollection",
-        "jsonName": "localAnimeCollection",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "localMangaCollection",
-        "jsonName": "localMangaCollection",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "animeCollection",
-        "jsonName": "animeCollection",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mangaCollection",
-        "jsonName": "mangaCollection",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "downloadedChapterContainers",
-        "jsonName": "downloadedChapterContainers",
-        "goType": "[]manga.ChapterContainer",
-        "typescriptType": "Array\u003cManga_ChapterContainer\u003e",
-        "usedTypescriptType": "Manga_ChapterContainer",
-        "usedStructName": "manga.ChapterContainer",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "localFiles",
-        "jsonName": "localFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "RefreshAnilistCollectionsFunc",
-        "jsonName": "RefreshAnilistCollectionsFunc",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/manager.go",
-    "filename": "manager.go",
-    "name": "TrackedMediaItem",
-    "formattedName": "Local_TrackedMediaItem",
-    "package": "local",
-    "fields": [
-      {
-        "name": "MediaId",
-        "jsonName": "mediaId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Type",
-        "jsonName": "type",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AnimeEntry",
-        "jsonName": "animeEntry",
-        "goType": "anilist.AnimeListEntry",
-        "typescriptType": "AL_AnimeListEntry",
-        "usedTypescriptType": "AL_AnimeListEntry",
-        "usedStructName": "anilist.AnimeListEntry",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MangaEntry",
-        "jsonName": "mangaEntry",
-        "goType": "anilist.MangaListEntry",
-        "typescriptType": "AL_MangaListEntry",
-        "usedTypescriptType": "AL_MangaListEntry",
-        "usedStructName": "anilist.MangaListEntry",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/manager.go",
-    "filename": "manager.go",
-    "name": "NewManagerOptions",
-    "formattedName": "Local_NewManagerOptions",
-    "package": "local",
-    "fields": [
-      {
-        "name": "LocalDir",
-        "jsonName": "LocalDir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AssetDir",
-        "jsonName": "AssetDir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MetadataProvider",
-        "jsonName": "MetadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MangaRepository",
-        "jsonName": "MangaRepository",
-        "goType": "manga.Repository",
-        "typescriptType": "Manga_Repository",
-        "usedTypescriptType": "Manga_Repository",
-        "usedStructName": "manga.Repository",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Database",
-        "jsonName": "Database",
-        "goType": "db.Database",
-        "typescriptType": "DB_Database",
-        "usedTypescriptType": "DB_Database",
-        "usedStructName": "db.Database",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "WSEventManager",
-        "jsonName": "WSEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AnilistPlatform",
-        "jsonName": "AnilistPlatform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsOffline",
-        "jsonName": "IsOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/metadata.go",
-    "filename": "metadata.go",
-    "name": "OfflineMetadataProvider",
-    "formattedName": "Local_OfflineMetadataProvider",
-    "package": "local",
-    "fields": [
-      {
-        "name": "manager",
-        "jsonName": "manager",
-        "goType": "ManagerImpl",
-        "typescriptType": "Local_ManagerImpl",
-        "usedTypescriptType": "Local_ManagerImpl",
-        "usedStructName": "local.ManagerImpl",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "animeSnapshots",
-        "jsonName": "animeSnapshots",
-        "goType": "map[int]AnimeSnapshot",
-        "typescriptType": "Record\u003cnumber, Local_AnimeSnapshot\u003e",
-        "usedTypescriptType": "Local_AnimeSnapshot",
-        "usedStructName": "local.AnimeSnapshot",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "animeMetadataCache",
-        "jsonName": "animeMetadataCache",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " OfflineMetadataProvider replaces the metadata provider only when offline"
-    ]
-  },
-  {
-    "filepath": "../internal/local/metadata.go",
-    "filename": "metadata.go",
-    "name": "OfflineAnimeMetadataWrapper",
-    "formattedName": "Local_OfflineAnimeMetadataWrapper",
-    "package": "local",
-    "fields": [
-      {
-        "name": "anime",
-        "jsonName": "anime",
-        "goType": "anilist.BaseAnime",
-        "typescriptType": "AL_BaseAnime",
-        "usedTypescriptType": "AL_BaseAnime",
-        "usedStructName": "anilist.BaseAnime",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "metadata",
-        "jsonName": "metadata",
-        "goType": "metadata.AnimeMetadata",
-        "typescriptType": "Metadata_AnimeMetadata",
-        "usedTypescriptType": "Metadata_AnimeMetadata",
-        "usedStructName": "metadata.AnimeMetadata",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/sync.go",
-    "filename": "sync.go",
-    "name": "Syncer",
-    "formattedName": "Local_Syncer",
-    "package": "local",
-    "fields": [
-      {
-        "name": "animeJobQueue",
-        "jsonName": "animeJobQueue",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mangaJobQueue",
-        "jsonName": "mangaJobQueue",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "failedAnimeQueue",
-        "jsonName": "failedAnimeQueue",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "failedMangaQueue",
-        "jsonName": "failedMangaQueue",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "trackedAnimeMap",
-        "jsonName": "trackedAnimeMap",
-        "goType": "map[int]TrackedMedia",
-        "typescriptType": "Record\u003cnumber, Local_TrackedMedia\u003e",
-        "usedTypescriptType": "Local_TrackedMedia",
-        "usedStructName": "local.TrackedMedia",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "trackedMangaMap",
-        "jsonName": "trackedMangaMap",
-        "goType": "map[int]TrackedMedia",
-        "typescriptType": "Record\u003cnumber, Local_TrackedMedia\u003e",
-        "usedTypescriptType": "Local_TrackedMedia",
-        "usedStructName": "local.TrackedMedia",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "manager",
-        "jsonName": "manager",
-        "goType": "ManagerImpl",
-        "typescriptType": "Local_ManagerImpl",
-        "usedTypescriptType": "Local_ManagerImpl",
-        "usedStructName": "local.ManagerImpl",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mu",
-        "jsonName": "mu",
-        "goType": "sync.RWMutex",
-        "typescriptType": "RWMutex",
-        "usedTypescriptType": "RWMutex",
-        "usedStructName": "sync.RWMutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "shouldUpdateLocalCollections",
-        "jsonName": "shouldUpdateLocalCollections",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "doneUpdatingLocalCollections",
-        "jsonName": "doneUpdatingLocalCollections",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "queueState",
-        "jsonName": "queueState",
-        "goType": "QueueState",
-        "typescriptType": "Local_QueueState",
-        "usedTypescriptType": "Local_QueueState",
-        "usedStructName": "local.QueueState",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "queueStateMu",
-        "jsonName": "queueStateMu",
-        "goType": "sync.RWMutex",
-        "typescriptType": "RWMutex",
-        "usedTypescriptType": "RWMutex",
-        "usedStructName": "sync.RWMutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/sync.go",
-    "filename": "sync.go",
-    "name": "QueueState",
-    "formattedName": "Local_QueueState",
-    "package": "local",
-    "fields": [
-      {
-        "name": "AnimeTasks",
-        "jsonName": "animeTasks",
-        "goType": "map[int]QueueMediaTask",
-        "typescriptType": "Record\u003cnumber, Local_QueueMediaTask\u003e",
-        "usedTypescriptType": "Local_QueueMediaTask",
-        "usedStructName": "local.QueueMediaTask",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MangaTasks",
-        "jsonName": "mangaTasks",
-        "goType": "map[int]QueueMediaTask",
-        "typescriptType": "Record\u003cnumber, Local_QueueMediaTask\u003e",
-        "usedTypescriptType": "Local_QueueMediaTask",
-        "usedStructName": "local.QueueMediaTask",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/sync.go",
-    "filename": "sync.go",
-    "name": "QueueMediaTask",
-    "formattedName": "Local_QueueMediaTask",
-    "package": "local",
-    "fields": [
-      {
-        "name": "MediaId",
-        "jsonName": "mediaId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Image",
-        "jsonName": "image",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Title",
-        "jsonName": "title",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Type",
-        "jsonName": "type",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/sync.go",
-    "filename": "sync.go",
-    "name": "AnimeTask",
-    "formattedName": "Local_AnimeTask",
-    "package": "local",
-    "fields": [
-      {
-        "name": "Diff",
-        "jsonName": "Diff",
-        "goType": "AnimeDiffResult",
-        "typescriptType": "Local_AnimeDiffResult",
-        "usedTypescriptType": "Local_AnimeDiffResult",
-        "usedStructName": "local.AnimeDiffResult",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/local/sync.go",
-    "filename": "sync.go",
-    "name": "MangaTask",
-    "formattedName": "Local_MangaTask",
-    "package": "local",
-    "fields": [
-      {
-        "name": "Diff",
-        "jsonName": "Diff",
-        "goType": "MangaDiffResult",
-        "typescriptType": "Local_MangaDiffResult",
-        "usedTypescriptType": "Local_MangaDiffResult",
-        "usedStructName": "local.MangaDiffResult",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
   },
   {
     "filepath": "../internal/manga/chapter_container.go",
@@ -55753,2347 +54052,6 @@
     "comments": []
   },
   {
-    "filepath": "../internal/mediaplayers/iina/iina.go",
-    "filename": "iina.go",
-    "name": "Playback",
-    "formattedName": "Playback",
-    "package": "iina",
-    "fields": [
-      {
-        "name": "Filename",
-        "jsonName": "Filename",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Paused",
-        "jsonName": "Paused",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Position",
-        "jsonName": "Position",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Duration",
-        "jsonName": "Duration",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsRunning",
-        "jsonName": "IsRunning",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Filepath",
-        "jsonName": "Filepath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/iina/iina.go",
-    "filename": "iina.go",
-    "name": "Iina",
-    "formattedName": "Iina",
-    "package": "iina",
-    "fields": [
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Playback",
-        "jsonName": "Playback",
-        "goType": "Playback",
-        "typescriptType": "Playback",
-        "usedTypescriptType": "Playback",
-        "usedStructName": "iina.Playback",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SocketName",
-        "jsonName": "SocketName",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AppPath",
-        "jsonName": "AppPath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Args",
-        "jsonName": "Args",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "mu",
-        "jsonName": "mu",
-        "goType": "sync.Mutex",
-        "typescriptType": "Mutex",
-        "usedTypescriptType": "Mutex",
-        "usedStructName": "sync.Mutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "playbackMu",
-        "jsonName": "playbackMu",
-        "goType": "sync.RWMutex",
-        "typescriptType": "RWMutex",
-        "usedTypescriptType": "RWMutex",
-        "usedStructName": "sync.RWMutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "cancel",
-        "jsonName": "cancel",
-        "goType": "context.CancelFunc",
-        "typescriptType": "CancelFunc",
-        "usedTypescriptType": "CancelFunc",
-        "usedStructName": "context.CancelFunc",
-        "required": false,
-        "public": false,
-        "comments": [
-          " Cancel function for the context"
-        ]
-      },
-      {
-        "name": "subscribers",
-        "jsonName": "subscribers",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": [
-          " Subscribers to the iina events"
-        ]
-      },
-      {
-        "name": "conn",
-        "jsonName": "conn",
-        "goType": "mpvipc.Connection",
-        "typescriptType": "Connection",
-        "usedTypescriptType": "Connection",
-        "usedStructName": "mpvipc.Connection",
-        "required": false,
-        "public": false,
-        "comments": [
-          " Reference to the mpv connection (iina uses mpv IPC)"
-        ]
-      },
-      {
-        "name": "cmd",
-        "jsonName": "cmd",
-        "goType": "exec.Cmd",
-        "typescriptType": "Cmd",
-        "usedTypescriptType": "Cmd",
-        "usedStructName": "exec.Cmd",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "prevSocketName",
-        "jsonName": "prevSocketName",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "exitedCh",
-        "jsonName": "exitedCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/iina/iina.go",
-    "filename": "iina.go",
-    "name": "Subscriber",
-    "formattedName": "Subscriber",
-    "package": "iina",
-    "fields": [
-      {
-        "name": "eventCh",
-        "jsonName": "eventCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "closedCh",
-        "jsonName": "closedCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "MediaPlayerLocalFileTrackingRequestedEvent",
-    "formattedName": "MediaPlayerLocalFileTrackingRequestedEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "StartRefreshDelay",
-        "jsonName": "startRefreshDelay",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "RefreshDelay",
-        "jsonName": "refreshDelay",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MaxRetries",
-        "jsonName": "maxRetries",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " MediaPlayerLocalFileTrackingRequestedEvent is triggered when the playback manager wants to track the progress of a local file.",
-      " Prevent default to stop tracking."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "MediaPlayerStreamTrackingRequestedEvent",
-    "formattedName": "MediaPlayerStreamTrackingRequestedEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "StartRefreshDelay",
-        "jsonName": "startRefreshDelay",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "RefreshDelay",
-        "jsonName": "refreshDelay",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MaxRetries",
-        "jsonName": "maxRetries",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MaxRetriesAfterStart",
-        "jsonName": "maxRetriesAfterStart",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " MediaPlayerStreamTrackingRequestedEvent is triggered when the playback manager wants to track the progress of a stream.",
-      " Prevent default to stop tracking."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "PlaybackType",
-    "formattedName": "PlaybackType",
-    "package": "mediaplayer",
-    "fields": [],
-    "aliasOf": {
-      "goType": "string",
-      "typescriptType": "string",
-      "declaredValues": [
-        "\"file\"",
-        "\"stream\""
-      ]
-    },
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "Repository",
-    "formattedName": "Repository",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Default",
-        "jsonName": "Default",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "VLC",
-        "jsonName": "VLC",
-        "goType": "vlc2.VLC",
-        "typescriptType": "VLC",
-        "usedTypescriptType": "VLC",
-        "usedStructName": "vlc2.VLC",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MpcHc",
-        "jsonName": "MpcHc",
-        "goType": "mpchc2.MpcHc",
-        "typescriptType": "MpcHc",
-        "usedTypescriptType": "MpcHc",
-        "usedStructName": "mpchc2.MpcHc",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Mpv",
-        "jsonName": "Mpv",
-        "goType": "mpv.Mpv",
-        "typescriptType": "Mpv",
-        "usedTypescriptType": "Mpv",
-        "usedStructName": "mpv.Mpv",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Iina",
-        "jsonName": "Iina",
-        "goType": "iina.Iina",
-        "typescriptType": "Iina",
-        "usedTypescriptType": "Iina",
-        "usedStructName": "iina.Iina",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "wsEventManager",
-        "jsonName": "wsEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "continuityManager",
-        "jsonName": "continuityManager",
-        "goType": "continuity.Manager",
-        "typescriptType": "Continuity_Manager",
-        "usedTypescriptType": "Continuity_Manager",
-        "usedStructName": "continuity.Manager",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "playerInUse",
-        "jsonName": "playerInUse",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "completionThreshold",
-        "jsonName": "completionThreshold",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mu",
-        "jsonName": "mu",
-        "goType": "sync.RWMutex",
-        "typescriptType": "RWMutex",
-        "usedTypescriptType": "RWMutex",
-        "usedStructName": "sync.RWMutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "isRunning",
-        "jsonName": "isRunning",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "currentPlaybackStatus",
-        "jsonName": "currentPlaybackStatus",
-        "goType": "PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "subscribers",
-        "jsonName": "subscribers",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "cancel",
-        "jsonName": "cancel",
-        "goType": "context.CancelFunc",
-        "typescriptType": "CancelFunc",
-        "usedTypescriptType": "CancelFunc",
-        "usedStructName": "context.CancelFunc",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "exitedCh",
-        "jsonName": "exitedCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": [
-          " Closed when the media player exits"
-        ]
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "NewRepositoryOptions",
-    "formattedName": "NewRepositoryOptions",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Default",
-        "jsonName": "Default",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "VLC",
-        "jsonName": "VLC",
-        "goType": "vlc2.VLC",
-        "typescriptType": "VLC",
-        "usedTypescriptType": "VLC",
-        "usedStructName": "vlc2.VLC",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MpcHc",
-        "jsonName": "MpcHc",
-        "goType": "mpchc2.MpcHc",
-        "typescriptType": "MpcHc",
-        "usedTypescriptType": "MpcHc",
-        "usedStructName": "mpchc2.MpcHc",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Mpv",
-        "jsonName": "Mpv",
-        "goType": "mpv.Mpv",
-        "typescriptType": "Mpv",
-        "usedTypescriptType": "Mpv",
-        "usedStructName": "mpv.Mpv",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Iina",
-        "jsonName": "Iina",
-        "goType": "iina.Iina",
-        "typescriptType": "Iina",
-        "usedTypescriptType": "Iina",
-        "usedStructName": "iina.Iina",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "WSEventManager",
-        "jsonName": "WSEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ContinuityManager",
-        "jsonName": "ContinuityManager",
-        "goType": "continuity.Manager",
-        "typescriptType": "Continuity_Manager",
-        "usedTypescriptType": "Continuity_Manager",
-        "usedStructName": "continuity.Manager",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "RepositorySubscriber",
-    "formattedName": "RepositorySubscriber",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "EventCh",
-        "jsonName": "EventCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "TrackingStartedEvent",
-    "formattedName": "TrackingStartedEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Status",
-        "jsonName": "Status",
-        "goType": "PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "TrackingRetryEvent",
-    "formattedName": "TrackingRetryEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Reason",
-        "jsonName": "Reason",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "VideoCompletedEvent",
-    "formattedName": "VideoCompletedEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Status",
-        "jsonName": "Status",
-        "goType": "PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "TrackingStoppedEvent",
-    "formattedName": "TrackingStoppedEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Reason",
-        "jsonName": "Reason",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "PlaybackStatusEvent",
-    "formattedName": "PlaybackStatusEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Status",
-        "jsonName": "Status",
-        "goType": "PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "StreamingTrackingStartedEvent",
-    "formattedName": "StreamingTrackingStartedEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Status",
-        "jsonName": "Status",
-        "goType": "PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "StreamingTrackingRetryEvent",
-    "formattedName": "StreamingTrackingRetryEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Reason",
-        "jsonName": "Reason",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "StreamingVideoCompletedEvent",
-    "formattedName": "StreamingVideoCompletedEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Status",
-        "jsonName": "Status",
-        "goType": "PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "StreamingTrackingStoppedEvent",
-    "formattedName": "StreamingTrackingStoppedEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Reason",
-        "jsonName": "Reason",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "StreamingPlaybackStatusEvent",
-    "formattedName": "StreamingPlaybackStatusEvent",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "Status",
-        "jsonName": "Status",
-        "goType": "PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mediaplayer/repository.go",
-    "filename": "repository.go",
-    "name": "PlaybackStatus",
-    "formattedName": "PlaybackStatus",
-    "package": "mediaplayer",
-    "fields": [
-      {
-        "name": "CompletionPercentage",
-        "jsonName": "completionPercentage",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Playing",
-        "jsonName": "playing",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Filename",
-        "jsonName": "filename",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Path",
-        "jsonName": "path",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Duration",
-        "jsonName": "duration",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " in ms"
-        ]
-      },
-      {
-        "name": "Filepath",
-        "jsonName": "filepath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CurrentTimeInSeconds",
-        "jsonName": "currentTimeInSeconds",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " in seconds"
-        ]
-      },
-      {
-        "name": "DurationInSeconds",
-        "jsonName": "durationInSeconds",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " in seconds"
-        ]
-      },
-      {
-        "name": "PlaybackType",
-        "jsonName": "playbackType",
-        "goType": "PlaybackType",
-        "typescriptType": "PlaybackType",
-        "usedTypescriptType": "PlaybackType",
-        "usedStructName": "mediaplayer.PlaybackType",
-        "required": true,
-        "public": true,
-        "comments": [
-          " \"file\", \"stream\""
-        ]
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mpchc/mpc_hc.go",
-    "filename": "mpc_hc.go",
-    "name": "MpcHc",
-    "formattedName": "MpcHc",
-    "package": "mpchc",
-    "fields": [
-      {
-        "name": "Host",
-        "jsonName": "Host",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Port",
-        "jsonName": "Port",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Path",
-        "jsonName": "Path",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mpchc/variables.go",
-    "filename": "variables.go",
-    "name": "Variables",
-    "formattedName": "Variables",
-    "package": "mpchc",
-    "fields": [
-      {
-        "name": "Version",
-        "jsonName": "version",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "File",
-        "jsonName": "file",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "FilePath",
-        "jsonName": "filepath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "FileDir",
-        "jsonName": "filedir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Size",
-        "jsonName": "size",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "State",
-        "jsonName": "state",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "StateString",
-        "jsonName": "statestring",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Position",
-        "jsonName": "position",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "PositionString",
-        "jsonName": "positionstring",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Duration",
-        "jsonName": "duration",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DurationString",
-        "jsonName": "durationstring",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "VolumeLevel",
-        "jsonName": "volumelevel",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Muted",
-        "jsonName": "muted",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mpv/mpv.go",
-    "filename": "mpv.go",
-    "name": "Playback",
-    "formattedName": "Playback",
-    "package": "mpv",
-    "fields": [
-      {
-        "name": "Filename",
-        "jsonName": "Filename",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Paused",
-        "jsonName": "Paused",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Position",
-        "jsonName": "Position",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Duration",
-        "jsonName": "Duration",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsRunning",
-        "jsonName": "IsRunning",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Filepath",
-        "jsonName": "Filepath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mpv/mpv.go",
-    "filename": "mpv.go",
-    "name": "Mpv",
-    "formattedName": "Mpv",
-    "package": "mpv",
-    "fields": [
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Playback",
-        "jsonName": "Playback",
-        "goType": "Playback",
-        "typescriptType": "Playback",
-        "usedTypescriptType": "Playback",
-        "usedStructName": "mpv.Playback",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SocketName",
-        "jsonName": "SocketName",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AppPath",
-        "jsonName": "AppPath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Args",
-        "jsonName": "Args",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "mu",
-        "jsonName": "mu",
-        "goType": "sync.Mutex",
-        "typescriptType": "Mutex",
-        "usedTypescriptType": "Mutex",
-        "usedStructName": "sync.Mutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "playbackMu",
-        "jsonName": "playbackMu",
-        "goType": "sync.RWMutex",
-        "typescriptType": "RWMutex",
-        "usedTypescriptType": "RWMutex",
-        "usedStructName": "sync.RWMutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "cancel",
-        "jsonName": "cancel",
-        "goType": "context.CancelFunc",
-        "typescriptType": "CancelFunc",
-        "usedTypescriptType": "CancelFunc",
-        "usedStructName": "context.CancelFunc",
-        "required": false,
-        "public": false,
-        "comments": [
-          " Cancel function for the context"
-        ]
-      },
-      {
-        "name": "subscribers",
-        "jsonName": "subscribers",
-        "goType": "",
-        "typescriptType": "any",
-        "required": false,
-        "public": false,
-        "comments": [
-          " Subscribers to the mpv events"
-        ]
-      },
-      {
-        "name": "conn",
-        "jsonName": "conn",
-        "goType": "mpvipc.Connection",
-        "typescriptType": "Connection",
-        "usedTypescriptType": "Connection",
-        "usedStructName": "mpvipc.Connection",
-        "required": false,
-        "public": false,
-        "comments": [
-          " Reference to the mpv connection"
-        ]
-      },
-      {
-        "name": "cmd",
-        "jsonName": "cmd",
-        "goType": "exec.Cmd",
-        "typescriptType": "Cmd",
-        "usedTypescriptType": "Cmd",
-        "usedStructName": "exec.Cmd",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "prevSocketName",
-        "jsonName": "prevSocketName",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "exitedCh",
-        "jsonName": "exitedCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mpv/mpv.go",
-    "filename": "mpv.go",
-    "name": "Subscriber",
-    "formattedName": "Subscriber",
-    "package": "mpv",
-    "fields": [
-      {
-        "name": "eventCh",
-        "jsonName": "eventCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "closedCh",
-        "jsonName": "closedCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/mediaplayers/mpvipc/mpvipc.go",
-    "filename": "mpvipc.go",
-    "name": "Connection",
-    "formattedName": "Connection",
-    "package": "mpvipc",
-    "fields": [
-      {
-        "name": "client",
-        "jsonName": "client",
-        "goType": "net.Conn",
-        "typescriptType": "Conn",
-        "usedTypescriptType": "Conn",
-        "usedStructName": "net.Conn",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "socketName",
-        "jsonName": "socketName",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "lastRequest",
-        "jsonName": "lastRequest",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "waitingRequests",
-        "jsonName": "waitingRequests",
-        "goType": "map[uint]",
-        "typescriptType": "Record\u003cnumber, any\u003e",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "lastListener",
-        "jsonName": "lastListener",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "eventListeners",
-        "jsonName": "eventListeners",
-        "goType": "map[uint]",
-        "typescriptType": "Record\u003cnumber, any\u003e",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "lastCloseWaiter",
-        "jsonName": "lastCloseWaiter",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "closeWaiters",
-        "jsonName": "closeWaiters",
-        "goType": "map[uint]",
-        "typescriptType": "Record\u003cnumber, any\u003e",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "lock",
-        "jsonName": "lock",
-        "goType": "sync.Mutex",
-        "typescriptType": "Mutex",
-        "usedTypescriptType": "Mutex",
-        "usedStructName": "sync.Mutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " Connection represents a connection to a mpv IPC socket"
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/mpvipc/mpvipc.go",
-    "filename": "mpvipc.go",
-    "name": "Event",
-    "formattedName": "Event",
-    "package": "mpvipc",
-    "fields": [
-      {
-        "name": "Name",
-        "jsonName": "event",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Reason",
-        "jsonName": "reason",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Prefix",
-        "jsonName": "prefix",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Level",
-        "jsonName": "level",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Text",
-        "jsonName": "text",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ID",
-        "jsonName": "id",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Data",
-        "jsonName": "data",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " Event represents an event received from mpv. For a list of all possible",
-      " events, see https://mpv.io/manual/master/#list-of-events"
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/vlc/browse.go",
-    "filename": "browse.go",
-    "name": "File",
-    "formattedName": "File",
-    "package": "vlc",
-    "fields": [
-      {
-        "name": "Type",
-        "jsonName": "type",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": [
-          " file or dir"
-        ]
-      },
-      {
-        "name": "Path",
-        "jsonName": "path",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Name",
-        "jsonName": "name",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AccessTime",
-        "jsonName": "access_time",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UID",
-        "jsonName": "uid",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CreationTime",
-        "jsonName": "creation_time",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "GID",
-        "jsonName": "gid",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ModificationTime",
-        "jsonName": "modification_time",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Mode",
-        "jsonName": "mode",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "URI",
-        "jsonName": "uri",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Size",
-        "jsonName": "size",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " File struct represents a single item in the browsed directory. Can be a file or a dir"
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/vlc/playlist.go",
-    "filename": "playlist.go",
-    "name": "Node",
-    "formattedName": "Node",
-    "package": "vlc",
-    "fields": [
-      {
-        "name": "Ro",
-        "jsonName": "ro",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Type",
-        "jsonName": "type",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": [
-          " node or leaf"
-        ]
-      },
-      {
-        "name": "Name",
-        "jsonName": "name",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ID",
-        "jsonName": "id",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Duration",
-        "jsonName": "duration",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "URI",
-        "jsonName": "uri",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Current",
-        "jsonName": "current",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Children",
-        "jsonName": "children",
-        "goType": "[]Node",
-        "typescriptType": "Array\u003cNode\u003e",
-        "usedTypescriptType": "Node",
-        "usedStructName": "vlc.Node",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " Node structure (node or leaf type) is the basic element of VLC's playlist tree representation.",
-      " Leafs are playlist items. Nodes are playlists or folders inside playlists."
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/vlc/status.go",
-    "filename": "status.go",
-    "name": "Status",
-    "formattedName": "Status",
-    "package": "vlc",
-    "fields": [
-      {
-        "name": "Fullscreen",
-        "jsonName": "fullscreen",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Stats",
-        "jsonName": "stats",
-        "goType": "Stats",
-        "typescriptType": "Stats",
-        "usedTypescriptType": "Stats",
-        "usedStructName": "vlc.Stats",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AspectRatio",
-        "jsonName": "aspectratio",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AudioDelay",
-        "jsonName": "audiodelay",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "APIVersion",
-        "jsonName": "apiversion",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CurrentPlID",
-        "jsonName": "currentplid",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Time",
-        "jsonName": "time",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Volume",
-        "jsonName": "volume",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Length",
-        "jsonName": "length",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Random",
-        "jsonName": "random",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AudioFilters",
-        "jsonName": "audiofilters",
-        "goType": "map[string]string",
-        "typescriptType": "Record\u003cstring, string\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Rate",
-        "jsonName": "rate",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "VideoEffects",
-        "jsonName": "videoeffects",
-        "goType": "VideoEffects",
-        "typescriptType": "VideoEffects",
-        "usedTypescriptType": "VideoEffects",
-        "usedStructName": "vlc.VideoEffects",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "State",
-        "jsonName": "state",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Loop",
-        "jsonName": "loop",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Version",
-        "jsonName": "version",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Position",
-        "jsonName": "position",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Information",
-        "jsonName": "information",
-        "goType": "Information",
-        "typescriptType": "Information",
-        "usedTypescriptType": "Information",
-        "usedStructName": "vlc.Information",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Repeat",
-        "jsonName": "repeat",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SubtitleDelay",
-        "jsonName": "subtitledelay",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Equalizer",
-        "jsonName": "equalizer",
-        "goType": "[]Equalizer",
-        "typescriptType": "Array\u003cEqualizer\u003e",
-        "usedTypescriptType": "Equalizer",
-        "usedStructName": "vlc.Equalizer",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " Status contains information related to the VLC instance status. Use parseStatus to parse the response from a",
-      " status.go function."
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/vlc/status.go",
-    "filename": "status.go",
-    "name": "Stats",
-    "formattedName": "Stats",
-    "package": "vlc",
-    "fields": [
-      {
-        "name": "InputBitRate",
-        "jsonName": "inputbitrate",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SentBytes",
-        "jsonName": "sentbytes",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LosABuffers",
-        "jsonName": "lostabuffers",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AveragedEMuxBitrate",
-        "jsonName": "averagedemuxbitrate",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ReadPackets",
-        "jsonName": "readpackets",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DemuxReadPackets",
-        "jsonName": "demuxreadpackets",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LostPictures",
-        "jsonName": "lostpictures",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DisplayedPictures",
-        "jsonName": "displayedpictures",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SentPackets",
-        "jsonName": "sentpackets",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DemuxReadBytes",
-        "jsonName": "demuxreadbytes",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DemuxBitRate",
-        "jsonName": "demuxbitrate",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "PlayedABuffers",
-        "jsonName": "playedabuffers",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DemuxDiscontinuity",
-        "jsonName": "demuxdiscontinuity",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DecodeAudio",
-        "jsonName": "decodedaudio",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SendBitRate",
-        "jsonName": "sendbitrate",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ReadBytes",
-        "jsonName": "readbytes",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AverageInputBitRate",
-        "jsonName": "averageinputbitrate",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DemuxCorrupted",
-        "jsonName": "demuxcorrupted",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DecodedVideo",
-        "jsonName": "decodedvideo",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " Stats contains certain statistics of a VLC instance. A Stats variable is included in Status"
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/vlc/status.go",
-    "filename": "status.go",
-    "name": "VideoEffects",
-    "formattedName": "VideoEffects",
-    "package": "vlc",
-    "fields": [
-      {
-        "name": "Hue",
-        "jsonName": "hue",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Saturation",
-        "jsonName": "saturation",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Contrast",
-        "jsonName": "contrast",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Brightness",
-        "jsonName": "brightness",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Gamma",
-        "jsonName": "gamma",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " VideoEffects contains the current video effects configuration. A VideoEffects variable is included in Status"
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/vlc/status.go",
-    "filename": "status.go",
-    "name": "Information",
-    "formattedName": "Information",
-    "package": "vlc",
-    "fields": [
-      {
-        "name": "Chapter",
-        "jsonName": "chapter",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Chapters",
-        "jsonName": "chapters",
-        "goType": "[]",
-        "typescriptType": "Array\u003cany\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Title",
-        "jsonName": "title",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Category",
-        "jsonName": "category",
-        "goType": "map[string]__STRUCT__",
-        "inlineStructType": "map[string]struct{\nFilename string `json:\"filename\"`\nCodec string `json:\"Codec\"`\nChannels string `json:\"Channels\"`\nBitsPerSample string `json:\"Bits_per_sample\"`\nType string `json:\"Type\"`\nSampleRate string `json:\"Sample_rate\"`}",
-        "typescriptType": "Record\u003cstring, { filename: string; Codec: string; Channels: string; Bits_per_sample: string; Type: string; Sample_rate: string; }\u003e",
-        "usedTypescriptType": "{ filename: string; Codec: string; Channels: string; Bits_per_sample: string; Type: string; Sample_rate: string; }",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Titles",
-        "jsonName": "titles",
-        "goType": "[]",
-        "typescriptType": "Array\u003cany\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " Information contains information related to the item currently being played. It is also part of Status"
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/vlc/status.go",
-    "filename": "status.go",
-    "name": "Equalizer",
-    "formattedName": "Equalizer",
-    "package": "vlc",
-    "fields": [
-      {
-        "name": "Presets",
-        "jsonName": "presets",
-        "goType": "map[string]string",
-        "typescriptType": "Record\u003cstring, string\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Bands",
-        "jsonName": "bands",
-        "goType": "map[string]string",
-        "typescriptType": "Record\u003cstring, string\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Preamp",
-        "jsonName": "preamp",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " Equalizer contains information related to the equalizer configuration. An Equalizer variable is included in Status"
-    ]
-  },
-  {
-    "filepath": "../internal/mediaplayers/vlc/vlc.go",
-    "filename": "vlc.go",
-    "name": "VLC",
-    "formattedName": "VLC",
-    "package": "vlc",
-    "fields": [
-      {
-        "name": "Host",
-        "jsonName": "Host",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Port",
-        "jsonName": "Port",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Password",
-        "jsonName": "Password",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Path",
-        "jsonName": "Path",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " VLC struct represents an http interface enabled VLC instance. Build using NewVLC()"
-    ]
-  },
-  {
     "filepath": "../internal/mediastream/optimizer/optimizer.go",
     "filename": "optimizer.go",
     "name": "Quality",
@@ -61171,80 +57129,6 @@
     "comments": []
   },
   {
-    "filepath": "../internal/notifier/notifier.go",
-    "filename": "notifier.go",
-    "name": "Notifier",
-    "formattedName": "Notifier",
-    "package": "notifier",
-    "fields": [
-      {
-        "name": "dataDir",
-        "jsonName": "dataDir",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "settings",
-        "jsonName": "settings",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mu",
-        "jsonName": "mu",
-        "goType": "sync.Mutex",
-        "typescriptType": "Mutex",
-        "usedTypescriptType": "Mutex",
-        "usedStructName": "sync.Mutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "logoPath",
-        "jsonName": "logoPath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "logger",
-        "jsonName": "logger",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/notifier/notifier.go",
-    "filename": "notifier.go",
-    "name": "Notification",
-    "formattedName": "Notification",
-    "package": "notifier",
-    "fields": [],
-    "aliasOf": {
-      "goType": "string",
-      "typescriptType": "string",
-      "declaredValues": [
-        "\"Auto Downloader\"",
-        "\"Auto Scanner\""
-      ]
-    },
-    "comments": []
-  },
-  {
     "filepath": "../internal/platforms/anilist_platform/anilist_platform.go",
     "filename": "anilist_platform.go",
     "name": "AnilistPlatform",
@@ -62058,17 +57942,6 @@
         "comments": []
       },
       {
-        "name": "MediaPlayerRepository",
-        "jsonName": "MediaPlayerRepository",
-        "goType": "mediaplayer.Repository",
-        "typescriptType": "Repository",
-        "usedTypescriptType": "Repository",
-        "usedStructName": "mediaplayer.Repository",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "MangaRepository",
         "jsonName": "MangaRepository",
         "goType": "manga.Repository",
@@ -62247,15 +58120,6 @@
       {
         "name": "playbackManager",
         "jsonName": "playbackManager",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mediaplayerRepo",
-        "jsonName": "mediaplayerRepo",
         "goType": "",
         "typescriptType": "any",
         "required": true,
@@ -63026,38 +58890,6 @@
   {
     "filepath": "../internal/plugin/playback.go",
     "filename": "playback.go",
-    "name": "PlaybackMPV",
-    "formattedName": "PlaybackMPV",
-    "package": "plugin",
-    "fields": [
-      {
-        "name": "mpv",
-        "jsonName": "mpv",
-        "goType": "mpv.Mpv",
-        "typescriptType": "Mpv",
-        "usedTypescriptType": "Mpv",
-        "usedStructName": "mpv.Mpv",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "playback",
-        "jsonName": "playback",
-        "goType": "Playback",
-        "typescriptType": "Playback",
-        "usedTypescriptType": "Playback",
-        "usedStructName": "plugin.Playback",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/plugin/playback.go",
-    "filename": "playback.go",
     "name": "PlaybackEvent",
     "formattedName": "PlaybackEvent",
     "package": "plugin",
@@ -63153,17 +58985,6 @@
         "typescriptType": "PlaybackManager_PlaybackState",
         "usedTypescriptType": "PlaybackManager_PlaybackState",
         "usedStructName": "playbackmanager.PlaybackState",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Status",
-        "jsonName": "status",
-        "goType": "mediaplayer.PlaybackStatus",
-        "typescriptType": "PlaybackStatus",
-        "usedTypescriptType": "PlaybackStatus",
-        "usedStructName": "mediaplayer.PlaybackStatus",
         "required": false,
         "public": true,
         "comments": []
@@ -74670,30 +70491,7 @@
     "name": "Modules",
     "formattedName": "Modules",
     "package": "troubleshooter",
-    "fields": [
-      {
-        "name": "MediaPlayerRepository",
-        "jsonName": "MediaPlayerRepository",
-        "goType": "mediaplayer.Repository",
-        "typescriptType": "Repository",
-        "usedTypescriptType": "Repository",
-        "usedStructName": "mediaplayer.Repository",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "OnlinestreamRepository",
-        "jsonName": "OnlinestreamRepository",
-        "goType": "onlinestream.Repository",
-        "typescriptType": "Onlinestream_Repository",
-        "usedTypescriptType": "Onlinestream_Repository",
-        "usedStructName": "onlinestream.Repository",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
+    "fields": [],
     "comments": []
   },
   {
@@ -74751,17 +70549,6 @@
         "typescriptType": "Models_Settings",
         "usedTypescriptType": "Models_Settings",
         "usedStructName": "models.Settings",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MediastreamSettings",
-        "jsonName": "MediastreamSettings",
-        "goType": "models.MediastreamSettings",
-        "typescriptType": "Models_MediastreamSettings",
-        "usedTypescriptType": "Models_MediastreamSettings",
-        "usedStructName": "models.MediastreamSettings",
         "required": false,
         "public": true,
         "comments": []
@@ -74879,7 +70666,6 @@
       "typescriptType": "string",
       "declaredValues": [
         "\"Playback\"",
-        "\"Media player\"",
         "\"Anime library\"",
         "\"Media streaming\""
       ]

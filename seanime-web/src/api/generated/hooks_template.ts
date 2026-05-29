@@ -262,17 +262,6 @@
 //     })
 // }
 
-// export function useOpenAnimeEntryInExplorer() {
-//     return useServerMutation<boolean, OpenAnimeEntryInExplorer_Variables>({
-//         endpoint: API_ENDPOINTS.ANIME_ENTRIES.OpenAnimeEntryInExplorer.endpoint,
-//         method: API_ENDPOINTS.ANIME_ENTRIES.OpenAnimeEntryInExplorer.methods[0],
-//         mutationKey: [API_ENDPOINTS.ANIME_ENTRIES.OpenAnimeEntryInExplorer.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
 // export function useFetchAnimeEntrySuggestions() {
 //     return useServerMutation<Array<AL_BaseAnime>, FetchAnimeEntrySuggestions_Variables>({
 //         endpoint: API_ENDPOINTS.ANIME_ENTRIES.FetchAnimeEntrySuggestions.endpoint,
@@ -607,21 +596,6 @@
 //         endpoint: API_ENDPOINTS.DOWNLOAD.DownloadRelease.endpoint,
 //         method: API_ENDPOINTS.DOWNLOAD.DownloadRelease.methods[0],
 //         mutationKey: [API_ENDPOINTS.DOWNLOAD.DownloadRelease.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// explorer
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// export function useOpenInExplorer() {
-//     return useServerMutation<boolean, OpenInExplorer_Variables>({
-//         endpoint: API_ENDPOINTS.EXPLORER.OpenInExplorer.endpoint,
-//         method: API_ENDPOINTS.EXPLORER.OpenInExplorer.methods[0],
-//         mutationKey: [API_ENDPOINTS.EXPLORER.OpenInExplorer.key],
 //         onSuccess: async () => {
 // 
 //         },
@@ -1023,121 +997,6 @@
 // }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// local
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// export function useLocalGetTrackedMediaItems() {
-//     return useServerQuery<Array<Local_TrackedMediaItem>>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalGetTrackedMediaItems.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalGetTrackedMediaItems.methods[0],
-//         queryKey: [API_ENDPOINTS.LOCAL.LocalGetTrackedMediaItems.key],
-//         enabled: true,
-//     })
-// }
-
-// export function useLocalAddTrackedMedia() {
-//     return useServerMutation<boolean, LocalAddTrackedMedia_Variables>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalAddTrackedMedia.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalAddTrackedMedia.methods[0],
-//         mutationKey: [API_ENDPOINTS.LOCAL.LocalAddTrackedMedia.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useLocalRemoveTrackedMedia() {
-//     return useServerMutation<boolean, LocalRemoveTrackedMedia_Variables>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalRemoveTrackedMedia.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalRemoveTrackedMedia.methods[0],
-//         mutationKey: [API_ENDPOINTS.LOCAL.LocalRemoveTrackedMedia.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useLocalGetIsMediaTracked(id: number, type: string) {
-//     return useServerQuery<boolean>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalGetIsMediaTracked.endpoint.replace("{id}", String(id)).replace("{type}", String(type)),
-//         method: API_ENDPOINTS.LOCAL.LocalGetIsMediaTracked.methods[0],
-//         queryKey: [API_ENDPOINTS.LOCAL.LocalGetIsMediaTracked.key],
-//         enabled: true,
-//     })
-// }
-
-// export function useLocalSyncData() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalSyncData.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalSyncData.methods[0],
-//         mutationKey: [API_ENDPOINTS.LOCAL.LocalSyncData.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useLocalGetSyncQueueState() {
-//     return useServerQuery<Local_QueueState>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalGetSyncQueueState.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalGetSyncQueueState.methods[0],
-//         queryKey: [API_ENDPOINTS.LOCAL.LocalGetSyncQueueState.key],
-//         enabled: true,
-//     })
-// }
-
-// export function useLocalSyncAnilistData() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalSyncAnilistData.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalSyncAnilistData.methods[0],
-//         mutationKey: [API_ENDPOINTS.LOCAL.LocalSyncAnilistData.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useLocalSetHasLocalChanges() {
-//     return useServerMutation<boolean, LocalSetHasLocalChanges_Variables>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalSetHasLocalChanges.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalSetHasLocalChanges.methods[0],
-//         mutationKey: [API_ENDPOINTS.LOCAL.LocalSetHasLocalChanges.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useLocalGetHasLocalChanges() {
-//     return useServerQuery<boolean>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalGetHasLocalChanges.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalGetHasLocalChanges.methods[0],
-//         queryKey: [API_ENDPOINTS.LOCAL.LocalGetHasLocalChanges.key],
-//         enabled: true,
-//     })
-// }
-
-// export function useLocalGetLocalStorageSize() {
-//     return useServerQuery<string>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalGetLocalStorageSize.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalGetLocalStorageSize.methods[0],
-//         queryKey: [API_ENDPOINTS.LOCAL.LocalGetLocalStorageSize.key],
-//         enabled: true,
-//     })
-// }
-
-// export function useLocalSyncSimulatedDataToAnilist() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.LOCAL.LocalSyncSimulatedDataToAnilist.endpoint,
-//         method: API_ENDPOINTS.LOCAL.LocalSyncSimulatedDataToAnilist.methods[0],
-//         mutationKey: [API_ENDPOINTS.LOCAL.LocalSyncSimulatedDataToAnilist.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // localfiles
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1151,7 +1010,7 @@
 // }
 
 // export function useImportLocalFiles() {
-//     return useServerMutation<boolean, ImportLocalFiles_Variables>({
+//     return useServerMutation<boolean>({
 //         endpoint: API_ENDPOINTS.LOCALFILES.ImportLocalFiles.endpoint,
 //         method: API_ENDPOINTS.LOCALFILES.ImportLocalFiles.methods[0],
 //         mutationKey: [API_ENDPOINTS.LOCALFILES.ImportLocalFiles.key],
@@ -1574,21 +1433,6 @@
 // }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// mediaplayer
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// export function useStartDefaultMediaPlayer() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.MEDIAPLAYER.StartDefaultMediaPlayer.endpoint,
-//         method: API_ENDPOINTS.MEDIAPLAYER.StartDefaultMediaPlayer.methods[0],
-//         mutationKey: [API_ENDPOINTS.MEDIAPLAYER.StartDefaultMediaPlayer.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // mediastream
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1664,44 +1508,11 @@
 // playback_manager
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// export function usePlaybackPlayVideo() {
-//     return useServerMutation<boolean, PlaybackPlayVideo_Variables>({
-//         endpoint: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlayVideo.endpoint,
-//         method: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlayVideo.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlayVideo.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function usePlaybackPlayRandomVideo() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlayRandomVideo.endpoint,
-//         method: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlayRandomVideo.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlayRandomVideo.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
 // export function usePlaybackSyncCurrentProgress() {
 //     return useServerMutation<number>({
 //         endpoint: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackSyncCurrentProgress.endpoint,
 //         method: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackSyncCurrentProgress.methods[0],
 //         mutationKey: [API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackSyncCurrentProgress.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function usePlaybackPlayNextEpisode() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlayNextEpisode.endpoint,
-//         method: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlayNextEpisode.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlayNextEpisode.key],
 //         onSuccess: async () => {
 // 
 //         },
@@ -1714,50 +1525,6 @@
 //         method: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackGetNextEpisode.methods[0],
 //         queryKey: [API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackGetNextEpisode.key],
 //         enabled: true,
-//     })
-// }
-
-// export function usePlaybackAutoPlayNextEpisode() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackAutoPlayNextEpisode.endpoint,
-//         method: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackAutoPlayNextEpisode.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackAutoPlayNextEpisode.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function usePlaybackStartPlaylist() {
-//     return useServerMutation<boolean, PlaybackStartPlaylist_Variables>({
-//         endpoint: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackStartPlaylist.endpoint,
-//         method: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackStartPlaylist.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackStartPlaylist.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function usePlaybackCancelCurrentPlaylist() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackCancelCurrentPlaylist.endpoint,
-//         method: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackCancelCurrentPlaylist.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackCancelCurrentPlaylist.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function usePlaybackPlaylistNext() {
-//     return useServerMutation<boolean>({
-//         endpoint: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlaylistNext.endpoint,
-//         method: API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlaylistNext.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYBACK_MANAGER.PlaybackPlaylistNext.key],
-//         onSuccess: async () => {
-// 
-//         },
 //     })
 // }
 
@@ -1780,61 +1547,6 @@
 //         onSuccess: async () => {
 // 
 //         },
-//     })
-// }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// playlist
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// export function useCreatePlaylist() {
-//     return useServerMutation<Anime_Playlist, CreatePlaylist_Variables>({
-//         endpoint: API_ENDPOINTS.PLAYLIST.CreatePlaylist.endpoint,
-//         method: API_ENDPOINTS.PLAYLIST.CreatePlaylist.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYLIST.CreatePlaylist.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useGetPlaylists() {
-//     return useServerQuery<Array<Anime_Playlist>>({
-//         endpoint: API_ENDPOINTS.PLAYLIST.GetPlaylists.endpoint,
-//         method: API_ENDPOINTS.PLAYLIST.GetPlaylists.methods[0],
-//         queryKey: [API_ENDPOINTS.PLAYLIST.GetPlaylists.key],
-//         enabled: true,
-//     })
-// }
-
-// export function useUpdatePlaylist(id: number) {
-//     return useServerMutation<Anime_Playlist, UpdatePlaylist_Variables>({
-//         endpoint: API_ENDPOINTS.PLAYLIST.UpdatePlaylist.endpoint.replace("{id}", String(id)),
-//         method: API_ENDPOINTS.PLAYLIST.UpdatePlaylist.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYLIST.UpdatePlaylist.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useDeletePlaylist() {
-//     return useServerMutation<boolean, DeletePlaylist_Variables>({
-//         endpoint: API_ENDPOINTS.PLAYLIST.DeletePlaylist.endpoint,
-//         method: API_ENDPOINTS.PLAYLIST.DeletePlaylist.methods[0],
-//         mutationKey: [API_ENDPOINTS.PLAYLIST.DeletePlaylist.key],
-//         onSuccess: async () => {
-// 
-//         },
-//     })
-// }
-
-// export function useGetPlaylistEpisodes(id: number, progress: number) {
-//     return useServerQuery<Array<Anime_LocalFile>>({
-//         endpoint: API_ENDPOINTS.PLAYLIST.GetPlaylistEpisodes.endpoint.replace("{id}", String(id)).replace("{progress}", String(progress)),
-//         method: API_ENDPOINTS.PLAYLIST.GetPlaylistEpisodes.methods[0],
-//         queryKey: [API_ENDPOINTS.PLAYLIST.GetPlaylistEpisodes.key],
-//         enabled: true,
 //     })
 // }
 

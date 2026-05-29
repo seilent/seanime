@@ -246,17 +246,6 @@ export const API_ENDPOINTS = {
         },
         /**
          *  @description
-         *  Route opens the directory of a media entry in the file explorer.
-         *  This finds a common directory for all media entry local files and opens it in the file explorer.
-         *  Returns 'true' whether the operation was successful or not, errors are ignored.
-         */
-        OpenAnimeEntryInExplorer: {
-            key: "ANIME-ENTRIES-open-anime-entry-in-explorer",
-            methods: ["POST"],
-            endpoint: "/api/v1/library/anime-entry/open-in-explorer",
-        },
-        /**
-         *  @description
          *  Route returns a list of media suggestions for files in the given directory.
          *  This is used by the "Resolve unmatched media" feature to suggest media entries for the local files in the given directory.
          *  If some matches files are found in the directory, it will ignore them and base the suggestions on the remaining files.
@@ -329,9 +318,9 @@ export const API_ENDPOINTS = {
         },
         /**
          *  @description
-         *  Route validates and removes non-existent local files for a specific media.
+         *  Route validates and removes non-existent local files, and scans for new files for a specific media.
          *  This checks if the local files associated with the given media ID actually exist on disk.
-         *  If a file doesn't exist, it's removed from the global mappings database.
+         *  It also scans the media's directory to find any new files that aren't in the database yet.
          *  This is called automatically when opening an anime entry page to ensure data consistency.
          */
         ValidateAnimeEntryLocalFiles: {
@@ -543,18 +532,6 @@ export const API_ENDPOINTS = {
             key: "DOWNLOAD-download-release",
             methods: ["POST"],
             endpoint: "/api/v1/download-release",
-        },
-    },
-    EXPLORER: {
-        /**
-         *  @description
-         *  Route opens the given directory in the file explorer.
-         *  It returns 'true' whether the operation was successful or not.
-         */
-        OpenInExplorer: {
-            key: "EXPLORER-open-in-explorer",
-            methods: ["POST"],
-            endpoint: "/api/v1/open-in-explorer",
         },
     },
     EXTENSIONS: {
@@ -844,73 +821,6 @@ export const API_ENDPOINTS = {
             key: "GLOBAL-MAPPING-unsubscribe-from-anime",
             methods: ["POST"],
             endpoint: "/api/v1/global-mapping/unsubscribe",
-        },
-    },
-    LOCAL: {
-        LocalGetTrackedMediaItems: {
-            key: "LOCAL-local-get-tracked-media-items",
-            methods: ["GET"],
-            endpoint: "/api/v1/local/track",
-        },
-        LocalAddTrackedMedia: {
-            key: "LOCAL-local-add-tracked-media",
-            methods: ["POST"],
-            endpoint: "/api/v1/local/track",
-        },
-        /**
-         *  @description
-         *  Route remove media from being tracked for offline sync.
-         *  This will remove anime from being tracked for offline sync and delete any associated data.
-         */
-        LocalRemoveTrackedMedia: {
-            key: "LOCAL-local-remove-tracked-media",
-            methods: ["DELETE"],
-            endpoint: "/api/v1/local/track",
-        },
-        LocalGetIsMediaTracked: {
-            key: "LOCAL-local-get-is-media-tracked",
-            methods: ["GET"],
-            endpoint: "/api/v1/local/track/{id}/{type}",
-        },
-        LocalSyncData: {
-            key: "LOCAL-local-sync-data",
-            methods: ["POST"],
-            endpoint: "/api/v1/local/local",
-        },
-        /**
-         *  @description
-         *  Route gets the current sync queue state.
-         *  This will return the list of media that are currently queued for syncing.
-         */
-        LocalGetSyncQueueState: {
-            key: "LOCAL-local-get-sync-queue-state",
-            methods: ["GET"],
-            endpoint: "/api/v1/local/queue",
-        },
-        LocalSyncAnilistData: {
-            key: "LOCAL-local-sync-anilist-data",
-            methods: ["POST"],
-            endpoint: "/api/v1/local/anilist",
-        },
-        LocalSetHasLocalChanges: {
-            key: "LOCAL-local-set-has-local-changes",
-            methods: ["POST"],
-            endpoint: "/api/v1/local/updated",
-        },
-        LocalGetHasLocalChanges: {
-            key: "LOCAL-local-get-has-local-changes",
-            methods: ["GET"],
-            endpoint: "/api/v1/local/updated",
-        },
-        LocalGetLocalStorageSize: {
-            key: "LOCAL-local-get-local-storage-size",
-            methods: ["GET"],
-            endpoint: "/api/v1/local/storage/size",
-        },
-        LocalSyncSimulatedDataToAnilist: {
-            key: "LOCAL-local-sync-simulated-data-to-anilist",
-            methods: ["POST"],
-            endpoint: "/api/v1/local/sync-simulated-to-anilist",
         },
     },
     LOCALFILES: {
@@ -1285,13 +1195,6 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/test-dump",
         },
     },
-    MEDIAPLAYER: {
-        StartDefaultMediaPlayer: {
-            key: "MEDIAPLAYER-start-default-media-player",
-            methods: ["POST"],
-            endpoint: "/api/v1/media-player/start",
-        },
-    },
     MEDIASTREAM: {
         /**
          *  @description
@@ -1359,29 +1262,6 @@ export const API_ENDPOINTS = {
     PLAYBACK_MANAGER: {
         /**
          *  @description
-         *  Route plays the video with the given path using the default media player.
-         *  This tells the Playback Manager to play the video using the default media player and start tracking progress.
-         *  This returns 'true' if the video was successfully played.
-         */
-        PlaybackPlayVideo: {
-            key: "PLAYBACK-MANAGER-playback-play-video",
-            methods: ["POST"],
-            endpoint: "/api/v1/playback-manager/play",
-        },
-        /**
-         *  @description
-         *  Route plays a random, unwatched video using the default media player.
-         *  This tells the Playback Manager to play a random, unwatched video using the media player and start tracking progress.
-         *  It respects the user's progress data and will prioritize "current" and "repeating" media if they are many of them.
-         *  This returns 'true' if the video was successfully played.
-         */
-        PlaybackPlayRandomVideo: {
-            key: "PLAYBACK-MANAGER-playback-play-random-video",
-            methods: ["POST"],
-            endpoint: "/api/v1/playback-manager/play-random",
-        },
-        /**
-         *  @description
          *  Route updates the AniList progress of the currently playing media.
          *  This is called after 'Update progress' is clicked when watching a media.
          *  This route returns the media ID of the currently playing media, so the client can refetch the media entry data.
@@ -1393,17 +1273,6 @@ export const API_ENDPOINTS = {
         },
         /**
          *  @description
-         *  Route plays the next episode of the currently playing media.
-         *  This will play the next episode of the currently playing media.
-         *  This is non-blocking so the client should prevent multiple calls until the next status is received.
-         */
-        PlaybackPlayNextEpisode: {
-            key: "PLAYBACK-MANAGER-playback-play-next-episode",
-            methods: ["POST"],
-            endpoint: "/api/v1/playback-manager/next-episode",
-        },
-        /**
-         *  @description
          *  Route gets the next episode of the currently playing media.
          *  This is used by the client's autoplay feature
          */
@@ -1411,46 +1280,6 @@ export const API_ENDPOINTS = {
             key: "PLAYBACK-MANAGER-playback-get-next-episode",
             methods: ["GET"],
             endpoint: "/api/v1/playback-manager/next-episode",
-        },
-        /**
-         *  @description
-         *  Route plays the next episode of the currently playing media.
-         *  This will play the next episode of the currently playing media.
-         */
-        PlaybackAutoPlayNextEpisode: {
-            key: "PLAYBACK-MANAGER-playback-auto-play-next-episode",
-            methods: ["POST"],
-            endpoint: "/api/v1/playback-manager/autoplay-next-episode",
-        },
-        /**
-         *  @description
-         *  Route starts playing a playlist.
-         *  The client should refetch playlists.
-         */
-        PlaybackStartPlaylist: {
-            key: "PLAYBACK-MANAGER-playback-start-playlist",
-            methods: ["POST"],
-            endpoint: "/api/v1/playback-manager/start-playlist",
-        },
-        /**
-         *  @description
-         *  Route ends the current playlist.
-         *  This will stop the current playlist. This is non-blocking.
-         */
-        PlaybackCancelCurrentPlaylist: {
-            key: "PLAYBACK-MANAGER-playback-cancel-current-playlist",
-            methods: ["POST"],
-            endpoint: "/api/v1/playback-manager/cancel-playlist",
-        },
-        /**
-         *  @description
-         *  Route moves to the next item in the current playlist.
-         *  This is non-blocking so the client should prevent multiple calls until the next status is received.
-         */
-        PlaybackPlaylistNext: {
-            key: "PLAYBACK-MANAGER-playback-playlist-next",
-            methods: ["POST"],
-            endpoint: "/api/v1/playback-manager/playlist-next",
         },
         /**
          *  @description
@@ -1473,44 +1302,6 @@ export const API_ENDPOINTS = {
             key: "PLAYBACK-MANAGER-playback-cancel-manual-tracking",
             methods: ["POST"],
             endpoint: "/api/v1/playback-manager/manual-tracking/cancel",
-        },
-    },
-    PLAYLIST: {
-        /**
-         *  @description
-         *  Route creates a new playlist.
-         *  This will create a new playlist with the given name and local file paths.
-         *  The response is ignored, the client should re-fetch the playlists after this.
-         */
-        CreatePlaylist: {
-            key: "PLAYLIST-create-playlist",
-            methods: ["POST"],
-            endpoint: "/api/v1/playlist",
-        },
-        GetPlaylists: {
-            key: "PLAYLIST-get-playlists",
-            methods: ["GET"],
-            endpoint: "/api/v1/playlists",
-        },
-        /**
-         *  @description
-         *  Route updates a playlist.
-         *  The response is ignored, the client should re-fetch the playlists after this.
-         */
-        UpdatePlaylist: {
-            key: "PLAYLIST-update-playlist",
-            methods: ["PATCH"],
-            endpoint: "/api/v1/playlist",
-        },
-        DeletePlaylist: {
-            key: "PLAYLIST-delete-playlist",
-            methods: ["DELETE"],
-            endpoint: "/api/v1/playlist",
-        },
-        GetPlaylistEpisodes: {
-            key: "PLAYLIST-get-playlist-episodes",
-            methods: ["GET"],
-            endpoint: "/api/v1/playlist/episodes/{id}/{progress}",
         },
     },
     RELEASES: {
