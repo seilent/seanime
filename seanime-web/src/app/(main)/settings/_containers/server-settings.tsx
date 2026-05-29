@@ -1,8 +1,6 @@
-import { useLocalSyncSimulatedDataToAnilist } from "@/api/hooks/local.hooks"
 import { __seaCommand_shortcuts } from "@/app/(main)/_features/sea-command/sea-command"
 import { SettingsCard } from "@/app/(main)/settings/_components/settings-card"
 import { SettingsSubmitButton } from "@/app/(main)/settings/_components/settings-submit-button"
-import { ConfirmationDialog, useConfirmationDialog } from "@/components/shared/confirmation-dialog"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/components/ui/core/styling"
 import { Field } from "@/components/ui/form"
@@ -11,8 +9,6 @@ import { useAtom } from "jotai/react"
 import React from "react"
 import { useFormContext } from "react-hook-form"
 import { FaRedo } from "react-icons/fa"
-import { LuCloudUpload } from "react-icons/lu"
-import { useServerStatus } from "../../_hooks/use-server-status"
 
 type ServerSettingsProps = {
     isPending: boolean
@@ -25,22 +21,8 @@ export function ServerSettings(props: ServerSettingsProps) {
         ...rest
     } = props
 
-    const serverStatus = useServerStatus()
-
     const [shortcuts, setShortcuts] = useAtom(__seaCommand_shortcuts)
     const f = useFormContext()
-
-    const { mutate: upload, isPending: isUploading } = useLocalSyncSimulatedDataToAnilist()
-
-    const confirmDialog = useConfirmationDialog({
-        title: "Upload to AniList",
-        description: "This will upload your local Seanime collection to your AniList account. Are you sure you want to proceed?",
-        actionText: "Upload",
-        actionIntent: "primary",
-        onConfirm: async () => {
-            upload()
-        },
-    })
 
     return (
         <div className="space-y-4">
@@ -99,35 +81,6 @@ export function ServerSettings(props: ServerSettingsProps) {
                 />
 
             </SettingsCard>
-
-            <SettingsCard
-                title="Local Data"
-                description="Local data is used when you're not using an AniList account."
-            >
-                <div>
-                    <Field.Switch
-                        side="right"
-                        name="autoSyncToLocalAccount"
-                        label="Auto backup lists from AniList"
-                        help="If enabled, your local lists will be periodically updated by using your AniList data."
-                    />
-                </div>
-                <Separator />
-                <Button
-                    size="sm"
-                    intent="primary-subtle"
-                    loading={isUploading}
-                    leftIcon={<LuCloudUpload className="size-4" />}
-                    onClick={() => {
-                        confirmDialog.open()
-                    }}
-                    disabled={false}
-                >
-                    Upload local lists to AniList
-                </Button>
-            </SettingsCard>
-
-            <ConfirmationDialog {...confirmDialog} />
 
 
             <SettingsCard title="App">

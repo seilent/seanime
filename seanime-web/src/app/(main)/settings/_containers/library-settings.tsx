@@ -1,6 +1,5 @@
 import { SettingsCard } from "@/app/(main)/settings/_components/settings-card"
 import { SettingsSubmitButton } from "@/app/(main)/settings/_components/settings-submit-button"
-import { DataSettings } from "@/app/(main)/settings/_containers/data-settings"
 import { useCurrentUser } from "@/app/(main)/_hooks/use-server-status"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
@@ -153,7 +152,6 @@ export function LibrarySettings(props: LibrarySettingsProps) {
 
                         <Separator />
 
-                        <DataSettings />
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>

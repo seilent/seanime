@@ -1,9 +1,6 @@
 "use client"
 import { Anime_Entry } from "@/api/generated/types"
-import { useOpenAnimeEntryInExplorer } from "@/api/hooks/anime_entries.hooks"
-import { useStartDefaultMediaPlayer } from "@/api/hooks/mediaplayer.hooks"
 import { PluginAnimePageDropdownItems } from "@/app/(main)/_features/plugin/actions/plugin-actions"
-import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import {
     __bulkDeleteFilesModalIsOpenAtom,
     AnimeEntryBulkDeleteFilesModal,
@@ -22,22 +19,16 @@ import { DropdownMenu, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparato
 import { openTab } from "@/lib/helpers/browser"
 import { useSetAtom } from "jotai"
 import React from "react"
-import { BiDotsVerticalRounded, BiFolder, BiRightArrowAlt } from "react-icons/bi"
+import { BiDotsVerticalRounded, BiRightArrowAlt } from "react-icons/bi"
 import { FiArrowUpRight, FiDownload, FiTrash } from "react-icons/fi"
 import { LuGlobe, LuImage } from "react-icons/lu"
 import { MdOutlineRemoveDone } from "react-icons/md"
 
 export function AnimeEntryDropdownMenu({ entry }: { entry: Anime_Entry }) {
 
-    const serverStatus = useServerStatus()
     const setIsMetadataManagerOpen = useSetAtom(__metadataManager_isOpenAtom)
 
     const inLibrary = !!entry.libraryData
-
-    // Start default media player
-    const { mutate: startDefaultMediaPlayer } = useStartDefaultMediaPlayer()
-    // Open entry in explorer
-    const { mutate: openEntryInExplorer } = useOpenAnimeEntryInExplorer()
 
     const setBulkDeleteFilesModalOpen = useSetAtom(__bulkDeleteFilesModalIsOpenAtom)
     const setAnimeEntryUnmatchFilesModalOpen = useSetAtom(__animeEntryUnmatchFilesModalIsOpenAtom)
@@ -56,12 +47,6 @@ export function AnimeEntryDropdownMenu({ entry }: { entry: Anime_Entry }) {
             >
 
                 {(inLibrary && true) && <>
-                    <DropdownMenuItem
-                        onClick={() => openEntryInExplorer({ mediaId: entry.mediaId })}
-                    >
-                        <BiFolder /> Open directory
-                    </DropdownMenuItem>
-
                     {/*{serverStatus?.settings?.mediaPlayer?.defaultPlayer != "mpv" && <DropdownMenuItem*/}
                     {/*    onClick={() => startDefaultMediaPlayer()}*/}
                     {/*>*/}

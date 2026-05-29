@@ -3,7 +3,6 @@ import {
     AnimeEntryBulkAction_Variables,
     AnimeEntryManualMatch_Variables,
     FetchAnimeEntrySuggestions_Variables,
-    OpenAnimeEntryInExplorer_Variables,
     ToggleAnimeEntrySilenceStatus_Variables,
     UpdateAnimeEntryProgress_Variables,
     UpdateAnimeEntryRepeat_Variables,
@@ -34,17 +33,6 @@ export function useAnimeEntryBulkAction(id?: Nullish<number>, onSuccess?: () => 
             await queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetLibraryCollection.key] })
             queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetAnimeEntry.key, String(id)] })
             onSuccess?.()
-        },
-    })
-}
-
-export function useOpenAnimeEntryInExplorer() {
-    return useServerMutation<boolean, OpenAnimeEntryInExplorer_Variables>({
-        endpoint: API_ENDPOINTS.ANIME_ENTRIES.OpenAnimeEntryInExplorer.endpoint,
-        method: API_ENDPOINTS.ANIME_ENTRIES.OpenAnimeEntryInExplorer.methods[0],
-        mutationKey: [API_ENDPOINTS.ANIME_ENTRIES.OpenAnimeEntryInExplorer.key],
-        onSuccess: async () => {
-
         },
     })
 }

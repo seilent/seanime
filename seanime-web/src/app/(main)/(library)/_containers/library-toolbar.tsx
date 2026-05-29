@@ -1,10 +1,7 @@
 "use client"
 import { Anime_LibraryCollectionList, Anime_LocalFile, Anime_UnknownGroup } from "@/api/generated/types"
-import { useOpenInExplorer } from "@/api/hooks/explorer.hooks"
 import { __bulkAction_modalAtomIsOpen } from "@/app/(main)/(library)/_containers/bulk-action-modal"
 import { __ignoredFileManagerIsOpen } from "@/app/(main)/(library)/_containers/ignored-file-manager"
-import { PlayRandomEpisodeButton } from "@/app/(main)/(library)/_containers/play-random-episode-button"
-import { __playlists_modalOpenAtom } from "@/app/(main)/(library)/_containers/playlists/playlists-modal"
 import { useSmartLibraryScan } from "@/app/(main)/(library)/_hooks/use-smart-library-scan"
 import { __unknownMedia_drawerIsOpen } from "@/app/(main)/(library)/_containers/unknown-media-manager"
 import { __unmatchedFileManagerIsOpen } from "@/app/(main)/(library)/_containers/unmatched-file-manager"
@@ -18,10 +15,9 @@ import { Tooltip } from "@/components/ui/tooltip"
 import { ThemeLibraryScreenBannerType, useThemeSettings } from "@/lib/theme/hooks"
 import { useAtom, useSetAtom } from "jotai/react"
 import React from "react"
-import { BiCollection, BiDotsVerticalRounded, BiFolder } from "react-icons/bi"
+import { BiCollection, BiDotsVerticalRounded } from "react-icons/bi"
 import { FiSearch } from "react-icons/fi"
 import { IoLibrary, IoLibrarySharp } from "react-icons/io5"
-import { MdOutlineVideoLibrary } from "react-icons/md"
 import { PiClockCounterClockwiseFill } from "react-icons/pi"
 import { TbFileSad, TbReload } from "react-icons/tb"
 import { PluginAnimeLibraryDropdownItems } from "../../_features/plugin/actions/plugin-actions"
@@ -57,11 +53,8 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
     const setUnmatchedFileManagerOpen = useSetAtom(__unmatchedFileManagerIsOpen)
     const setIgnoredFileManagerOpen = useSetAtom(__ignoredFileManagerIsOpen)
     const setUnknownMediaManagerOpen = useSetAtom(__unknownMedia_drawerIsOpen)
-    const setPlaylistsModalOpen = useSetAtom(__playlists_modalOpenAtom)
 
     const [libraryView, setLibraryView] = useAtom(__library_viewAtom)
-
-    const { mutate: openInExplorer } = useOpenInExplorer()
 
     const hasLibraryPath = !!status?.settings?.library?.libraryPath
 
@@ -88,17 +81,6 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
                         >
                             Switch view
                         </Tooltip>
-
-                        {!(isStreamingOnly || isNakamaLibrary) && <Tooltip
-                            trigger={<IconButton
-                                data-library-toolbar-playlists-button
-                                intent={"white-subtle"}
-                                icon={<MdOutlineVideoLibrary className="text-2xl" />}
-                                onClick={() => setPlaylistsModalOpen(true)}
-                            />}
-                        >Playlists</Tooltip>}
-
-                        {!(isStreamingOnly || isNakamaLibrary) && <PlayRandomEpisodeButton />}
 
                         {/*Show up even when there's no local entries*/}
                         {!isNakamaLibrary && hasLibraryPath && <Button
@@ -141,18 +123,6 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
                             icon={<BiDotsVerticalRounded />} intent="gray-basic"
                         />}
                     >
-
-                        <DropdownMenuItem
-                            data-library-toolbar-open-directory-button
-                            disabled={!hasLibraryPath}
-                            className={cn("cursor-pointer", { "!text-[--muted]": !hasLibraryPath })}
-                            onClick={() => {
-                                openInExplorer({ path: status?.settings?.library?.libraryPath ?? "" })
-                            }}
-                        >
-                            <BiFolder />
-                            <span>Open directory</span>
-                        </DropdownMenuItem>
 
                         <DropdownMenuItem
                             data-library-toolbar-bulk-actions-button

@@ -1,5 +1,4 @@
 "use client"
-import { useOpenInExplorer } from "@/api/hooks/explorer.hooks"
 import { useAnimeListTorrentProviderExtensions } from "@/api/hooks/extensions.hooks"
 import { useSaveSettings } from "@/api/hooks/settings.hooks"
 import { CustomLibraryBanner } from "@/app/(main)/(library)/_containers/custom-library-banner"
@@ -40,7 +39,6 @@ import { ImDownload } from "react-icons/im"
 import { IoLibrary, IoPlayBackCircleSharp } from "react-icons/io5"
 import { LuBookKey, LuExternalLink, LuLaptop, LuLibrary, LuPalette, LuWandSparkles } from "react-icons/lu"
 import { MdOutlineBroadcastOnHome, MdOutlineConnectWithoutContact, MdOutlineDownloading, MdOutlinePalette } from "react-icons/md"
-import { RiFolderDownloadFill } from "react-icons/ri"
 import { TbDatabaseExclamation } from "react-icons/tb"
 import { VscDebugAlt } from "react-icons/vsc"
 import { SettingsCard, SettingsNavCard, SettingsPageHeader } from "./_components/settings-card"
@@ -81,8 +79,6 @@ export default function Page() {
 
     const { data: torrentProviderExtensions } = useAnimeListTorrentProviderExtensions()
 
-
-    const { mutate: openInExplorer, isPending: isOpening } = useOpenInExplorer()
 
     React.useEffect(() => {
         if (!isPending && !!data?.settings) {
@@ -429,18 +425,6 @@ export default function Page() {
                                         />
 
                                         <div className="flex flex-wrap gap-2 slide-in-from-bottom duration-500 delay-150">
-                                            {!!status?.dataDir && <Button
-                                                size="sm"
-                                                intent="gray-outline"
-                                                onClick={() => openInExplorer({
-                                                    path: status?.dataDir,
-                                                })}
-                                                className="transition-all duration-200 hover:scale-105 hover:shadow-md"
-                                                leftIcon={
-                                                    <RiFolderDownloadFill className="transition-transform duration-200 group-hover:scale-110" />}
-                                            >
-                                                Open Data directory
-                                            </Button>}
                                             <Button
                                                 size="sm"
                                                 intent="gray-outline"

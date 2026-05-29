@@ -1,6 +1,5 @@
 import { Anime_UnmatchedGroup } from "@/api/generated/types"
 import { useAnimeEntryManualMatch, useFetchAnimeEntrySuggestions } from "@/api/hooks/anime_entries.hooks"
-import { useOpenInExplorer } from "@/api/hooks/explorer.hooks"
 import { useUpdateLocalFiles } from "@/api/hooks/localfiles.hooks"
 import { SeaLink } from "@/components/shared/sea-link"
 import { AppLayoutStack } from "@/components/ui/app-layout"
@@ -40,8 +39,6 @@ export function UnmatchedFileManager(props: UnmatchedFileManagerProps) {
     const [selectedPaths, setSelectedPaths] = React.useState<string[]>([])
 
     const [anilistId, setAnilistId] = React.useState(0)
-
-    const { mutate: openInExplorer } = useOpenInExplorer()
 
     const {
         data: suggestions,
@@ -186,10 +183,7 @@ export function UnmatchedFileManager(props: UnmatchedFileManagerProps) {
                 </div>
 
                 <div
-                    className="bg-gray-900 border  p-2 px-4 rounded-[--radius-md] line-clamp-1 flex gap-2 items-center cursor-pointer transition hover:bg-opacity-80"
-                    onClick={() => openInExplorer({
-                        path: currentGroup.dir,
-                    })}
+                    className="bg-gray-900 border  p-2 px-4 rounded-[--radius-md] line-clamp-1 flex gap-2 items-center"
                 >
                     <FcFolder className="text-2xl" />
                     {currentGroup.dir}

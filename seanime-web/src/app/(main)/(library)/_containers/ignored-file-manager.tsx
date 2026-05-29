@@ -1,5 +1,4 @@
 import { Anime_LocalFile } from "@/api/generated/types"
-import { useOpenInExplorer } from "@/api/hooks/explorer.hooks"
 import { useUpdateLocalFiles } from "@/api/hooks/localfiles.hooks"
 import { LuffyError } from "@/components/shared/luffy-error"
 import { AppLayoutStack } from "@/components/ui/app-layout"
@@ -24,8 +23,6 @@ export function IgnoredFileManager(props: IgnoredFileManagerProps) {
     const { files } = props
 
     const [isOpen, setIsOpen] = useAtom(__ignoredFileManagerIsOpen)
-
-    const { mutate: openInExplorer } = useOpenInExplorer()
 
     const { mutate: updateLocalFiles, isPending: isUpdating } = useUpdateLocalFiles()
 

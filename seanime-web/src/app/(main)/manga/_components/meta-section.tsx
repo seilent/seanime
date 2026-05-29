@@ -10,7 +10,6 @@ import {
     MediaPageHeaderDetailsContainer,
     MediaPageHeaderEntryDetails,
 } from "@/app/(main)/_features/media/_components/media-page-header-components"
-import { MediaSyncTrackButton } from "@/app/(main)/_features/media/_containers/media-sync-track-button"
 import { SeaLink } from "@/components/shared/sea-link"
 import { IconButton } from "@/components/ui/button"
 import { cn } from "@/components/ui/core/styling"
@@ -81,7 +80,6 @@ export function MetaSection(props: { entry: Manga_Entry | undefined, details: AL
 
                     {ts.mediaPageBannerInfoBoxSize !== ThemeMediaPageInfoBoxSize.Fluid && <div className="flex-1 hidden lg:flex"></div>}
 
-                    <MediaSyncTrackButton mediaId={entry.mediaId} type="manga" size="md" />
 
                     <PluginMangaPageButtons media={entry.media} />
                 </div>

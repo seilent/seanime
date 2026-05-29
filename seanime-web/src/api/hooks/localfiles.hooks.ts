@@ -1,7 +1,6 @@
 import { useServerMutation, useServerQuery } from "@/api/client/requests"
 import {
     DeleteLocalFiles_Variables,
-    ImportLocalFiles_Variables,
     LocalFileBulkAction_Variables,
     UpdateLocalFileData_Variables,
     UpdateLocalFiles_Variables,
@@ -109,17 +108,4 @@ export function useRemoveEmptyDirectories() {
     })
 }
 
-export function useImportLocalFiles() {
-    const qc = useQueryClient()
 
-    return useServerMutation<boolean, ImportLocalFiles_Variables>({
-        endpoint: API_ENDPOINTS.LOCALFILES.ImportLocalFiles.endpoint,
-        method: API_ENDPOINTS.LOCALFILES.ImportLocalFiles.methods[0],
-        mutationKey: [API_ENDPOINTS.LOCALFILES.ImportLocalFiles.key],
-        onSuccess: async () => {
-            await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_COLLECTION.GetLibraryCollection.key] })
-            await qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ANIME_ENTRIES.GetAnimeEntry.key] })
-            toast.success("Local files imported")
-        },
-    })
-}

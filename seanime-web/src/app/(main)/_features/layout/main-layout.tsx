@@ -1,5 +1,4 @@
 "use client"
-import { PlaylistsModal } from "@/app/(main)/(library)/_containers/playlists/playlists-modal"
 import { ScanProgressBar } from "@/app/(main)/(library)/_containers/scan-progress-bar"
 import { ErrorExplainer } from "@/app/(main)/_features/error-explainer/error-explainer"
 import { GlobalSearch } from "@/app/(main)/_features/global-search/global-search"
@@ -67,7 +66,6 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
             <GlobalSearch />
             <ScanProgressBar />
             <LibraryWatcher />
-            <PlaylistsModal />
             <ChapterDownloadsDrawer />
             <MediaPreviewModal />
             <PlaybackManagerProgressTracking />
