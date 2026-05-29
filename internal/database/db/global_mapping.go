@@ -54,6 +54,39 @@ func (db *Database) ClearAllGlobalMappings() error {
 	return db.gormdb.Where("1 = 1").Delete(&models.GlobalAnimeFileMapping{}).Error
 }
 
+// SetGlobalMappingIgnored sets the ignored flag for a mapping by path
+func (db *Database) SetGlobalMappingIgnored(filePath string, ignored bool) error {
+	return db.gormdb.Model(&models.GlobalAnimeFileMapping{}).
+		Where("local_file_path = ?", filePath).
+		Updates(map[string]interface{}{"ignored": ignored, "anilist_id": 0}).Error
+}
+
+// UpdateGlobalMappingMediaId updates the anilist_id for a mapping by path
+func (db *Database) UpdateGlobalMappingMediaId(filePath string, mediaId int) error {
+	return db.gormdb.Model(&models.GlobalAnimeFileMapping{}).
+		Where("local_file_path = ?", filePath).
+		Update("anilist_id", mediaId).Error
+}
+
+// DeleteGlobalMappingsByPaths deletes mappings for the given paths
+func (db *Database) DeleteGlobalMappingsByPaths(paths []string) error {
+	if len(paths) == 0 {
+		return nil
+	}
+	return db.gormdb.Where("local_file_path IN ?", paths).Delete(&models.GlobalAnimeFileMapping{}).Error
+}
+
+// UpsertGlobalMapping creates or updates a mapping by path
+func (db *Database) UpsertGlobalMapping(mapping *models.GlobalAnimeFileMapping) error {
+	var existing models.GlobalAnimeFileMapping
+	err := db.gormdb.Where("local_file_path = ?", mapping.LocalFilePath).First(&existing).Error
+	if err == nil {
+		mapping.ID = existing.ID
+		return db.gormdb.Save(mapping).Error
+	}
+	return db.gormdb.Create(mapping).Error
+}
+
 // Unmapped Files Operations
 
 // CreateUnmappedFile creates a new unmapped file record

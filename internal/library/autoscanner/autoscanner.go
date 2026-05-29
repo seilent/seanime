@@ -243,14 +243,7 @@ func (as *AutoScanner) scan() {
 
 	if as.db != nil && len(allLfs) > 0 {
 		as.logger.Trace().Msg("autoscanner: Updating local files")
-
-		// Insert the local files
-		_, err = db_bridge.InsertLocalFiles(as.db, allLfs)
-		if err != nil {
-			as.logger.Error().Err(err).Msg("failed to insert local files")
-			return
-		}
-
+		// Global mappings are already written by the scanner; no blob write needed.
 	}
 
 	// Save the scan summary

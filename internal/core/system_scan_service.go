@@ -10,7 +10,6 @@ import (
 	"seanime/internal/api/anilist"
 	"seanime/internal/api/metadata"
 	"seanime/internal/database/db"
-	"seanime/internal/database/db_bridge"
 	"seanime/internal/events"
 	"seanime/internal/library/scanner"
 	"seanime/internal/platforms/platform"
@@ -21,8 +20,8 @@ import (
 type SystemScanService struct {
 	logger           *zerolog.Logger
 	database         *db.Database
-	platform         platform.Platform       // For AniList API access
-	metadataProvider metadata.Provider       // For metadata operations
+	platform         platform.Platform // For AniList API access
+	metadataProvider metadata.Provider // For metadata operations
 	wsEventManager   events.WSEventManagerInterface
 	sseManager       *events.SSEManager
 	rateLimiter      *limiter.Limiter
@@ -45,8 +44,8 @@ type SystemScanService struct {
 type SystemScanServiceOptions struct {
 	Logger           *zerolog.Logger
 	Database         *db.Database
-	Platform         platform.Platform       // For AniList API access
-	MetadataProvider metadata.Provider       // For metadata operations
+	Platform         platform.Platform // For AniList API access
+	MetadataProvider metadata.Provider // For metadata operations
 	WSEventManager   events.WSEventManagerInterface
 	SSEManager       *events.SSEManager
 	RateLimiter      *limiter.Limiter
@@ -67,14 +66,14 @@ func NewSystemScanService(opts *SystemScanServiceOptions) *SystemScanService {
 	}
 
 	service := &SystemScanService{
-		logger:           opts.Logger,
-		database:         opts.Database,
-		platform:         opts.Platform,
-		metadataProvider: opts.MetadataProvider,
-		wsEventManager:   opts.WSEventManager,
-		sseManager:       opts.SSEManager,
-		rateLimiter:      opts.RateLimiter,
-		animeCache:       opts.AnimeCache,
+		logger:            opts.Logger,
+		database:          opts.Database,
+		platform:          opts.Platform,
+		metadataProvider:  opts.MetadataProvider,
+		wsEventManager:    opts.WSEventManager,
+		sseManager:        opts.SSEManager,
+		rateLimiter:       opts.RateLimiter,
+		animeCache:        opts.AnimeCache,
 		fileChangeCh:      make(chan struct{}, 1),
 		enabled:           true,
 		debounceDelay:     debounceDelay,
@@ -213,12 +212,6 @@ func (sss *SystemScanService) performSystemScan() {
 		Int("updatedMappings", result.UpdatedMappings).
 		Msg("system_scan_service: Automatic system scan completed")
 
-	// Invalidate backend cache if new mappings were created so fresh data is fetched
-	if result.NewMappings > 0 {
-		db_bridge.InvalidateLocalFilesCache()
-		sss.logger.Debug().Msg("system_scan_service: Backend local files cache invalidated")
-	}
-
 	// Set the last scan completion time to start cooldown period
 	sss.mu.Lock()
 	sss.lastScanCompleted = time.Now()
@@ -231,12 +224,12 @@ func (sss *SystemScanService) performSystemScan() {
 	// Send SSE event for scan completion to trigger frontend cache refresh
 	if sss.sseManager != nil && result.NewMappings > 0 {
 		sss.sseManager.SendEventToSSE("system-scan-completed", map[string]interface{}{
-			"filesProcessed":   result.FilesProcessed,
-			"newMappings":      result.NewMappings,
-			"updatedMappings":  result.UpdatedMappings,
-			"duration":         result.Duration,
-			"timestamp":        time.Now().Unix(),
-			"mappedAnime":      result.MappedAnime,
+			"filesProcessed":  result.FilesProcessed,
+			"newMappings":     result.NewMappings,
+			"updatedMappings": result.UpdatedMappings,
+			"duration":        result.Duration,
+			"timestamp":       time.Now().Unix(),
+			"mappedAnime":     result.MappedAnime,
 		})
 		sss.logger.Debug().
 			Int("newMappings", result.NewMappings).

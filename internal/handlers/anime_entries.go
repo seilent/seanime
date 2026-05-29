@@ -124,48 +124,23 @@ func (h *Handler) HandleAnimeEntryBulkAction(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Get the user's local files
-	lfs, lfsId, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	// Group local files by media id
-	groupedLfs := anime.GroupLocalFilesByMediaID(lfs)
-
-	selectLfs, ok := groupedLfs[p.MediaId]
-	if !ok {
-		return h.RespondWithError(c, errors.New("no local files found for media id"))
-	}
-
 	switch p.Action {
 	case "unmatch":
-		lfs = lop.Map(lfs, func(item *anime.LocalFile, _ int) *anime.LocalFile {
-			if item.MediaId == p.MediaId && p.MediaId != 0 {
-				item.MediaId = 0
-				item.Locked = false
-				item.Ignored = false
-			}
-			return item
-		})
+		// Set anilist_id=0 for all mappings with this media
+		h.App.Database.Gorm().Model(&models.GlobalAnimeFileMapping{}).
+			Where("anilist_id = ?", p.MediaId).
+			Updates(map[string]interface{}{"anilist_id": 0, "ignored": false})
 	case "toggle-lock":
-		// Flip the locked status of all the local files for the given media
-		allLocked := lo.EveryBy(selectLfs, func(item *anime.LocalFile) bool { return item.Locked })
-		lfs = lop.Map(lfs, func(item *anime.LocalFile, _ int) *anime.LocalFile {
-			if item.MediaId == p.MediaId && p.MediaId != 0 {
-				item.Locked = !allLocked
-			}
-			return item
-		})
+		// NO-OP — Locked field is inert
 	}
 
-	// Save the local files
-	retLfs, err := db_bridge.SaveLocalFiles(h.App.Database, lfsId, lfs)
+	// Return current local files
+	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
 
-	return h.RespondWithData(c, retLfs)
+	return h.RespondWithData(c, lfs)
 
 }
 
@@ -300,8 +275,7 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 
 	// Retrieve the user's local files
 	var lfs []*anime.LocalFile
-	var lfsId uint
-	lfs, lfsId, err = db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
+	lfs, _, err = db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -398,15 +372,37 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 		return h.RespondWithData(c, lfs)
 	}
 
-	// Add the hydrated local files to the slice
-	lfs = append(lfs, event.MatchedLocalFiles...)
-
-	// Update the local files
-	retLfs, err := db_bridge.SaveLocalFiles(h.App.Database, lfsId, lfs)
-	if err != nil {
-		return h.RespondWithError(c, err)
+	// Upsert global mappings for matched files
+	for _, lf := range event.MatchedLocalFiles {
+		episodeNumber := 0
+		fileType := "main"
+		if lf.Metadata != nil {
+			episodeNumber = lf.Metadata.Episode
+			if lf.Metadata.Type != "" {
+				fileType = string(lf.Metadata.Type)
+			}
+		}
+		romajiTitle := ""
+		if v := media.GetTitle().GetRomaji(); v != nil {
+			romajiTitle = *v
+		}
+		englishTitle := ""
+		if v := media.GetTitle().GetEnglish(); v != nil {
+			englishTitle = *v
+		}
+		_ = h.App.Database.UpsertGlobalMapping(&models.GlobalAnimeFileMapping{
+			AniListID:     b.MediaId,
+			LocalFilePath: lf.Path,
+			Title:         media.GetTitleSafe(),
+			RomajiTitle:   romajiTitle,
+			EnglishTitle:  englishTitle,
+			EpisodeNumber: episodeNumber,
+			FileType:      fileType,
+		})
 	}
 
+	// Return all local files
+	retLfs, _, _ := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	return h.RespondWithData(c, retLfs)
 }
 

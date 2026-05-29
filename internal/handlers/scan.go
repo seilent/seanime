@@ -118,10 +118,8 @@ func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 	}
 
 	// Insert the local files for this user
-	lfs, err := db_bridge.InsertLocalFilesForUser(h.App.Database, allLfs, user.ID)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
+	// Global mappings are already written by the scanner; no blob write needed.
+	lfs := allLfs
 
 	// Save the scan summary
 	_ = db_bridge.InsertScanSummary(h.App.Database, scanSummaryLogger.GenerateSummary())
@@ -132,7 +130,7 @@ func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 		if err != nil {
 			h.App.Logger.Error().Err(err).Msg("handlers: Failed to process LocalFiles through sync system")
 		}
-		
+
 		// Sync user's library subscriptions based on discovered media
 		mediaIDs := make([]int, 0)
 		for _, lf := range lfs {
@@ -150,7 +148,7 @@ func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 				}
 			}
 		}
-		
+
 		if len(mediaIDs) > 0 {
 			err = h.App.SyncManager.SyncUserLibrary(user.ID, mediaIDs)
 			if err != nil {

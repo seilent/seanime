@@ -124,25 +124,19 @@ func (d *Database) saveLocalFiles(filesToSave []*anime.LocalFile) error {
 		return errors.New("database not initialized")
 	}
 
-	lfs, lfsId, err := db_bridge.GetLocalFilesFromGlobalMappings(db)
-	if err != nil {
-		return err
-	}
-
-	filesToSaveMap := make(map[string]*anime.LocalFile)
+	// Update global mappings for each file
 	for _, file := range filesToSave {
-		filesToSaveMap[util.NormalizePath(file.Path)] = file
-	}
-
-	for i := range lfs {
-		if fileToSave, ok := filesToSaveMap[util.NormalizePath(lfs[i].Path)]; !ok {
-			lfs[i] = fileToSave
+		mapping, err := db.GetGlobalMapping(file.Path)
+		if err != nil {
+			continue // skip files without existing mapping
 		}
-	}
-
-	_, err = db_bridge.SaveLocalFiles(db, lfsId, lfs)
-	if err != nil {
-		return err
+		mapping.AniListID = file.MediaId
+		mapping.Ignored = file.Ignored
+		if file.Metadata != nil {
+			mapping.EpisodeNumber = file.Metadata.Episode
+			mapping.FileType = string(file.Metadata.Type)
+		}
+		_ = db.UpdateGlobalMapping(mapping)
 	}
 
 	ws, ok := d.ctx.wsEventManager.Get()
@@ -154,14 +148,21 @@ func (d *Database) saveLocalFiles(filesToSave []*anime.LocalFile) error {
 }
 
 func (d *Database) insertLocalFiles(files []*anime.LocalFile) ([]*anime.LocalFile, error) {
-	db, ok := d.ctx.database.Get()
+	dbInst, ok := d.ctx.database.Get()
 	if !ok {
 		return nil, errors.New("database not initialized")
 	}
 
-	lfs, err := db_bridge.InsertLocalFiles(db, files)
-	if err != nil {
-		return nil, err
+	for _, file := range files {
+		mapping := &models.GlobalAnimeFileMapping{
+			AniListID:     file.MediaId,
+			LocalFilePath: file.Path,
+		}
+		if file.Metadata != nil {
+			mapping.EpisodeNumber = file.Metadata.Episode
+			mapping.FileType = string(file.Metadata.Type)
+		}
+		_ = dbInst.UpsertGlobalMapping(mapping)
 	}
 
 	ws, ok := d.ctx.wsEventManager.Get()
@@ -169,7 +170,7 @@ func (d *Database) insertLocalFiles(files []*anime.LocalFile) ([]*anime.LocalFil
 		ws.SendEvent(events.InvalidateQueries, []string{events.GetLocalFilesEndpoint, events.GetAnimeEntryEndpoint, events.GetLibraryCollectionEndpoint, events.GetMissingEpisodesEndpoint})
 	}
 
-	return lfs, nil
+	return files, nil
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

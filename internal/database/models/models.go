@@ -28,16 +28,6 @@ type Account struct {
 }
 
 // +---------------------+
-// |     LocalFiles      |
-// +---------------------+
-
-type LocalFiles struct {
-	BaseModel
-	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
-	Value  []byte `gorm:"column:value" json:"value"`
-}
-
-// +---------------------+
 // |       Settings      |
 // +---------------------+
 
@@ -539,6 +529,8 @@ type GlobalAnimeFileMapping struct {
 	EpisodeNumber int       `gorm:"column:episode_number" json:"episodeNumber"`
 	FileSize      int64     `gorm:"column:file_size" json:"fileSize"`
 	LastScanned   time.Time `gorm:"column:last_scanned" json:"lastScanned"`
+	Ignored       bool      `gorm:"column:ignored" json:"ignored"`
+	FileType      string    `gorm:"column:file_type" json:"fileType"` // "main", "special", "nc"
 }
 
 // UserAnimeSubscription tracks which users have which anime in their AniList collections

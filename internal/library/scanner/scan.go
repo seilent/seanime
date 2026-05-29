@@ -169,8 +169,9 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 	skippedLfs := make(map[string]*anime.LocalFile)
 	if (scn.SkipLockedFiles || scn.SkipIgnoredFiles) && scn.ExistingLocalFiles != nil {
 		// Retrieve skipped files from existing local files
+		// SkipLockedFiles now means "skip files that already have a global mapping" (MediaId != 0)
 		for _, lf := range scn.ExistingLocalFiles {
-			if scn.SkipLockedFiles && lf.IsLocked() {
+			if scn.SkipLockedFiles && lf.MediaId != 0 {
 				skippedLfs[lf.GetNormalizedPath()] = lf
 			} else if scn.SkipIgnoredFiles && lf.IsIgnored() {
 				skippedLfs[lf.GetNormalizedPath()] = lf

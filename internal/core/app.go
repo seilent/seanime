@@ -153,7 +153,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	HandleNewDatabaseEntries(database, logger)
 
 	// Clean up old database entries in background goroutines
-	database.TrimLocalFileEntries()   // Remove old local file entries
 	database.TrimScanSummaryEntries() // Remove old scan summaries
 
 	// Get anime library paths for plugin context

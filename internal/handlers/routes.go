@@ -262,8 +262,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Library.POST("/local-files", h.HandleLocalFileBulkAction)
 	v1Library.PATCH("/local-files", h.HandleUpdateLocalFiles)
 	v1Library.DELETE("/local-files", h.HandleDeleteLocalFiles)
-	v1Library.GET("/local-files/dump", h.HandleDumpLocalFilesToFile)
-	v1Library.POST("/local-files/import", h.HandleImportLocalFiles)
 	v1Library.PATCH("/local-file", h.HandleUpdateLocalFileData)
 	v1Library.GET("/media-availability/:id", h.HandleGetMediaAvailability)
 

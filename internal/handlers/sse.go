@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"seanime/internal/database/db_bridge"
 	"seanime/internal/events"
 
 	"github.com/labstack/echo/v4"
@@ -12,20 +11,20 @@ import (
 
 // HandleSSEEvents handles SSE connection requests
 func (h *Handler) HandleSSEEvents(c echo.Context) error {
-    // Authenticate user for SSE connection
-    user := h.getCurrentUser(c)
-    if user == nil {
-        // Fallback: validate session token directly (route may be registered before auth middleware)
-        if token := h.getSessionToken(c); token != "" {
-            if u, err := h.validateUserSession(token); err == nil && u != nil {
-                c.Set("user", u)
-                user = u
-            }
-        }
-        if user == nil {
-            return echo.NewHTTPError(http.StatusUnauthorized, "Authentication required for SSE connection")
-        }
-    }
+	// Authenticate user for SSE connection
+	user := h.getCurrentUser(c)
+	if user == nil {
+		// Fallback: validate session token directly (route may be registered before auth middleware)
+		if token := h.getSessionToken(c); token != "" {
+			if u, err := h.validateUserSession(token); err == nil && u != nil {
+				c.Set("user", u)
+				user = u
+			}
+		}
+		if user == nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Authentication required for SSE connection")
+		}
+	}
 
 	// Check if client supports SSE
 	w := c.Response().Writer
@@ -71,23 +70,12 @@ func (h *Handler) HandleSSEEvents(c echo.Context) error {
 		"message":       "SSE connection established",
 	})
 
-	// Send sync-check event to verify data freshness
-	dbTimestamp, err := db_bridge.GetLocalFilesTimestamp(h.App.Database)
-	cacheTimestamp := db_bridge.GetCacheTimestamp(h.App.Database)
-
+	// Send sync-check event (no longer uses blob timestamps)
 	syncCheckPayload := map[string]interface{}{
-		"connection_id": connectionID,
-	}
-
-	if err == nil && dbTimestamp != nil {
-		syncCheckPayload["db_timestamp"] = dbTimestamp.Unix()
-		syncCheckPayload["cache_timestamp"] = cacheTimestamp.Unix()
-		syncCheckPayload["cache_stale"] = dbTimestamp.After(*cacheTimestamp)
-	} else {
-		// If error getting timestamp, assume cache might be stale
-		syncCheckPayload["db_timestamp"] = 0
-		syncCheckPayload["cache_timestamp"] = 0
-		syncCheckPayload["cache_stale"] = true
+		"connection_id":   connectionID,
+		"db_timestamp":    0,
+		"cache_timestamp": 0,
+		"cache_stale":     false,
 	}
 
 	h.App.SSEManager.SendEventToUser(user.ID, "sync-check", syncCheckPayload)
@@ -95,7 +83,7 @@ func (h *Handler) HandleSSEEvents(c echo.Context) error {
 	h.App.Logger.Debug().
 		Str("connection_id", connectionID).
 		Uint("user_id", user.ID).
-		Bool("cache_stale", syncCheckPayload["cache_stale"].(bool)).
+		Bool("cache_stale", false).
 		Msg("sse: Sync check event sent")
 
 	// Keep connection alive until client disconnects or context is done
