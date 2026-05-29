@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"errors"
+	"net/url"
 	"path/filepath"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
 	"seanime/internal/torrent_clients/torrent_client"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -30,6 +32,18 @@ func (h *Handler) HandleGetActiveTorrentList(c echo.Context) error {
 			return h.RespondWithError(c, errors.New("could not start torrent client, verify your settings"))
 		}
 		res, err = h.App.TorrentClientRepository.GetActiveTorrents()
+	}
+
+	// Filter to only show seanime-tracked, non-seeding torrents
+	tracked, _ := h.App.Database.GetIncompleteIntentHashes()
+	if tracked != nil {
+		filtered := make([]*torrent_client.Torrent, 0)
+		for _, t := range res {
+			if _, ok := tracked[strings.ToLower(t.Hash)]; ok && t.Status != torrent_client.TorrentStatusSeeding {
+				filtered = append(filtered, t)
+			}
+		}
+		res = filtered
 	}
 
 	return h.RespondWithData(c, res)
@@ -180,6 +194,15 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}
+
+		// Record download intent
+		hash := b.Torrents[0].InfoHash
+		if hash == "" {
+			hash = parseHashFromMagnet(b.Torrents[0].MagnetLink)
+		}
+		if err2 := h.App.Database.UpsertPendingDownloadIntent(hash, b.Media.ID); err2 != nil {
+			h.App.Logger.Warn().Err(err2).Msg("torrent-client: Failed to record download intent")
+		}
 	} else {
 
 		// Get magnets
@@ -203,6 +226,17 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 		err = h.App.TorrentClientRepository.AddMagnets(magnets, b.Destination)
 		if err != nil {
 			return h.RespondWithError(c, err)
+		}
+
+		// Record download intents
+		for i, t := range b.Torrents {
+			hash := t.InfoHash
+			if hash == "" && i < len(magnets) {
+				hash = parseHashFromMagnet(magnets[i])
+			}
+			if err2 := h.App.Database.UpsertPendingDownloadIntent(hash, b.Media.ID); err2 != nil {
+				h.App.Logger.Warn().Err(err2).Msg("torrent-client: Failed to record download intent")
+			}
 		}
 	}
 
@@ -263,4 +297,17 @@ func (h *Handler) HandleTorrentClientAddMagnetFromRule(c echo.Context) error {
 
 	return h.RespondWithData(c, true)
 
+}
+
+// parseHashFromMagnet extracts the info hash from a magnet URI (xt=urn:btih:<hash>).
+func parseHashFromMagnet(magnet string) string {
+	u, err := url.Parse(magnet)
+	if err != nil {
+		return ""
+	}
+	xt := u.Query().Get("xt")
+	if strings.HasPrefix(xt, "urn:btih:") {
+		return strings.ToLower(strings.TrimPrefix(xt, "urn:btih:"))
+	}
+	return ""
 }

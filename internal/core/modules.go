@@ -10,6 +10,7 @@ import (
 	"seanime/internal/events"
 	"seanime/internal/library/autodownloader"
 	"seanime/internal/library/autoscanner"
+	"seanime/internal/library/downloadmonitor"
 	"seanime/internal/library/filecleanup"
 	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/playbackmanager"
@@ -364,6 +365,9 @@ func (a *App) InitOrRefreshModules() {
 		})
 
 		a.TorrentClientRepository.InitActiveTorrentCount(globalSettings.Torrent.ShowActiveTorrentCount, events.NewSSEEventManagerAdapter(a.SSEManager))
+
+		// Start download completion monitor
+		downloadmonitor.New(a.Database, a.TorrentClientRepository, a.Logger).Start()
 
 		// Set AutoDownloader qBittorrent client
 		a.AutoDownloader.SetTorrentClientRepository(a.TorrentClientRepository)

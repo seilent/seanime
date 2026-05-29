@@ -584,3 +584,11 @@ type UserProgressSyncItem struct {
 	SyncStatus    string    `gorm:"column:sync_status;default:'PENDING'" json:"syncStatus"` // "PENDING", "SYNCED", "FAILED"
 	RetryCount    int       `gorm:"column:retry_count;default:0" json:"retryCount"`
 }
+
+// PendingDownloadIntent tracks torrents started by seanime so completion can be detected
+type PendingDownloadIntent struct {
+	BaseModel
+	Hash      string `gorm:"column:hash;uniqueIndex" json:"hash"`
+	MediaID   int    `gorm:"column:media_id" json:"mediaId"`
+	Completed bool   `gorm:"column:completed" json:"completed"`
+}

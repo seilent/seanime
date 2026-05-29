@@ -600,6 +600,11 @@ func (ad *AutoDownloader) downloadTorrent(t *NormalizedTorrent, rule *anime.Auto
 	}
 	_ = ad.database.InsertAutoDownloaderItem(item)
 
+	// Record download intent for completion monitor
+	if err := ad.database.UpsertPendingDownloadIntent(t.InfoHash, rule.MediaId); err != nil {
+		ad.logger.Warn().Err(err).Msg("autodownloader: Failed to record download intent")
+	}
+
 	// Event
 	afterEvent := &AutoDownloaderAfterDownloadTorrentEvent{
 		Torrent: t,
