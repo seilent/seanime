@@ -33,20 +33,37 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
     const serverStatus = useServerStatus()
     const libraryPath = serverStatus?.settings?.library?.libraryPath
 
+    const [isConfirmationModalOpen, setConfirmationModalOpen] = useAtom(confirmationModalOpenAtom)
+    const setTorrentDrawerIsOpen = useSetAtom(__torrentSearch_selectionAtom)
+    const selectedTorrents = useAtomValue(__torrentSearch_selectedTorrentsAtom)
+
+    /**
+     * Whether the selection is a single batch torrent (a whole season in its own folder).
+     */
+    const isBatchDownload = useMemo(
+        () => selectedTorrents.length === 1 && !!selectedTorrents[0]?.isBatch,
+        [selectedTorrents],
+    )
+
     /**
      * Default path for the destination folder
      */
     const defaultPath = useMemo(() => {
         const fPath = entry.localFiles?.findLast(n => n)?.path // file path
+        // Batch torrents contain their own root folder (≈ the anime title), so download into
+        // the library root and let that folder become the anime folder. Using a per-title
+        // subfolder here would nest it: library/Title/Release/episodes.
+        if (isBatchDownload) return libraryPath || ""
         const newPath = libraryPath ? upath.join(libraryPath, sanitizeDirectoryName(media.title?.romaji || "")) : ""
         return fPath ? upath.normalize(upath.dirname(fPath)) : newPath
-    }, [libraryPath, entry.localFiles, media.title?.romaji])
+    }, [libraryPath, entry.localFiles, media.title?.romaji, isBatchDownload])
 
     const [destination, setDestination] = useState(defaultPath)
 
-    const [isConfirmationModalOpen, setConfirmationModalOpen] = useAtom(confirmationModalOpenAtom)
-    const setTorrentDrawerIsOpen = useSetAtom(__torrentSearch_selectionAtom)
-    const selectedTorrents = useAtomValue(__torrentSearch_selectedTorrentsAtom)
+    // Keep the destination in sync when the computed default changes (e.g. batch vs single).
+    React.useEffect(() => {
+        setDestination(defaultPath)
+    }, [defaultPath])
 
     /**
      * If the user can auto-select the missing episodes
@@ -87,9 +104,6 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
     const isDisabled = isPending || isDownloadingFiles
 
     function handleLaunchDownload(smartSelect: boolean) {
-        // Check if downloading a batch
-        const isBatchDownload = selectedTorrents.length === 1 && !!selectedTorrents[0].isBatch
-
         mutate({
             torrents: selectedTorrents,
             destination,

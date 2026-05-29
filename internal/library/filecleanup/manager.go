@@ -2,8 +2,10 @@ package filecleanup
 
 import (
 	"os"
+	"path/filepath"
 	"seanime/internal/database/db"
 	"seanime/internal/database/models"
+	"strings"
 	"sync"
 	"time"
 
@@ -26,6 +28,8 @@ type (
 		stopChan   chan struct{}
 		maxRetries int
 		retryDelay time.Duration
+		roots      []string
+		rootsOnce  sync.Once
 	}
 )
 
@@ -35,7 +39,7 @@ func NewManager(logger *zerolog.Logger, database *db.Database) *Manager {
 		database:   database,
 		taskQueue:  make(chan *CleanupTask, 100),
 		stopChan:   make(chan struct{}),
-		maxRetries: 30,        // Retry 30 times
+		maxRetries: 30,          // Retry 30 times
 		retryDelay: time.Minute, // Retry every minute
 	}
 
@@ -79,6 +83,7 @@ func (m *Manager) CleanupFiles(mappings []*models.GlobalAnimeFileMapping) error 
 			deletedCount++
 			m.logger.Debug().Str("file", mapping.LocalFilePath).
 				Msg("File deleted successfully")
+			m.removeEmptyParents(mapping.LocalFilePath)
 		}
 	}
 
@@ -135,10 +140,54 @@ func (m *Manager) worker() {
 
 			m.logger.Info().Str("file", task.FilePath).Int("retries", task.Retries).
 				Msg("File cleaned up successfully via background worker")
+			m.removeEmptyParents(task.FilePath)
 
 		case <-m.stopChan:
 			return
 		}
+	}
+}
+
+// libraryRoots returns the configured library root directories, loaded once and cached.
+func (m *Manager) libraryRoots() []string {
+	m.rootsOnce.Do(func() {
+		gs, err := m.database.GetGlobalSettings()
+		if err != nil || gs.Library == nil {
+			return
+		}
+		for _, p := range gs.Library.GetLibraryPaths() {
+			if p != "" {
+				m.roots = append(m.roots, filepath.Clean(p))
+			}
+		}
+	})
+	return m.roots
+}
+
+// removeEmptyParents removes now-empty parent directories of filePath, walking up until it
+// reaches (but never removes) a library root or a non-empty directory. This cleans up the
+// anime-title/release folders left behind after all of an entry's episodes are deleted.
+func (m *Manager) removeEmptyParents(filePath string) {
+	roots := m.libraryRoots()
+	dir := filepath.Clean(filepath.Dir(filePath))
+	for {
+		// Only ever remove directories that live strictly inside a configured library root.
+		inside := false
+		for _, root := range roots {
+			if dir != root && strings.HasPrefix(dir, root+string(os.PathSeparator)) {
+				inside = true
+				break
+			}
+		}
+		if !inside {
+			return
+		}
+		// os.Remove only succeeds on an empty directory; a non-empty dir stops the walk.
+		if err := os.Remove(dir); err != nil {
+			return
+		}
+		m.logger.Debug().Str("dir", dir).Msg("Removed empty parent directory after file cleanup")
+		dir = filepath.Dir(dir)
 	}
 }
 
