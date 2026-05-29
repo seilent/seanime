@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"seanime/internal/database/models"
 	"seanime/internal/mediaplayers/mediaplayer"
-	"seanime/internal/onlinestream"
 
 	"github.com/rs/zerolog"
 )
@@ -21,8 +20,7 @@ type (
 	}
 
 	Modules struct {
-		MediaPlayerRepository  *mediaplayer.Repository
-		OnlinestreamRepository *onlinestream.Repository
+		MediaPlayerRepository *mediaplayer.Repository
 	}
 
 	NewTroubleshooterOptions struct {
