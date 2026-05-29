@@ -25,7 +25,6 @@ import (
 	"seanime/internal/library/scanner"
 	libsync "seanime/internal/library/sync"
 	"seanime/internal/util/limiter"
-	"seanime/internal/local"
 	"seanime/internal/manga"
 	"seanime/internal/mediastream"
 	"seanime/internal/mediaplayers/iina"
@@ -60,7 +59,6 @@ type (
 	Watcher                       *scanner.Watcher
 	AnilistClient                 anilist.AnilistClient
 	AnilistPlatform               platform.Platform
-	LocalManager                  local.Manager
 	FillerManager                 *fillermanager.FillerManager
 	WSEventManager                *events.WSEventManager
 	SSEManager                    *events.SSEManager
@@ -268,22 +266,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		MetadataProvider: metadataProvider,
 	})
 
-	// Initialize sync manager for offline/online synchronization
-	localManager, err := local.NewManager(&local.NewManagerOptions{
-		LocalDir:         cfg.Offline.Dir,
-		AssetDir:         cfg.Offline.AssetDir,
-		Logger:           logger,
-		MetadataProvider: metadataProvider,
-		MangaRepository:  mangaRepository,
-		Database:         database,
-		WSEventManager:   wsEventManager,
-		IsOffline:        false,
-		AnilistPlatform:  anilistPlatform,
-	})
-	if err != nil {
-		logger.Fatal().Err(err).Msgf("app: Failed to initialize sync manager")
-	}
-
 	// Use AniList platform directly - multi-user system handles authentication per user
 	activePlatform := anilistPlatform
 	if !anilistCW.IsAuthenticated() {
@@ -319,7 +301,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		Database:                      database,
 		AnilistClient:                 anilistCW,
 		AnilistPlatform:               activePlatform,
-		LocalManager:                  localManager,
 		WSEventManager:                wsEventManager,
 		SSEManager:                    sseManager,
 		Logger:                        logger,
