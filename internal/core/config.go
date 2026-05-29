@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"seanime/internal/constants"
-	"seanime/internal/util"
 	"strconv"
 
 	"github.com/rs/zerolog"
