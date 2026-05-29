@@ -17,6 +17,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func StartServer(webFS embed.FS, embeddedLogo []byte) {
+	app, flags, selfupdater := startApp(embeddedLogo)
+	startAppLoop(&webFS, app, flags, selfupdater)
+}
+
 func startApp(embeddedLogo []byte) (*core.App, core.SeanimeFlags, *updater.SelfUpdater) {
 	// Print the header
 	core.PrintHeader()
@@ -28,9 +33,8 @@ func startApp(embeddedLogo []byte) (*core.App, core.SeanimeFlags, *updater.SelfU
 
 	// Create the app instance
 	app := core.NewApp(&core.ConfigOptions{
-		DataDir:          flags.DataDir,
-		EmbeddedLogo:     embeddedLogo,
-		IsDesktopSidecar: flags.IsDesktopSidecar,
+		DataDir:      flags.DataDir,
+		EmbeddedLogo: embeddedLogo,
 	}, selfupdater)
 
 	// Create log file

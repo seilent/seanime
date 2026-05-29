@@ -8,9 +8,8 @@ import (
 
 type (
 	SeanimeFlags struct {
-		DataDir          string
-		Update           bool
-		IsDesktopSidecar bool
+		DataDir string
+		Update  bool
 	}
 )
 
@@ -31,13 +30,10 @@ func GetSeanimeFlags() SeanimeFlags {
 	flag.StringVar(&dataDir, "datadir", "", "Directory that contains all Seanime data")
 	var update bool
 	flag.BoolVar(&update, "update", false, "Update the application")
-	var isDesktopSidecar bool
-	flag.BoolVar(&isDesktopSidecar, "desktop-sidecar", false, "Run as the desktop sidecar")
 	flag.Parse()
 
 	return SeanimeFlags{
-		DataDir:          strings.TrimSpace(dataDir),
-		Update:           update,
-		IsDesktopSidecar: isDesktopSidecar,
+		DataDir: strings.TrimSpace(dataDir),
+		Update:  update,
 	}
 }

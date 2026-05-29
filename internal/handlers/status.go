@@ -24,24 +24,23 @@ import (
 // Status is a struct containing the user data, settings, and OS.
 // It is used by the client in various places to access necessary information.
 type Status struct {
-	OS                    string                        `json:"os"`
-	ClientDevice          string                        `json:"clientDevice"`
-	ClientPlatform        string                        `json:"clientPlatform"`
-	ClientUserAgent       string                        `json:"clientUserAgent"`
-	DataDir               string                        `json:"dataDir"`
-	User                  *user.User                    `json:"user"`
-	Settings              *models.Settings              `json:"settings"`
-	Version               string                        `json:"version"`
-	VersionName           string                        `json:"versionName"`
-	ThemeSettings         *models.Theme                 `json:"themeSettings"`
-	AnilistClientID       string                        `json:"anilistClientId"`
-	Updating              bool                          `json:"updating"`         // If true, a new screen will be displayed
-	IsDesktopSidecar      bool                          `json:"isDesktopSidecar"` // The server is running as a desktop sidecar
-	FeatureFlags          core.FeatureFlags             `json:"featureFlags"`
-	ServerReady           bool                          `json:"serverReady"`
-	ServerHasPassword     bool                          `json:"serverHasPassword"`
-	HasUsers              bool                          `json:"hasUsers"`
-	SetupCompleted        bool                          `json:"setupCompleted"`
+	OS                string            `json:"os"`
+	ClientDevice      string            `json:"clientDevice"`
+	ClientPlatform    string            `json:"clientPlatform"`
+	ClientUserAgent   string            `json:"clientUserAgent"`
+	DataDir           string            `json:"dataDir"`
+	User              *user.User        `json:"user"`
+	Settings          *models.Settings  `json:"settings"`
+	Version           string            `json:"version"`
+	VersionName       string            `json:"versionName"`
+	ThemeSettings     *models.Theme     `json:"themeSettings"`
+	AnilistClientID   string            `json:"anilistClientId"`
+	Updating          bool              `json:"updating"` // If true, a new screen will be displayed
+	FeatureFlags      core.FeatureFlags `json:"featureFlags"`
+	ServerReady       bool              `json:"serverReady"`
+	ServerHasPassword bool              `json:"serverHasPassword"`
+	HasUsers          bool              `json:"hasUsers"`
+	SetupCompleted    bool              `json:"setupCompleted"`
 }
 
 var clientInfoCache = result.NewResultMap[string, util.ClientInfo]()
@@ -112,20 +111,20 @@ func (h *Handler) NewStatus(c echo.Context) *Status {
 	statusSettings := settings
 
 	status := &Status{
-		OS:                    runtime.GOOS,
-		ClientDevice:          clientInfo.Device,
-		ClientPlatform:        clientInfo.Platform,
-		DataDir:               h.App.Config.Data.AppDataDir,
-		ClientUserAgent:       c.Request().UserAgent(),
-		User:                  currentUser,
-		Settings:              statusSettings,
-		Version:               h.App.Version,
-		VersionName:           constants.VersionName,
-		ThemeSettings:         theme,
-		AnilistClientID:       h.App.Config.Anilist.ClientID,
-		ServerReady:           h.App.ServerReady,
-		Updating:              false, // Set to false for now
-		SetupCompleted:        setupCompleted,
+		OS:              runtime.GOOS,
+		ClientDevice:    clientInfo.Device,
+		ClientPlatform:  clientInfo.Platform,
+		DataDir:         h.App.Config.Data.AppDataDir,
+		ClientUserAgent: c.Request().UserAgent(),
+		User:            currentUser,
+		Settings:        statusSettings,
+		Version:         h.App.Version,
+		VersionName:     constants.VersionName,
+		ThemeSettings:   theme,
+		AnilistClientID: h.App.Config.Anilist.ClientID,
+		ServerReady:     h.App.ServerReady,
+		Updating:        false, // Set to false for now
+		SetupCompleted:  setupCompleted,
 	}
 
 	return status

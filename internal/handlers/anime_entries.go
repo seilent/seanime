@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/database/models"
@@ -55,7 +54,6 @@ func (h *Handler) HandleGetAnimeEntry(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-
 	// Get the user's anilist collection
 	animeCollection, err := h.App.GetAnimeCollectionForUser(user, false)
 	if err != nil {
@@ -96,7 +94,6 @@ func (h *Handler) HandleGetAnimeEntry(c echo.Context) error {
 	if !fillerEvent.DefaultPrevented {
 		h.App.FillerManager.HydrateFillerData(fillerEvent.Entry)
 	}
-
 
 	return h.RespondWithData(c, entry)
 }
@@ -169,71 +166,6 @@ func (h *Handler) HandleAnimeEntryBulkAction(c echo.Context) error {
 	}
 
 	return h.RespondWithData(c, retLfs)
-
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-// HandleOpenAnimeEntryInExplorer
-//
-//	@summary opens the directory of a media entry in the file explorer.
-//	@desc This finds a common directory for all media entry local files and opens it in the file explorer.
-//	@desc Returns 'true' whether the operation was successful or not, errors are ignored.
-//	@route /api/v1/library/anime-entry/open-in-explorer [POST]
-//	@returns bool
-func (h *Handler) HandleOpenAnimeEntryInExplorer(c echo.Context) error {
-
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, errors.New("authentication required"))
-	}
-
-	type body struct {
-		MediaId int `json:"mediaId"`
-	}
-
-	p := new(body)
-	if err := c.Bind(p); err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	// Get the user's local files
-	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	lf, found := lo.Find(lfs, func(i *anime.LocalFile) bool {
-		return i.MediaId == p.MediaId
-	})
-	if !found {
-		return h.RespondWithError(c, errors.New("local file not found"))
-	}
-
-	dir := filepath.Dir(lf.GetNormalizedPath())
-	cmd := ""
-	var args []string
-
-	switch runtime.GOOS {
-	case "windows":
-		cmd = "explorer"
-		wPath := strings.ReplaceAll(strings.ToLower(dir), "/", "\\")
-		args = []string{wPath}
-	case "darwin":
-		cmd = "open"
-		args = []string{dir}
-	case "linux":
-		cmd = "xdg-open"
-		args = []string{dir}
-	default:
-		return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
-	}
-	cmdObj := util.NewCmd(cmd, args...)
-	cmdObj.Stdout = os.Stdout
-	cmdObj.Stderr = os.Stderr
-	_ = cmdObj.Run()
-
-	return h.RespondWithData(c, true)
 
 }
 
@@ -490,16 +422,16 @@ var missingEpisodesCache *anime.MissingEpisodes
 //	@route /api/v1/library/missing-episodes [GET]
 //	@returns anime.MissingEpisodes
 func (h *Handler) HandleGetMissingEpisodes(c echo.Context) error {
-    // Get the current authenticated user
-    user := h.getCurrentUser(c)
-    if user == nil {
-        return h.RespondWithError(c, errors.New("user not authenticated"))
-    }
+	// Get the current authenticated user
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
+	}
 
-    // Short-circuit when missing-episodes is disabled
-    if anime.DisableMissingEpisodesCheck {
-        return h.RespondWithData(c, &anime.MissingEpisodes{Episodes: []*anime.Episode{}, SilencedEpisodes: []*anime.Episode{}})
-    }
+	// Short-circuit when missing-episodes is disabled
+	if anime.DisableMissingEpisodesCheck {
+		return h.RespondWithData(c, &anime.MissingEpisodes{Episodes: []*anime.Episode{}, SilencedEpisodes: []*anime.Episode{}})
+	}
 
 	h.App.AddOnRefreshAnilistCollectionFunc("HandleGetMissingEpisodes", func() {
 		missingEpisodesCache = nil

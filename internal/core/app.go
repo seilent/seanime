@@ -19,19 +19,18 @@ import (
 	"seanime/internal/hook"
 	"seanime/internal/library/autodownloader"
 	"seanime/internal/library/autoscanner"
-	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/filecleanup"
+	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/library/scanner"
 	libsync "seanime/internal/library/sync"
-	"seanime/internal/util/limiter"
 	"seanime/internal/manga"
-	"seanime/internal/mediastream"
 	"seanime/internal/mediaplayers/iina"
 	"seanime/internal/mediaplayers/mediaplayer"
 	"seanime/internal/mediaplayers/mpchc"
 	"seanime/internal/mediaplayers/mpv"
 	"seanime/internal/mediaplayers/vlc"
+	"seanime/internal/mediastream"
 	"seanime/internal/nativeplayer"
 	"seanime/internal/platforms/anilist_platform"
 	"seanime/internal/platforms/platform"
@@ -42,6 +41,7 @@ import (
 	"seanime/internal/updater"
 	"seanime/internal/util"
 	"seanime/internal/util/filecache"
+	"seanime/internal/util/limiter"
 	"seanime/internal/util/result"
 	"sync"
 	"time"
@@ -51,68 +51,67 @@ import (
 
 type (
 	App struct {
-	Config                        *Config
-	Database                      *db.Database
-	Logger                        *zerolog.Logger
-	TorrentClientRepository       *torrent_client.Repository
-	TorrentRepository             *torrent.Repository
-	Watcher                       *scanner.Watcher
-	AnilistClient                 anilist.AnilistClient
-	AnilistPlatform               platform.Platform
-	FillerManager                 *fillermanager.FillerManager
-	WSEventManager                *events.WSEventManager
-	SSEManager                    *events.SSEManager
-	AutoDownloader                *autodownloader.AutoDownloader
-	ExtensionRepository           *extension_repo.Repository
-	ExtensionPlaygroundRepository *extension_playground.PlaygroundRepository
-	DirectStreamManager           *directstream.Manager
-	NativePlayer                  *nativeplayer.NativePlayer
-	MediaPlayer                   struct {
-		VLC   *vlc.VLC
-		MpcHc *mpchc.MpcHc
-		Mpv   *mpv.Mpv
-		Iina  *iina.Iina
+		Config                        *Config
+		Database                      *db.Database
+		Logger                        *zerolog.Logger
+		TorrentClientRepository       *torrent_client.Repository
+		TorrentRepository             *torrent.Repository
+		Watcher                       *scanner.Watcher
+		AnilistClient                 anilist.AnilistClient
+		AnilistPlatform               platform.Platform
+		FillerManager                 *fillermanager.FillerManager
+		WSEventManager                *events.WSEventManager
+		SSEManager                    *events.SSEManager
+		AutoDownloader                *autodownloader.AutoDownloader
+		ExtensionRepository           *extension_repo.Repository
+		ExtensionPlaygroundRepository *extension_playground.PlaygroundRepository
+		DirectStreamManager           *directstream.Manager
+		NativePlayer                  *nativeplayer.NativePlayer
+		MediaPlayer                   struct {
+			VLC   *vlc.VLC
+			MpcHc *mpchc.MpcHc
+			Mpv   *mpv.Mpv
+			Iina  *iina.Iina
+		}
+		MediaPlayerRepository           *mediaplayer.Repository
+		Version                         string
+		Updater                         *updater.Updater
+		AutoScanner                     *autoscanner.AutoScanner
+		PlaybackManager                 *playbackmanager.PlaybackManager
+		FileCacher                      *filecache.Cacher
+		MangaRepository                 *manga.Repository
+		MediastreamRepository           *mediastream.Repository
+		MetadataProvider                metadata.Provider
+		DiscordPresence                 *discordrpc_presence.Presence
+		MangaDownloader                 *manga.Downloader
+		ContinuityManager               *continuity.Manager
+		Cleanups                        []func()
+		OnRefreshAnilistCollectionFuncs *result.Map[string, func()]
+		OnFlushLogs                     func()
+		FeatureFlags                    FeatureFlags
+		Settings                        *models.Settings
+		GlobalSettings                  *models.GlobalSettings
+		SecondarySettings               struct {
+			Torrentstream *models.TorrentstreamSettings
+		} // Struct for other settings sent to client
+		SelfUpdater      *updater.SelfUpdater
+		ReportRepository *report.Repository
+		TotalLibrarySize uint64 // Initialized in modules.go
+		LibraryDir       string
+		// Global collections and user removed - now pure multiuser system
+		previousVersion string
+		moduleMu        sync.Mutex
+		HookManager     hook.Manager
+		ServerReady     bool                 // Whether the Anilist data from the first request has been fetched
+		SyncManager     *libsync.SyncManager // Real-time sync system for LocalFiles and progress
+		// Global mapping system
+		GlobalMappingService    *global_mapping.GlobalMappingService
+		UserSubscriptionService *global_mapping.UserSubscriptionService
+		ProgressSyncService     *global_mapping.ProgressSyncService
+		FileWatcherService      *global_mapping.FileWatcherService
+		SystemScanService       *SystemScanService
+		FileCleanupManager      *filecleanup.Manager
 	}
-	MediaPlayerRepository           *mediaplayer.Repository
-	Version                         string
-	Updater                         *updater.Updater
-	AutoScanner                     *autoscanner.AutoScanner
-	PlaybackManager                 *playbackmanager.PlaybackManager
-	FileCacher                      *filecache.Cacher
-	MangaRepository                 *manga.Repository
-	MediastreamRepository           *mediastream.Repository
-	MetadataProvider                metadata.Provider
-	DiscordPresence                 *discordrpc_presence.Presence
-	MangaDownloader                 *manga.Downloader
-	ContinuityManager               *continuity.Manager
-	Cleanups                        []func()
-	OnRefreshAnilistCollectionFuncs *result.Map[string, func()]
-	OnFlushLogs                     func()
-	FeatureFlags                    FeatureFlags
-	Settings                        *models.Settings
-	GlobalSettings                  *models.GlobalSettings
-        SecondarySettings               struct {
-            Torrentstream *models.TorrentstreamSettings
-        } // Struct for other settings sent to client
-	SelfUpdater        *updater.SelfUpdater
-	ReportRepository   *report.Repository
-	TotalLibrarySize   uint64 // Initialized in modules.go
-	LibraryDir         string
-	IsDesktopSidecar   bool
-	// Global collections and user removed - now pure multiuser system
-	previousVersion    string
-	moduleMu           sync.Mutex
-	HookManager        hook.Manager
-	ServerReady        bool // Whether the Anilist data from the first request has been fetched
-	SyncManager        *libsync.SyncManager // Real-time sync system for LocalFiles and progress
-	// Global mapping system
-	GlobalMappingService    *global_mapping.GlobalMappingService
-	UserSubscriptionService *global_mapping.UserSubscriptionService
-	ProgressSyncService     *global_mapping.ProgressSyncService
-	FileWatcherService      *global_mapping.FileWatcherService
-	SystemScanService       *SystemScanService
-	FileCleanupManager      *filecleanup.Manager
-}
 )
 
 // NewApp creates a new server instance
@@ -148,7 +147,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		logger.Fatal().Err(err).Msgf("app: Failed to initialize config")
 	}
 
-
 	// Create logs directory if it doesn't exist
 	_ = os.MkdirAll(cfg.Logs.Dir, 0755)
 
@@ -157,11 +155,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 
 	logger.Info().Msgf("app: Data directory: %s", cfg.Data.AppDataDir)
 	logger.Info().Msgf("app: Working directory: %s", cfg.Data.WorkingDir)
-
-	// Log if running in desktop sidecar mode
-	if configOpts.IsDesktopSidecar {
-		logger.Info().Msg("app: Desktop sidecar mode enabled")
-	}
 
 	// Initialize database connection
 	database, err := db.NewDatabase(cfg.Data.AppDataDir, cfg.Database.Name, logger)
@@ -195,19 +188,14 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Initialize SSE manager for Server-Sent Events
 	sseManager := events.NewSSEManager(logger)
 
-	// Exit if no WebSocket connections in desktop sidecar mode
-	if configOpts.IsDesktopSidecar {
-		wsEventManager.ExitIfNoConnsAsDesktopSidecar()
-	}
-
 	// Initialize global mapping services (progressSyncService will be initialized later)
 	globalMappingService := global_mapping.NewGlobalMappingService(database, logger, wsEventManager)
 
 	// Initialize sync manager for real-time LocalFile and progress tracking
 	syncManager, err := libsync.NewSyncManager(&libsync.SyncManagerOptions{
-		Database:           database,
-		Logger:             logger,
-		LibraryPaths:       animeLibraryPaths,
+		Database:             database,
+		Logger:               logger,
+		LibraryPaths:         animeLibraryPaths,
 		GlobalMappingService: globalMappingService,
 	})
 	if err != nil {
@@ -286,14 +274,12 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		SSEManager:       sseManager,
 		RateLimiter:      limiter.NewLimiter(time.Second, 10), // Rate limit for AniList API
 		AnimeCache:       anilist.NewCompleteAnimeCache(),
-		DebounceDelay:    5 * time.Second,  // 5 second debounce delay
+		DebounceDelay:    5 * time.Second, // 5 second debounce delay
 		CooldownDuration: 1 * time.Minute, // 1 minute cooldown after scan
 	})
 
-
 	// Initialize extension playground for testing extensions
 	extensionPlaygroundRepository := extension_playground.NewPlaygroundRepository(logger, activePlatform, activeMetadataProvider)
-
 
 	// Create the main app instance with initialized components
 	app := &App{
@@ -326,10 +312,9 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		DiscordPresence:               nil, // Initialized in App.InitOrRefreshModules
 		previousVersion:               previousVersion,
 		FeatureFlags:                  NewFeatureFlags(cfg, logger),
-		IsDesktopSidecar:              configOpts.IsDesktopSidecar,
-        SecondarySettings: struct {
-            Torrentstream *models.TorrentstreamSettings
-        }{Torrentstream: nil},
+		SecondarySettings: struct {
+			Torrentstream *models.TorrentstreamSettings
+		}{Torrentstream: nil},
 		SelfUpdater:                     selfupdater,
 		moduleMu:                        sync.Mutex{},
 		OnRefreshAnilistCollectionFuncs: result.NewResultMap[string, func()](),
@@ -348,22 +333,22 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Initialize modules that only need to be initialized once
 	app.initModulesOnce()
 
-    plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
-        IsOffline:               util.NewBool(false),
-        ContinuityManager:       app.ContinuityManager,
-        AutoScanner:             app.AutoScanner,
-        AutoDownloader:          app.AutoDownloader,
-        FileCacher:              app.FileCacher,
-    })
+	plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
+		IsOffline:         util.NewBool(false),
+		ContinuityManager: app.ContinuityManager,
+		AutoScanner:       app.AutoScanner,
+		AutoDownloader:    app.AutoDownloader,
+		FileCacher:        app.FileCacher,
+	})
 
-    // Initialize all modules that depend on settings
-    app.InitOrRefreshModules()
+	// Initialize all modules that depend on settings
+	app.InitOrRefreshModules()
 
 	// Disable update checker
 	app.Updater.SetEnabled(false)
 
-    // Fetch announcements after modules are initialized so updater respects settings
-    go app.Updater.FetchAnnouncements()
+	// Fetch announcements after modules are initialized so updater respects settings
+	go app.Updater.FetchAnnouncements()
 
 	// Start sync manager for real-time LocalFile and progress tracking
 	if app.SyncManager != nil {
@@ -381,7 +366,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Initialize Anilist data
 	app.InitOrRefreshAnilistData()
 
-	
 	// Register sync manager cleanup
 	if app.SyncManager != nil {
 		app.AddCleanupFunction(app.SyncManager.Stop)
@@ -392,7 +376,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 
 	return app
 }
-
 
 func (a *App) AddCleanupFunction(f func()) {
 	a.Cleanups = append(a.Cleanups, f)

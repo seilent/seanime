@@ -26,8 +26,8 @@ type Handler struct {
 func InitRoutes(app *core.App, e *echo.Echo) {
 	// CORS middleware
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Cookie", "Authorization"},
+		AllowOrigins:     []string{"*"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Cookie", "Authorization"},
 		AllowCredentials: true,
 	}))
 
@@ -185,10 +185,10 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.PATCH("/settings/auto-downloader", h.HandleSaveAutoDownloaderSettings)
 
 	// Multi-user settings endpoints
-	v1.GET("/settings/global", h.HandleGetGlobalSettings)        // Admin-only global settings
-	v1.PUT("/settings/global", h.HandleUpdateGlobalSettings)    // Admin-only global settings
-	v1.GET("/settings/user", h.HandleGetUserSettings)           // Current user's settings
-	v1.PUT("/settings/user", h.HandleUpdateUserSettings)       // Current user's settings
+	v1.GET("/settings/global", h.HandleGetGlobalSettings)    // Admin-only global settings
+	v1.PUT("/settings/global", h.HandleUpdateGlobalSettings) // Admin-only global settings
+	v1.GET("/settings/user", h.HandleGetUserSettings)        // Current user's settings
+	v1.PUT("/settings/user", h.HandleUpdateUserSettings)     // Current user's settings
 
 	// Auto Downloader
 	v1.POST("/auto-downloader/run", h.HandleRunAutoDownloader)
@@ -207,8 +207,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1.POST("/directory-selector", h.HandleDirectorySelector)
 
-	v1.POST("/open-in-explorer", h.HandleOpenInExplorer)
-
 	v1.POST("/media-player/start", h.HandleStartDefaultMediaPlayer)
 
 	//
@@ -217,8 +215,8 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1Anilist := v1.Group("/anilist")
 
-    // AniList Connection - Connect user's personal AniList account
-    v1Anilist.POST("/connect", h.HandleAnilistConnect)
+	// AniList Connection - Connect user's personal AniList account
+	v1Anilist.POST("/connect", h.HandleAnilistConnect)
 	v1Anilist.POST("/disconnect", h.HandleAnilistDisconnect)
 	v1Anilist.GET("/status", h.HandleAnilistConnectionStatus)
 
@@ -282,7 +280,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Library.POST("/anime-entry/suggestions", h.HandleFetchAnimeEntrySuggestions)
 	v1Library.POST("/anime-entry/manual-match", h.HandleAnimeEntryManualMatch)
 	v1Library.PATCH("/anime-entry/bulk-action", h.HandleAnimeEntryBulkAction)
-	v1Library.POST("/anime-entry/open-in-explorer", h.HandleOpenAnimeEntryInExplorer)
 	v1Library.POST("/anime-entry/update-progress", h.HandleUpdateAnimeEntryProgress)
 	v1Library.POST("/anime-entry/update-repeat", h.HandleUpdateAnimeEntryRepeat)
 	v1Library.GET("/anime-entry/silence/:id", h.HandleGetAnimeEntrySilenceStatus)
@@ -294,9 +291,9 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	//
 	// Sync System
 	//
-	
+
 	v1Sync := v1.Group("/sync")
-	
+
 	// Progress tracking
 	v1Sync.GET("/progress/:mediaId", h.HandleGetUserProgress)
 	v1Sync.GET("/progress/:mediaId/:episode/resume", h.HandleGetResumePoint)
@@ -304,15 +301,15 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Sync.PUT("/progress/update", h.HandleUpdateProgress)
 	v1Sync.POST("/progress/pause", h.HandlePauseWatching)
 	v1Sync.POST("/progress/stop", h.HandleStopWatching)
-	
+
 	// Library synchronization
 	v1Sync.POST("/library/sync", h.HandleSyncUserLibrary)
 	v1Sync.POST("/library/changed", h.HandleLibraryChanged)
-	
+
 	// WebSocket session management
 	v1Sync.POST("/websocket/register", h.HandleRegisterWebSocketSession)
 	v1Sync.POST("/websocket/unregister", h.HandleUnregisterWebSocketSession)
-	
+
 	// System statistics
 	v1Sync.GET("/stats", h.HandleGetSyncStats)
 
@@ -380,7 +377,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.DELETE("/playlist", h.HandleDeletePlaylist)
 	v1.GET("/playlist/episodes/:id/:progress", h.HandleGetPlaylistEpisodes)
 
-
 	//
 	// Metadata Provider
 	//
@@ -444,7 +440,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Discord.POST("/presence/anime-update", h.HandleUpdateDiscordAnimeActivityWithProgress)
 	v1Discord.POST("/presence/cancel", h.HandleCancelDiscordActivity)
 
-
 	//
 	// Media Stream
 	//
@@ -466,7 +461,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.GET("/directstream/stream", echo.WrapHandler(h.HandleDirectstreamGetStream()))
 	v1.HEAD("/directstream/stream", echo.WrapHandler(h.HandleDirectstreamGetStream()))
 	v1.GET("/directstream/att/*", h.HandleDirectstreamGetAttachments)
-
 
 	//
 	// Extensions
@@ -506,16 +500,12 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	// Sync
 	//
 
-
-
-
 	//
 	// Report
 	//
 
 	v1.POST("/report/issue", h.HandleSaveIssueReport)
 	v1.GET("/report/issue/download", h.HandleDownloadIssueReport)
-
 
 	//
 	// Admin System Scan

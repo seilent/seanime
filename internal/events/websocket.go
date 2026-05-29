@@ -1,11 +1,9 @@
 package events
 
 import (
-	"os"
 	"seanime/internal/util"
 	"seanime/internal/util/result"
 	"sync"
-	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/websocket"
@@ -91,44 +89,6 @@ func NewWSEventManager(logger *zerolog.Logger) *WSEventManager {
 		WSEventManager: ret,
 	}
 	return ret
-}
-
-// ExitIfNoConnsAsDesktopSidecar monitors the websocket connection as a desktop sidecar.
-// It checks for a connection every 5 seconds. If a connection is lost, it starts a countdown a waits for 15 seconds.
-// If a connection is not established within 15 seconds, it will exit the app.
-func (m *WSEventManager) ExitIfNoConnsAsDesktopSidecar() {
-	go func() {
-		defer util.HandlePanicInModuleThen("events/ExitIfNoConnsAsDesktopSidecar", func() {})
-
-		m.Logger.Info().Msg("ws: Monitoring connection as desktop sidecar")
-		// Create a ticker to check connection every 5 seconds
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-
-		// Track connection loss time
-		var connectionLostTime time.Time
-		exitTimeout := 10 * time.Second
-
-		for range ticker.C {
-			// Check WebSocket connection status
-			if len(m.Conns) == 0 && m.hasHadConnection {
-				// If not connected and first detection of connection loss
-				if connectionLostTime.IsZero() {
-					m.Logger.Warn().Msg("ws: No connection detected. Starting countdown...")
-					connectionLostTime = time.Now()
-				}
-
-				// Check if connection has been lost for more than 15 seconds
-				if time.Since(connectionLostTime) > exitTimeout {
-					m.Logger.Warn().Msg("ws: No connection detected for 10 seconds. Exiting...")
-					os.Exit(1)
-				}
-			} else {
-				// Connection is active, reset connection lost time
-				connectionLostTime = time.Time{}
-			}
-		}
-	}()
 }
 
 func (m *WSEventManager) AddConn(id string, userID uint, conn *websocket.Conn) {
@@ -290,7 +250,6 @@ func (m *WSEventManager) SubscribeToClientNativePlayerEvents(id string) *ClientE
 	m.clientNativePlayerEventSubscribers.Set(id, subscriber)
 	return subscriber
 }
-
 
 func (m *WSEventManager) UnsubscribeFromClientEvents(id string) {
 	m.eventMu.Lock()

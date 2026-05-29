@@ -75,11 +75,6 @@ func (h *Handler) HandleTorrentClientAction(c echo.Context) error {
 		if err != nil {
 			return h.RespondWithError(c, err)
 		}
-	case "open":
-		if b.Dir == "" {
-			return h.RespondWithError(c, errors.New("directory not found"))
-		}
-		OpenDirInExplorer(b.Dir)
 	}
 
 	return h.RespondWithData(c, true)
@@ -103,7 +98,7 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 			MissingEpisodeNumbers []int `json:"missingEpisodeNumbers"`
 		} `json:"smartSelect"`
 		Media               *anilist.BaseAnime `json:"media"`
-		DeleteExistingFiles bool                `json:"deleteExistingFiles"`
+		DeleteExistingFiles bool               `json:"deleteExistingFiles"`
 	}
 
 	var b body
@@ -139,7 +134,7 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
-	
+
 	completeAnime, err := userPlatform.GetAnimeWithRelations(c.Request().Context(), b.Media.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)

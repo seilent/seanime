@@ -10,16 +10,16 @@ import (
 	"seanime/internal/events"
 	"seanime/internal/library/autodownloader"
 	"seanime/internal/library/autoscanner"
-	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/filecleanup"
+	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/manga"
-	"seanime/internal/mediastream"
 	"seanime/internal/mediaplayers/iina"
 	"seanime/internal/mediaplayers/mediaplayer"
 	"seanime/internal/mediaplayers/mpchc"
 	"seanime/internal/mediaplayers/mpv"
 	"seanime/internal/mediaplayers/vlc"
+	"seanime/internal/mediastream"
 	"seanime/internal/nativeplayer"
 	"seanime/internal/notifier"
 	"seanime/internal/plugin"
@@ -29,7 +29,6 @@ import (
 	"seanime/internal/torrents/torrent"
 	"seanime/internal/util"
 
-	"github.com/cli/browser"
 	"github.com/rs/zerolog"
 )
 
@@ -93,15 +92,15 @@ func (a *App) initModulesOnce() {
 	// Playback Manager with SSE adapter
 	sseAdapter := events.NewSSEEventManagerAdapter(a.SSEManager)
 	a.PlaybackManager = playbackmanager.New(&playbackmanager.NewPlaybackManagerOptions{
-		Logger:            a.Logger,
-		WSEventManager:    a.WSEventManager,    // Keep for backwards compatibility
-		SSEEventManager:   sseAdapter,          // Preferred SSE implementation
-		Platform:          a.AnilistPlatform,
-		MetadataProvider:  a.MetadataProvider,
-		Database:          a.Database,
-		DiscordPresence:   a.DiscordPresence,
-		IsOffline:         util.NewBool(false),
-		ContinuityManager: a.ContinuityManager,
+		Logger:                     a.Logger,
+		WSEventManager:             a.WSEventManager, // Keep for backwards compatibility
+		SSEEventManager:            sseAdapter,       // Preferred SSE implementation
+		Platform:                   a.AnilistPlatform,
+		MetadataProvider:           a.MetadataProvider,
+		Database:                   a.Database,
+		DiscordPresence:            a.DiscordPresence,
+		IsOffline:                  util.NewBool(false),
+		ContinuityManager:          a.ContinuityManager,
 		RefreshAnimeCollectionFunc: nil, // Disabled in multiuser mode
 	})
 
@@ -121,14 +120,13 @@ func (a *App) initModulesOnce() {
 	a.MangaDownloader = manga.NewDownloader(&manga.NewDownloaderOptions{
 		Database:       a.Database,
 		Logger:         a.Logger,
-		WSEventManager: sseAdapter,  // Use SSE adapter
+		WSEventManager: sseAdapter, // Use SSE adapter
 		DownloadDir:    a.Config.Manga.DownloadDir,
 		Repository:     a.MangaRepository,
 		IsOffline:      util.NewBool(false),
 	})
 
 	a.MangaDownloader.Start()
-
 
 	// +---------------------+
 	// |    Native Player    |
@@ -144,15 +142,15 @@ func (a *App) initModulesOnce() {
 	// +---------------------+
 
 	a.DirectStreamManager = directstream.NewManager(directstream.NewManagerOptions{
-		Logger:            a.Logger,
-		WSEventManager:    sseAdapter,  // Use SSE adapter
-		ContinuityManager: a.ContinuityManager,
-		MetadataProvider:  a.MetadataProvider,
-		DiscordPresence:   a.DiscordPresence,
-		Platform:          a.AnilistPlatform,
+		Logger:                     a.Logger,
+		WSEventManager:             sseAdapter, // Use SSE adapter
+		ContinuityManager:          a.ContinuityManager,
+		MetadataProvider:           a.MetadataProvider,
+		DiscordPresence:            a.DiscordPresence,
+		Platform:                   a.AnilistPlatform,
 		RefreshAnimeCollectionFunc: nil, // Disabled in multiuser mode
-		IsOffline:    util.NewBool(false),
-		NativePlayer: a.NativePlayer,
+		IsOffline:                  util.NewBool(false),
+		NativePlayer:               a.NativePlayer,
 	})
 
 	// +---------------------+
@@ -161,7 +159,7 @@ func (a *App) initModulesOnce() {
 
 	a.MediastreamRepository = mediastream.NewRepository(&mediastream.NewRepositoryOptions{
 		Logger:         a.Logger,
-		WSEventManager: sseAdapter,  // Use SSE adapter
+		WSEventManager: sseAdapter, // Use SSE adapter
 		FileCacher:     a.FileCacher,
 	})
 
@@ -183,7 +181,7 @@ func (a *App) initModulesOnce() {
 		TorrentClientRepository: a.TorrentClientRepository,
 		TorrentRepository:       a.TorrentRepository,
 		Database:                a.Database,
-		WSEventManager:          sseAdapter,  // Use SSE adapter
+		WSEventManager:          sseAdapter, // Use SSE adapter
 		MetadataProvider:        a.MetadataProvider,
 		IsOffline:               util.NewBool(false),
 	})
@@ -199,8 +197,8 @@ func (a *App) initModulesOnce() {
 		Database:         a.Database,
 		Platform:         a.AnilistPlatform,
 		Logger:           a.Logger,
-		WSEventManager:   sseAdapter,  // Use SSE adapter
-		Enabled:          false, // Will be set in InitOrRefreshModules
+		WSEventManager:   sseAdapter, // Use SSE adapter
+		Enabled:          false,      // Will be set in InitOrRefreshModules
 		AutoDownloader:   a.AutoDownloader,
 		MetadataProvider: a.MetadataProvider,
 		LogsDir:          a.Config.Logs.Dir,
@@ -216,7 +214,6 @@ func (a *App) initModulesOnce() {
 	a.FileCleanupManager = filecleanup.NewManager(a.Logger, a.Database)
 
 	a.Logger.Info().Msg("app: File cleanup manager initialized")
-
 
 }
 
@@ -279,7 +276,7 @@ func (a *App) InitOrRefreshModules() {
 		},
 	}
 
-	a.Settings = userSettings // Store default user settings instance in app
+	a.Settings = userSettings         // Store default user settings instance in app
 	a.GlobalSettings = globalSettings // Store global settings instance in app
 	if globalSettings.Library != nil {
 		a.LibraryDir = globalSettings.GetLibrary().LibraryPath
@@ -343,7 +340,7 @@ func (a *App) InitOrRefreshModules() {
 			MpcHc:             a.MediaPlayer.MpcHc,
 			Mpv:               a.MediaPlayer.Mpv, // Socket
 			Iina:              a.MediaPlayer.Iina,
-			WSEventManager:    events.NewSSEEventManagerAdapter(a.SSEManager),  // Use SSE adapter
+			WSEventManager:    events.NewSSEEventManagerAdapter(a.SSEManager), // Use SSE adapter
 			ContinuityManager: a.ContinuityManager,
 		})
 
@@ -364,7 +361,6 @@ func (a *App) InitOrRefreshModules() {
 			AutoPlayNextEpisode: autoPlayNext,
 			AutoUpdateProgress:  autoUpdateProgress,
 		})
-
 
 		plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
 			MediaPlayerRepository: a.MediaPlayerRepository,
@@ -487,16 +483,11 @@ func (a *App) InitOrRefreshModules() {
 	// +---------------------+
 	// Load settings that are sent to the client via status endpoint
 
-	
-
 	runtime.GC()
 
 	a.Logger.Info().Msg("app: Refreshed modules")
 
 }
-
-
-
 
 // InitOrRefreshAnilistData is now simplified for pure multiuser mode.
 // No global user or collections - everything is per-user via handlers.
@@ -516,16 +507,6 @@ func (a *App) performActionsOnce() {
 	go func() {
 		if a.GlobalSettings == nil || a.GlobalSettings.Library == nil {
 			return
-		}
-
-		if a.GlobalSettings.GetLibrary().OpenWebURLOnStart {
-			// Open the web URL
-			err := browser.OpenURL(a.Config.GetServerURI("127.0.0.1"))
-			if err != nil {
-				a.Logger.Warn().Err(err).Msg("app: Failed to open web URL, please open it manually in your browser")
-			} else {
-				a.Logger.Info().Msg("app: Opened web URL")
-			}
 		}
 
 		if a.GlobalSettings.GetLibrary().RefreshLibraryOnStart {
@@ -549,4 +530,3 @@ func (a *App) performActionsOnce() {
 	}()
 
 }
-
