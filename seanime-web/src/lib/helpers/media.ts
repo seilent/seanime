@@ -1,4 +1,4 @@
-import { AL_AnimeListEntry, AL_BaseAnime, AL_MangaListEntry, Nullish } from "@/api/generated/types"
+import { AL_BaseAnime, AL_MediaListStatus, Nullish } from "@/api/generated/types"
 
 export function anilist_getTotalEpisodes(anime: Nullish<AL_BaseAnime>) {
     if (!anime) return -1
@@ -26,7 +26,13 @@ export function anilist_getCurrentEpisodes(anime: Nullish<AL_BaseAnime>) {
     return maxEp
 }
 
-export function anilist_getListDataFromEntry(entry: Nullish<AL_AnimeListEntry | AL_MangaListEntry>) {
+export function anilist_getListDataFromEntry(entry: Nullish<{
+    progress?: Nullish<number>
+    score?: Nullish<number>
+    status?: Nullish<AL_MediaListStatus>
+    startedAt?: Nullish<{ year?: Nullish<number>; month?: Nullish<number>; day?: Nullish<number> }>
+    completedAt?: Nullish<{ year?: Nullish<number>; month?: Nullish<number>; day?: Nullish<number> }>
+}>) {
     return {
         progress: entry?.progress,
         score: entry?.score,
