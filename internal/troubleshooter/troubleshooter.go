@@ -30,8 +30,7 @@ type (
 	}
 
 	AppState struct {
-		Settings            *models.Settings
-		MediastreamSettings *models.MediastreamSettings
+		Settings *models.Settings
 	}
 
 	Result struct {
