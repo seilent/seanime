@@ -13,7 +13,6 @@ import (
 	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/manga"
-	"seanime/internal/mediaplayers/mediaplayer"
 	"seanime/internal/platforms/platform"
 	"seanime/internal/torrent_clients/torrent_client"
 	"seanime/internal/util/filecache"
@@ -30,7 +29,6 @@ type AppContextModules struct {
 	AnimeLibraryPaths               *[]string
 	AnilistPlatform                 platform.Platform
 	PlaybackManager                 *playbackmanager.PlaybackManager
-	MediaPlayerRepository           *mediaplayer.Repository
 	MangaRepository                 *manga.Repository
 	MetadataProvider                metadata.Provider
 	WSEventManager                  events.WSEventManagerInterface
@@ -55,7 +53,6 @@ type AppContext interface {
 
 	Database() mo.Option[*db.Database]
 	PlaybackManager() mo.Option[*playbackmanager.PlaybackManager]
-	MediaPlayerRepository() mo.Option[*mediaplayer.Repository]
 	AnilistPlatform() mo.Option[platform.Platform]
 	WSEventManager() mo.Option[events.WSEventManagerInterface]
 
@@ -135,7 +132,6 @@ type AppContextImpl struct {
 	wsEventManager                  mo.Option[events.WSEventManagerInterface]
 	database                        mo.Option[*db.Database]
 	playbackManager                 mo.Option[*playbackmanager.PlaybackManager]
-	mediaplayerRepo                 mo.Option[*mediaplayer.Repository]
 	mangaRepository                 mo.Option[*manga.Repository]
 	anilistPlatform                 mo.Option[platform.Platform]
 	discordPresence                 mo.Option[*discordrpc_presence.Presence]
@@ -157,7 +153,6 @@ func NewAppContext() AppContext {
 		logger:                          &nopLogger,
 		database:                        mo.None[*db.Database](),
 		playbackManager:                 mo.None[*playbackmanager.PlaybackManager](),
-		mediaplayerRepo:                 mo.None[*mediaplayer.Repository](),
 		anilistPlatform:                 mo.None[platform.Platform](),
 		mangaRepository:                 mo.None[*manga.Repository](),
 		metadataProvider:                mo.None[metadata.Provider](),
@@ -193,10 +188,6 @@ func (a *AppContextImpl) PlaybackManager() mo.Option[*playbackmanager.PlaybackMa
 	return a.playbackManager
 }
 
-func (a *AppContextImpl) MediaPlayerRepository() mo.Option[*mediaplayer.Repository] {
-	return a.mediaplayerRepo
-}
-
 func (a *AppContextImpl) AnilistPlatform() mo.Option[platform.Platform] {
 	return a.anilistPlatform
 }
@@ -230,10 +221,6 @@ func (a *AppContextImpl) SetModulesPartial(modules AppContextModules) {
 		a.anilistPlatform = mo.Some(modules.AnilistPlatform)
 	}
 
-	if modules.MediaPlayerRepository != nil {
-		a.mediaplayerRepo = mo.Some(modules.MediaPlayerRepository)
-	}
-
 	if modules.FillerManager != nil {
 		a.fillerManager = mo.Some(modules.FillerManager)
 	}
@@ -265,8 +252,6 @@ func (a *AppContextImpl) SetModulesPartial(modules AppContextModules) {
 	if modules.TorrentClientRepository != nil {
 		a.torrentClientRepository = mo.Some(modules.TorrentClientRepository)
 	}
-
-
 
 	if modules.AutoDownloader != nil {
 		a.autoDownloader = mo.Some(modules.AutoDownloader)

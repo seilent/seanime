@@ -200,9 +200,7 @@ func NewAnalyzer(opts NewTroubleshooterOptions) *Troubleshooter {
 
 // defaultRules returns the default set of rules
 func defaultRules() []RuleBuilder {
-	return []RuleBuilder{
-		*mpvRules(),
-	}
+	return []RuleBuilder{}
 }
 
 // Analyze analyzes the logs in the logs directory and returns an AnalysisResult

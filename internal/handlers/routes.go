@@ -207,8 +207,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1.POST("/directory-selector", h.HandleDirectorySelector)
 
-	v1.POST("/media-player/start", h.HandleStartDefaultMediaPlayer)
-
 	//
 	// AniList
 	//
@@ -355,27 +353,10 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	//
 
 	v1.POST("/playback-manager/sync-current-progress", h.HandlePlaybackSyncCurrentProgress)
-	v1.POST("/playback-manager/start-playlist", h.HandlePlaybackStartPlaylist)
-	v1.POST("/playback-manager/playlist-next", h.HandlePlaybackPlaylistNext)
-	v1.POST("/playback-manager/cancel-playlist", h.HandlePlaybackCancelCurrentPlaylist)
-	v1.POST("/playback-manager/next-episode", h.HandlePlaybackPlayNextEpisode)
 	v1.GET("/playback-manager/next-episode", h.HandlePlaybackGetNextEpisode)
-	v1.POST("/playback-manager/autoplay-next-episode", h.HandlePlaybackAutoPlayNextEpisode)
-	v1.POST("/playback-manager/play", h.HandlePlaybackPlayVideo)
-	v1.POST("/playback-manager/play-random", h.HandlePlaybackPlayRandomVideo)
 	//------------
 	v1.POST("/playback-manager/manual-tracking/start", h.HandlePlaybackStartManualTracking)
 	v1.POST("/playback-manager/manual-tracking/cancel", h.HandlePlaybackCancelManualTracking)
-
-	//
-	// Playlists
-	//
-
-	v1.GET("/playlists", h.HandleGetPlaylists)
-	v1.POST("/playlist", h.HandleCreatePlaylist)
-	v1.PATCH("/playlist", h.HandleUpdatePlaylist)
-	v1.DELETE("/playlist", h.HandleDeletePlaylist)
-	v1.GET("/playlist/episodes/:id/:progress", h.HandleGetPlaylistEpisodes)
 
 	//
 	// Metadata Provider

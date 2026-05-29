@@ -44,26 +44,26 @@ type LocalFiles struct {
 // GlobalSettings - server-wide settings stored in separate table
 type GlobalSettings struct {
 	BaseModel
-	SetupCompleted   bool                        `gorm:"column:setup_completed" json:"setupCompleted"`
-	AnilistWhitelist StringSlice                 `gorm:"column:anilist_whitelist;type:text" json:"anilistWhitelist"`
-	Library          *LibrarySettings            `gorm:"embedded" json:"library"`
-	Torrent          *TorrentSettings            `gorm:"embedded" json:"torrent"`
-	AutoDownloader   *AutoDownloaderSettings     `gorm:"embedded" json:"autoDownloader"`
+	SetupCompleted   bool                    `gorm:"column:setup_completed" json:"setupCompleted"`
+	AnilistWhitelist StringSlice             `gorm:"column:anilist_whitelist;type:text" json:"anilistWhitelist"`
+	Library          *LibrarySettings        `gorm:"embedded" json:"library"`
+	Torrent          *TorrentSettings        `gorm:"embedded" json:"torrent"`
+	AutoDownloader   *AutoDownloaderSettings `gorm:"embedded" json:"autoDownloader"`
 }
 
 // Settings - per-user settings
 type Settings struct {
 	BaseModel
-	UserID                  uint                   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
-	AutoPlayNextEpisode     bool                   `gorm:"column:auto_play_next_episode" json:"autoPlayNextEpisode"`
-	AutoUpdateProgress      bool                   `gorm:"column:auto_update_progress" json:"autoUpdateProgress"`
-	MediaPlayer             *MediaPlayerSettings   `gorm:"embedded" json:"mediaPlayer"`
-	Anilist                 *AnilistSettings       `gorm:"embedded" json:"anilist"`
-	ListSync                *ListSyncSettings      `gorm:"embedded" json:"listSync"`
-	Discord                 *DiscordSettings       `gorm:"embedded" json:"discord"`
-	Notifications           *NotificationSettings  `gorm:"embedded" json:"notifications"`
-	Manga                   *MangaSettings         `gorm:"embedded" json:"manga"`
-	ClientMedia             *ClientMediaSettings   `gorm:"embedded" json:"clientMedia"`
+	UserID              uint                  `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
+	AutoPlayNextEpisode bool                  `gorm:"column:auto_play_next_episode" json:"autoPlayNextEpisode"`
+	AutoUpdateProgress  bool                  `gorm:"column:auto_update_progress" json:"autoUpdateProgress"`
+	MediaPlayer         *MediaPlayerSettings  `gorm:"embedded" json:"mediaPlayer"`
+	Anilist             *AnilistSettings      `gorm:"embedded" json:"anilist"`
+	ListSync            *ListSyncSettings     `gorm:"embedded" json:"listSync"`
+	Discord             *DiscordSettings      `gorm:"embedded" json:"discord"`
+	Notifications       *NotificationSettings `gorm:"embedded" json:"notifications"`
+	Manga               *MangaSettings        `gorm:"embedded" json:"manga"`
+	ClientMedia         *ClientMediaSettings  `gorm:"embedded" json:"clientMedia"`
 	// Virtual fields populated from GlobalSettings for frontend compatibility
 	Library        *LibrarySettings        `gorm:"-" json:"library"`        // Populated from GlobalSettings
 	Torrent        *TorrentSettings        `gorm:"-" json:"torrent"`        // Populated from GlobalSettings
@@ -91,13 +91,13 @@ type LibrarySettings struct {
 	OpenWebURLOnStart               bool   `gorm:"column:open_web_url_on_start" json:"openWebURLOnStart"`
 	RefreshLibraryOnStart           bool   `gorm:"column:refresh_library_on_start" json:"refreshLibraryOnStart"`
 	// v2.2+
-	EnableWatchContinuity    bool         `gorm:"column:enable_watch_continuity" json:"enableWatchContinuity"`
-	LibraryPaths             LibraryPaths `gorm:"column:library_paths;type:text" json:"libraryPaths"`
+	EnableWatchContinuity bool         `gorm:"column:enable_watch_continuity" json:"enableWatchContinuity"`
+	LibraryPaths          LibraryPaths `gorm:"column:library_paths;type:text" json:"libraryPaths"`
 	// v2.6+
 	ScannerMatchingThreshold float64 `gorm:"column:scanner_matching_threshold" json:"scannerMatchingThreshold"`
 	ScannerMatchingAlgorithm string  `gorm:"column:scanner_matching_algorithm" json:"scannerMatchingAlgorithm"`
 	// v2.9+
-	AutoSyncToLocalAccount      bool `gorm:"column:auto_sync_to_local_account" json:"autoSyncToLocalAccount"`
+	AutoSyncToLocalAccount bool `gorm:"column:auto_sync_to_local_account" json:"autoSyncToLocalAccount"`
 }
 
 func (o *LibrarySettings) GetLibraryPaths() (ret []string) {
@@ -125,7 +125,6 @@ func (o LibraryPaths) Value() (driver.Value, error) {
 	}
 	return strings.Join(o, ","), nil
 }
-
 
 type IntSlice []int
 
@@ -333,17 +332,6 @@ type Theme struct {
 	UnpinnedMenuItems StringSlice `gorm:"column:unpinned_menu_items;type:text" json:"unpinnedMenuItems"`
 }
 
-// +---------------------+
-// |      Playlist       |
-// +---------------------+
-
-type PlaylistEntry struct {
-	BaseModel
-	UserID uint   `gorm:"column:user_id;index" json:"userId"` // Foreign key to User
-	Name   string `gorm:"column:name" json:"name"`
-	Value  []byte `gorm:"column:value" json:"value"`
-}
-
 // +------------------------+
 // | Chapter Download Queue |
 // +------------------------+
@@ -363,12 +351,10 @@ type ChapterDownloadQueueItem struct {
 // |     MediaStream     |
 // +---------------------+
 
-
 // Client-side media playback settings (user-controlled, stored in user Settings)
 type ClientMediaSettings struct {
 	DirectPlayOnly bool `gorm:"column:direct_play_only" json:"directPlayOnly"`
 }
-
 
 // +---------------------+
 // |    TorrentStream    |
@@ -485,46 +471,46 @@ func (o StringSlice) Value() (driver.Value, error) {
 // UserLibraryEntry tracks which anime each user has in their library
 type UserLibraryEntry struct {
 	BaseModel
-	UserID    uint      `gorm:"uniqueIndex:idx_user_media" json:"userId"`
-	MediaID   int       `gorm:"uniqueIndex:idx_user_media" json:"mediaId"`
-	AddedAt   time.Time `json:"addedAt"`
-	IsActive  bool      `gorm:"default:true" json:"isActive"` // For filtering inactive entries
+	UserID   uint      `gorm:"uniqueIndex:idx_user_media" json:"userId"`
+	MediaID  int       `gorm:"uniqueIndex:idx_user_media" json:"mediaId"`
+	AddedAt  time.Time `json:"addedAt"`
+	IsActive bool      `gorm:"default:true" json:"isActive"` // For filtering inactive entries
 }
 
 // UserEpisodeProgress tracks per-user episode watch progress with resume functionality
 type UserEpisodeProgress struct {
 	BaseModel
-	UserID             uint      `gorm:"uniqueIndex:idx_user_episode" json:"userId"`
-	MediaID            int       `gorm:"uniqueIndex:idx_user_episode" json:"mediaId"`
-	EpisodeNumber      int       `gorm:"uniqueIndex:idx_user_episode" json:"episodeNumber"`
-	AniDBEpisode       string    `json:"aniDbEpisode"`
-	
+	UserID        uint   `gorm:"uniqueIndex:idx_user_episode" json:"userId"`
+	MediaID       int    `gorm:"uniqueIndex:idx_user_episode" json:"mediaId"`
+	EpisodeNumber int    `gorm:"uniqueIndex:idx_user_episode" json:"episodeNumber"`
+	AniDBEpisode  string `json:"aniDbEpisode"`
+
 	// Progress tracking
-	WatchTimeSeconds   int       `json:"watchTimeSeconds"`   // Current watch position
-	DurationSeconds    int       `json:"durationSeconds"`    // Total episode duration
-	CompletionPercent  float64   `json:"completionPercent"`  // Calculated percentage
-	IsCompleted        bool      `json:"isCompleted"`        // Marked as watched
-	LastWatchedAt      time.Time `json:"lastWatchedAt"`
-	
+	WatchTimeSeconds  int       `json:"watchTimeSeconds"`  // Current watch position
+	DurationSeconds   int       `json:"durationSeconds"`   // Total episode duration
+	CompletionPercent float64   `json:"completionPercent"` // Calculated percentage
+	IsCompleted       bool      `json:"isCompleted"`       // Marked as watched
+	LastWatchedAt     time.Time `json:"lastWatchedAt"`
+
 	// File association
-	LocalFilePath      string    `json:"localFilePath"`      // Which file was being watched
-	LocalFileHash      string    `json:"localFileHash"`      // For file integrity checking
-	
+	LocalFilePath string `json:"localFilePath"` // Which file was being watched
+	LocalFileHash string `json:"localFileHash"` // For file integrity checking
+
 	// Playback context
-	MediaPlayerUsed    string    `json:"mediaPlayerUsed"`    // "mpv", "vlc", etc.
-	DeviceInfo         string    `json:"deviceInfo"`         // Optional device identifier
+	MediaPlayerUsed string `json:"mediaPlayerUsed"` // "mpv", "vlc", etc.
+	DeviceInfo      string `json:"deviceInfo"`      // Optional device identifier
 }
 
 // UserActivePlayback tracks active playback sessions for real-time sync
 type UserActivePlayback struct {
 	BaseModel
-	UserID            uint      `gorm:"unique" json:"userId"`
-	MediaID           int       `json:"mediaId"`
-	EpisodeNumber     int       `json:"episodeNumber"`
-	CurrentTimeSeconds int      `json:"currentTimeSeconds"`
-	PlaybackState     string    `json:"playbackState"`     // "playing", "paused", "stopped"
-	LastUpdateAt      time.Time `json:"lastUpdateAt"`
-	SessionID         string    `json:"sessionId"`         // WebSocket session identifier
+	UserID             uint      `gorm:"unique" json:"userId"`
+	MediaID            int       `json:"mediaId"`
+	EpisodeNumber      int       `json:"episodeNumber"`
+	CurrentTimeSeconds int       `json:"currentTimeSeconds"`
+	PlaybackState      string    `json:"playbackState"` // "playing", "paused", "stopped"
+	LastUpdateAt       time.Time `json:"lastUpdateAt"`
+	SessionID          string    `json:"sessionId"` // WebSocket session identifier
 }
 
 // UserMediaSubscription tracks which media each user wants real-time updates for
@@ -545,10 +531,10 @@ type GlobalAnimeFileMapping struct {
 	BaseModel
 	AniListID     int       `gorm:"column:anilist_id;index" json:"anilistId"`
 	LocalFilePath string    `gorm:"column:local_file_path;unique" json:"localFilePath"`
-	Title         string    `gorm:"column:title" json:"title"`                      // Primary title for display
-	RomajiTitle   string    `gorm:"column:romaji_title" json:"romajiTitle"`         // Romaji title variant
-	EnglishTitle  string    `gorm:"column:english_title" json:"englishTitle"`       // English title variant
-	Synonyms      string    `gorm:"column:synonyms;type:text" json:"synonyms"`      // JSON array of synonyms
+	Title         string    `gorm:"column:title" json:"title"`                 // Primary title for display
+	RomajiTitle   string    `gorm:"column:romaji_title" json:"romajiTitle"`    // Romaji title variant
+	EnglishTitle  string    `gorm:"column:english_title" json:"englishTitle"`  // English title variant
+	Synonyms      string    `gorm:"column:synonyms;type:text" json:"synonyms"` // JSON array of synonyms
 	Year          int       `gorm:"column:year" json:"year"`
 	EpisodeNumber int       `gorm:"column:episode_number" json:"episodeNumber"`
 	FileSize      int64     `gorm:"column:file_size" json:"fileSize"`
@@ -559,11 +545,11 @@ type GlobalAnimeFileMapping struct {
 // This enables multi-token API strategy and user-specific catalog features
 type UserAnimeSubscription struct {
 	BaseModel
-	UserID       uint      `gorm:"column:user_id;index" json:"userId"`                               // Foreign key to User
-	AniListID    int       `gorm:"column:anilist_id;index" json:"anilistId"`                        // Which anime they have
-	LastVerified time.Time `gorm:"column:last_verified" json:"lastVerified"`                        // When we last confirmed they have it
-	TokenStatus  string    `gorm:"column:token_status;default:'active'" json:"tokenStatus"`         // active/failed/removed
-	AddedAt      time.Time `gorm:"column:added_at;default:CURRENT_TIMESTAMP" json:"addedAt"`        // When first detected
+	UserID       uint      `gorm:"column:user_id;index" json:"userId"`                       // Foreign key to User
+	AniListID    int       `gorm:"column:anilist_id;index" json:"anilistId"`                 // Which anime they have
+	LastVerified time.Time `gorm:"column:last_verified" json:"lastVerified"`                 // When we last confirmed they have it
+	TokenStatus  string    `gorm:"column:token_status;default:'active'" json:"tokenStatus"`  // active/failed/removed
+	AddedAt      time.Time `gorm:"column:added_at;default:CURRENT_TIMESTAMP" json:"addedAt"` // When first detected
 }
 
 // Index for efficient queries: unique user-anime combinations
@@ -575,8 +561,8 @@ func (UserAnimeSubscription) TableName() string {
 type UnmappedFile struct {
 	BaseModel
 	LocalFilePath   string     `gorm:"column:local_file_path;unique" json:"localFilePath"`
-	ParsedTitle     string     `gorm:"column:parsed_title" json:"parsedTitle"`       // Parsed anime title from filename
-	DetectedTitle   string     `gorm:"column:detected_title" json:"detectedTitle"`   // Alternative detected title
+	ParsedTitle     string     `gorm:"column:parsed_title" json:"parsedTitle"`     // Parsed anime title from filename
+	DetectedTitle   string     `gorm:"column:detected_title" json:"detectedTitle"` // Alternative detected title
 	FileSize        int64      `gorm:"column:file_size" json:"fileSize"`
 	LastDetected    time.Time  `gorm:"column:last_detected" json:"lastDetected"`
 	Status          string     `gorm:"column:status;default:'PENDING'" json:"status"` // "PENDING", "IGNORED", "ASSIGNED"
@@ -595,14 +581,14 @@ type UserLibrarySubscription struct {
 // UserProgressSyncItem queues user progress updates for batch sync to AniList
 type UserProgressSyncItem struct {
 	BaseModel
-	UserID         uint      `gorm:"column:user_id;index:idx_user_sync" json:"userId"`
-	AniListID      int       `gorm:"column:anilist_id" json:"anilistId"`
-	EpisodeNumber  int       `gorm:"column:episode_number" json:"episodeNumber"`
-	Status         string    `gorm:"column:status" json:"status"`                     // "CURRENT", "COMPLETED", etc.
-	Score          int       `gorm:"column:score" json:"score"`
-	Progress       int       `gorm:"column:progress" json:"progress"`
-	IsCompleted    bool      `gorm:"column:is_completed" json:"isCompleted"`
-	LastUpdated    time.Time `gorm:"column:last_updated" json:"lastUpdated"`
-	SyncStatus     string    `gorm:"column:sync_status;default:'PENDING'" json:"syncStatus"` // "PENDING", "SYNCED", "FAILED"
-	RetryCount     int       `gorm:"column:retry_count;default:0" json:"retryCount"`
+	UserID        uint      `gorm:"column:user_id;index:idx_user_sync" json:"userId"`
+	AniListID     int       `gorm:"column:anilist_id" json:"anilistId"`
+	EpisodeNumber int       `gorm:"column:episode_number" json:"episodeNumber"`
+	Status        string    `gorm:"column:status" json:"status"` // "CURRENT", "COMPLETED", etc.
+	Score         int       `gorm:"column:score" json:"score"`
+	Progress      int       `gorm:"column:progress" json:"progress"`
+	IsCompleted   bool      `gorm:"column:is_completed" json:"isCompleted"`
+	LastUpdated   time.Time `gorm:"column:last_updated" json:"lastUpdated"`
+	SyncStatus    string    `gorm:"column:sync_status;default:'PENDING'" json:"syncStatus"` // "PENDING", "SYNCED", "FAILED"
+	RetryCount    int       `gorm:"column:retry_count;default:0" json:"retryCount"`
 }

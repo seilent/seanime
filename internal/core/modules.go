@@ -14,11 +14,6 @@ import (
 	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/manga"
-	"seanime/internal/mediaplayers/iina"
-	"seanime/internal/mediaplayers/mediaplayer"
-	"seanime/internal/mediaplayers/mpchc"
-	"seanime/internal/mediaplayers/mpv"
-	"seanime/internal/mediaplayers/vlc"
 	"seanime/internal/mediastream"
 	"seanime/internal/nativeplayer"
 	"seanime/internal/notifier"
@@ -257,24 +252,7 @@ func (a *App) InitOrRefreshModules() {
 	// Each user will load their own settings when authenticated
 	// For app initialization, use default user settings
 	var userSettings *models.Settings
-	userSettings = &models.Settings{
-		MediaPlayer: &models.MediaPlayerSettings{
-			Default:     "vlc",
-			Host:        "127.0.0.1",
-			VlcUsername: "",
-			VlcPassword: "",
-			VlcPort:     8080,
-			VlcPath:     "",
-			MpcPort:     13579,
-			MpcPath:     "",
-			MpvSocket:   "",
-			MpvPath:     "",
-			MpvArgs:     "",
-			IinaSocket:  "",
-			IinaPath:    "",
-			IinaArgs:    "",
-		},
-	}
+	userSettings = &models.Settings{}
 
 	a.Settings = userSettings         // Store default user settings instance in app
 	a.GlobalSettings = globalSettings // Store global settings instance in app
@@ -315,37 +293,8 @@ func (a *App) InitOrRefreshModules() {
 		})
 	}
 
-	if userSettings != nil && userSettings.MediaPlayer != nil {
-		a.MediaPlayer.VLC = &vlc.VLC{
-			Host:     userSettings.MediaPlayer.Host,
-			Port:     userSettings.MediaPlayer.VlcPort,
-			Password: userSettings.MediaPlayer.VlcPassword,
-			Path:     userSettings.MediaPlayer.VlcPath,
-			Logger:   a.Logger,
-		}
-		a.MediaPlayer.MpcHc = &mpchc.MpcHc{
-			Host:   userSettings.MediaPlayer.Host,
-			Port:   userSettings.MediaPlayer.MpcPort,
-			Path:   userSettings.MediaPlayer.MpcPath,
-			Logger: a.Logger,
-		}
-		a.MediaPlayer.Mpv = mpv.New(a.Logger, userSettings.MediaPlayer.MpvSocket, userSettings.MediaPlayer.MpvPath, userSettings.MediaPlayer.MpvArgs)
-		a.MediaPlayer.Iina = iina.New(a.Logger, userSettings.MediaPlayer.IinaSocket, userSettings.MediaPlayer.IinaPath, userSettings.MediaPlayer.IinaArgs)
-
-		// Set media player repository
-		a.MediaPlayerRepository = mediaplayer.NewRepository(&mediaplayer.NewRepositoryOptions{
-			Logger:            a.Logger,
-			Default:           userSettings.MediaPlayer.Default,
-			VLC:               a.MediaPlayer.VLC,
-			MpcHc:             a.MediaPlayer.MpcHc,
-			Mpv:               a.MediaPlayer.Mpv, // Socket
-			Iina:              a.MediaPlayer.Iina,
-			WSEventManager:    events.NewSSEEventManagerAdapter(a.SSEManager), // Use SSE adapter
-			ContinuityManager: a.ContinuityManager,
-		})
-
-		a.PlaybackManager.SetMediaPlayerRepository(a.MediaPlayerRepository)
-		// Use user-specific playback preferences or defaults
+	// Set playback settings
+	{
 		autoPlayNext := false
 		autoUpdateProgress := true
 		if userSettings != nil {
@@ -361,12 +310,6 @@ func (a *App) InitOrRefreshModules() {
 			AutoPlayNextEpisode: autoPlayNext,
 			AutoUpdateProgress:  autoUpdateProgress,
 		})
-
-		plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
-			MediaPlayerRepository: a.MediaPlayerRepository,
-		})
-	} else {
-		a.Logger.Warn().Msg("app: Did not initialize media player module, no settings found")
 	}
 
 	// +---------------------+

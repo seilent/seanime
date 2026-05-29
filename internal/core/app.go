@@ -25,11 +25,6 @@ import (
 	"seanime/internal/library/scanner"
 	libsync "seanime/internal/library/sync"
 	"seanime/internal/manga"
-	"seanime/internal/mediaplayers/iina"
-	"seanime/internal/mediaplayers/mediaplayer"
-	"seanime/internal/mediaplayers/mpchc"
-	"seanime/internal/mediaplayers/mpv"
-	"seanime/internal/mediaplayers/vlc"
 	"seanime/internal/mediastream"
 	"seanime/internal/nativeplayer"
 	"seanime/internal/platforms/anilist_platform"
@@ -51,29 +46,22 @@ import (
 
 type (
 	App struct {
-		Config                        *Config
-		Database                      *db.Database
-		Logger                        *zerolog.Logger
-		TorrentClientRepository       *torrent_client.Repository
-		TorrentRepository             *torrent.Repository
-		Watcher                       *scanner.Watcher
-		AnilistClient                 anilist.AnilistClient
-		AnilistPlatform               platform.Platform
-		FillerManager                 *fillermanager.FillerManager
-		WSEventManager                *events.WSEventManager
-		SSEManager                    *events.SSEManager
-		AutoDownloader                *autodownloader.AutoDownloader
-		ExtensionRepository           *extension_repo.Repository
-		ExtensionPlaygroundRepository *extension_playground.PlaygroundRepository
-		DirectStreamManager           *directstream.Manager
-		NativePlayer                  *nativeplayer.NativePlayer
-		MediaPlayer                   struct {
-			VLC   *vlc.VLC
-			MpcHc *mpchc.MpcHc
-			Mpv   *mpv.Mpv
-			Iina  *iina.Iina
-		}
-		MediaPlayerRepository           *mediaplayer.Repository
+		Config                          *Config
+		Database                        *db.Database
+		Logger                          *zerolog.Logger
+		TorrentClientRepository         *torrent_client.Repository
+		TorrentRepository               *torrent.Repository
+		Watcher                         *scanner.Watcher
+		AnilistClient                   anilist.AnilistClient
+		AnilistPlatform                 platform.Platform
+		FillerManager                   *fillermanager.FillerManager
+		WSEventManager                  *events.WSEventManager
+		SSEManager                      *events.SSEManager
+		AutoDownloader                  *autodownloader.AutoDownloader
+		ExtensionRepository             *extension_repo.Repository
+		ExtensionPlaygroundRepository   *extension_playground.PlaygroundRepository
+		DirectStreamManager             *directstream.Manager
+		NativePlayer                    *nativeplayer.NativePlayer
 		Version                         string
 		Updater                         *updater.Updater
 		AutoScanner                     *autoscanner.AutoScanner
@@ -308,7 +296,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		DirectStreamManager:           nil, // Initialized in App.initModulesOnce
 		NativePlayer:                  nil, // Initialized in App.initModulesOnce
 		TorrentClientRepository:       nil, // Initialized in App.InitOrRefreshModules
-		MediaPlayerRepository:         nil, // Initialized in App.InitOrRefreshModules
 		DiscordPresence:               nil, // Initialized in App.InitOrRefreshModules
 		previousVersion:               previousVersion,
 		FeatureFlags:                  NewFeatureFlags(cfg, logger),

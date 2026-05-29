@@ -2,78 +2,10 @@ package handlers
 
 import (
 	"errors"
-	"seanime/internal/database/db_bridge"
 	"seanime/internal/library/playbackmanager"
 
 	"github.com/labstack/echo/v4"
 )
-
-// HandlePlaybackPlayVideo
-//
-//	@summary plays the video with the given path using the default media player.
-//	@desc This tells the Playback Manager to play the video using the default media player and start tracking progress.
-//	@desc This returns 'true' if the video was successfully played.
-//	@route /api/v1/playback-manager/play [POST]
-//	@returns bool
-func (h *Handler) HandlePlaybackPlayVideo(c echo.Context) error {
-	type body struct {
-		Path string `json:"path"`
-	}
-	b := new(body)
-	if err := c.Bind(b); err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, errors.New("authentication required"))
-	}
-
-	err := h.App.PlaybackManager.StartPlayingUsingMediaPlayer(&playbackmanager.StartPlayingOptions{
-		Payload:   b.Path,
-		UserAgent: c.Request().Header.Get("User-Agent"),
-		ClientId:  "",
-		UserID:    user.ID,
-	})
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	return h.RespondWithData(c, true)
-}
-
-// HandlePlaybackPlayRandomVideo
-//
-//	@summary plays a random, unwatched video using the default media player.
-//	@desc This tells the Playback Manager to play a random, unwatched video using the media player and start tracking progress.
-//	@desc It respects the user's progress data and will prioritize "current" and "repeating" media if they are many of them.
-//	@desc This returns 'true' if the video was successfully played.
-//	@route /api/v1/playback-manager/play-random [POST]
-//	@returns bool
-func (h *Handler) HandlePlaybackPlayRandomVideo(c echo.Context) error {
-
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, errors.New("authentication required"))
-	}
-
-	userPlatform, err := h.GetUserPlatform(c)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	err = h.App.PlaybackManager.StartRandomVideo(&playbackmanager.StartRandomVideoOptions{
-		UserAgent: c.Request().Header.Get("User-Agent"),
-		ClientId:  "",
-		UserID:    user.ID,
-		Platform:  userPlatform,
-	})
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	return h.RespondWithData(c, true)
-}
 
 // HandlePlaybackSyncCurrentProgress
 //
@@ -99,28 +31,6 @@ func (h *Handler) HandlePlaybackSyncCurrentProgress(c echo.Context) error {
 	return h.RespondWithData(c, mId)
 }
 
-// HandlePlaybackPlayNextEpisode
-//
-//	@summary plays the next episode of the currently playing media.
-//	@desc This will play the next episode of the currently playing media.
-//	@desc This is non-blocking so the client should prevent multiple calls until the next status is received.
-//	@route /api/v1/playback-manager/next-episode [POST]
-//	@returns bool
-func (h *Handler) HandlePlaybackPlayNextEpisode(c echo.Context) error {
-
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, errors.New("authentication required"))
-	}
-
-	err := h.App.PlaybackManager.PlayNextEpisode()
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	return h.RespondWithData(c, true)
-}
-
 // HandlePlaybackGetNextEpisode
 //
 //	@summary gets the next episode of the currently playing media.
@@ -136,108 +46,6 @@ func (h *Handler) HandlePlaybackGetNextEpisode(c echo.Context) error {
 
 	lf := h.App.PlaybackManager.GetNextEpisode()
 	return h.RespondWithData(c, lf)
-}
-
-// HandlePlaybackAutoPlayNextEpisode
-//
-//	@summary plays the next episode of the currently playing media.
-//	@desc This will play the next episode of the currently playing media.
-//	@route /api/v1/playback-manager/autoplay-next-episode [POST]
-//	@returns bool
-func (h *Handler) HandlePlaybackAutoPlayNextEpisode(c echo.Context) error {
-
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, errors.New("authentication required"))
-	}
-
-	err := h.App.PlaybackManager.AutoPlayNextEpisode()
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	return h.RespondWithData(c, true)
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// HandlePlaybackStartPlaylist
-//
-//	@summary starts playing a playlist.
-//	@desc The client should refetch playlists.
-//	@route /api/v1/playback-manager/start-playlist [POST]
-//	@returns bool
-func (h *Handler) HandlePlaybackStartPlaylist(c echo.Context) error {
-
-	type body struct {
-		DbId uint `json:"dbId"`
-	}
-
-	var b body
-	if err := c.Bind(&b); err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	// Get current user
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, echo.NewHTTPError(401, "User not authenticated"))
-	}
-
-	// Get playlist
-	playlist, err := db_bridge.GetPlaylist(h.App.Database, user.ID, b.DbId)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	err = h.App.PlaybackManager.StartPlaylist(playlist)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	return h.RespondWithData(c, true)
-}
-
-// HandlePlaybackCancelCurrentPlaylist
-//
-//	@summary ends the current playlist.
-//	@desc This will stop the current playlist. This is non-blocking.
-//	@route /api/v1/playback-manager/cancel-playlist [POST]
-//	@returns bool
-func (h *Handler) HandlePlaybackCancelCurrentPlaylist(c echo.Context) error {
-
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, errors.New("authentication required"))
-	}
-
-	err := h.App.PlaybackManager.CancelCurrentPlaylist()
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	return h.RespondWithData(c, true)
-}
-
-// HandlePlaybackPlaylistNext
-//
-//	@summary moves to the next item in the current playlist.
-//	@desc This is non-blocking so the client should prevent multiple calls until the next status is received.
-//	@route /api/v1/playback-manager/playlist-next [POST]
-//	@returns bool
-func (h *Handler) HandlePlaybackPlaylistNext(c echo.Context) error {
-
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, errors.New("authentication required"))
-	}
-
-	err := h.App.PlaybackManager.RequestNextPlaylistFile()
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	return h.RespondWithData(c, true)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

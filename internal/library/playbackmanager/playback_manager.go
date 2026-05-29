@@ -10,19 +10,13 @@ import (
 	"seanime/internal/database/db"
 	discordrpc_presence "seanime/internal/discordrpc/presence"
 	"seanime/internal/events"
-	"seanime/internal/hook"
 	"seanime/internal/library/anime"
-	"seanime/internal/mediaplayers/mediaplayer"
 	"seanime/internal/platforms/anilist_platform"
 	"seanime/internal/platforms/platform"
-	"seanime/internal/util"
 	"seanime/internal/util/result"
-	"strconv"
 	"sync"
 	"sync/atomic"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/samber/mo"
 )
@@ -42,20 +36,18 @@ var playbackStatePool = sync.Pool{
 type (
 	PlaybackType string
 
-	// PlaybackManager manages video playback (local and stream) and progress tracking for desktop media players.
+	// PlaybackManager manages video playback progress tracking.
 	// It receives and dispatch appropriate events for:
 	//  - Syncing progress with AniList, etc.
 	//  - Sending notifications to the client
 	PlaybackManager struct {
-		Logger                *zerolog.Logger
-		Database              *db.Database
-		MediaPlayerRepository *mediaplayer.Repository // MediaPlayerRepository is used to control the media player
-		continuityManager     *continuity.Manager
+		Logger            *zerolog.Logger
+		Database          *db.Database
+		continuityManager *continuity.Manager
 
 		settings *Settings
 
-		discordPresence            *discordrpc_presence.Presence     // DiscordPresence is used to update the user's Discord presence
-		mediaPlayerRepoSubscriber  *mediaplayer.RepositorySubscriber // Used to listen for media player events
+		discordPresence            *discordrpc_presence.Presence // DiscordPresence is used to update the user's Discord presence
 		wsEventManager             events.WSEventManagerInterface
 		platform                   platform.Platform
 		metadataProvider           metadata.Provider
@@ -65,30 +57,22 @@ type (
 		cancel                     context.CancelFunc
 
 		// historyMap stores a PlaybackState whose state is "completed"
-		// Since PlaybackState is sent to client continuously, once a PlaybackState is stored in historyMap, only IT will be sent to the client.
-		// This is so when the user seeks back to a video, the client can show the last known "completed" state of the video
-		historyMap                 map[string]map[uint]PlaybackState // user-specific history: filename -> user ID -> state
-		currentPlaybackType        PlaybackType
-		currentMediaPlaybackStatus *mediaplayer.PlaybackStatus // The current video playback status (can be nil)
-	currentUserID              uint                        // User ID for the current playback session
+		historyMap          map[string]map[uint]PlaybackState
+		currentPlaybackType PlaybackType
+		currentUserID       uint // User ID for the current playback session
 
 		autoPlayMu           sync.Mutex
 		nextEpisodeLocalFile mo.Option[*anime.LocalFile] // The next episode's local file (for local file playback)
 
 		// currentMediaListEntry for Local file playback & stream playback
-		// For Local file playback, it MUST be set
-		// For Stream playback, it is optional
-		// See [progress_tracking.go] for how it is handled
-		currentMediaListEntry mo.Option[*anilist.AnimeListEntry] // List Entry for the current video playback
+		currentMediaListEntry mo.Option[*anilist.AnimeListEntry]
 
 		// \/ Local file playback
-		currentLocalFile             mo.Option[*anime.LocalFile]             // Local file for the current video playback
-		currentLocalFileWrapperEntry mo.Option[*anime.LocalFileWrapperEntry] // This contains the current media entry local file data
+		currentLocalFile             mo.Option[*anime.LocalFile]
+		currentLocalFileWrapperEntry mo.Option[*anime.LocalFileWrapperEntry]
 
 		// \/ Stream playback
-		// The current episode being streamed, set in [StartStreamingUsingMediaPlayer] by finding the episode in currentStreamEpisodeCollection
-		currentStreamEpisode mo.Option[*anime.Episode]
-		// The current media being streamed, set in [StartStreamingUsingMediaPlayer]
+		currentStreamEpisode      mo.Option[*anime.Episode]
 		currentStreamMedia        mo.Option[*anilist.BaseAnime]
 		currentStreamAniDbEpisode mo.Option[string]
 
@@ -98,9 +82,6 @@ type (
 		manualTrackingPlaybackState PlaybackState
 		currentManualTrackingState  mo.Option[*ManualTrackingState]
 		manualTrackingWg            sync.WaitGroup
-
-		// \/ Playlist
-		playlistHub *playlistHub // The playlist hub
 
 		isOffline       *bool
 		animeCollection mo.Option[*anilist.AnimeCollection]
@@ -131,8 +112,7 @@ type (
 	// Local file playback events
 
 	PlaybackStatusChangedEvent struct {
-		Status mediaplayer.PlaybackStatus
-		State  PlaybackState
+		State PlaybackState
 	}
 
 	VideoStartedEvent struct {
@@ -154,7 +134,6 @@ type (
 	}
 
 	StreamStatusChangedEvent struct {
-		Status mediaplayer.PlaybackStatus
 	}
 
 	StreamStartedEvent struct {
@@ -173,28 +152,27 @@ type (
 	PlaybackStateType string
 
 	// PlaybackState is used to keep track of the user's current video playback
-	// It is sent to the client each time the video playback state is picked up -- this is used to update the client's UI
 	PlaybackState struct {
-		EpisodeNumber        int     `json:"episodeNumber"`        // The episode number
-		AniDbEpisode         string  `json:"aniDbEpisode"`         // The AniDB episode number
-		MediaTitle           string  `json:"mediaTitle"`           // The title of the media
-		MediaCoverImage      string  `json:"mediaCoverImage"`      // The cover image of the media
-		MediaTotalEpisodes   int     `json:"mediaTotalEpisodes"`   // The total number of episodes
-		Filename             string  `json:"filename"`             // The filename
-		CompletionPercentage float64 `json:"completionPercentage"` // The completion percentage
-		CanPlayNext          bool    `json:"canPlayNext"`          // Whether the next episode can be played
-		ProgressUpdated      bool    `json:"progressUpdated"`      // Whether the progress has been updated
-		MediaId              int     `json:"mediaId"`              // The media ID
+		EpisodeNumber        int     `json:"episodeNumber"`
+		AniDbEpisode         string  `json:"aniDbEpisode"`
+		MediaTitle           string  `json:"mediaTitle"`
+		MediaCoverImage      string  `json:"mediaCoverImage"`
+		MediaTotalEpisodes   int     `json:"mediaTotalEpisodes"`
+		Filename             string  `json:"filename"`
+		CompletionPercentage float64 `json:"completionPercentage"`
+		CanPlayNext          bool    `json:"canPlayNext"`
+		ProgressUpdated      bool    `json:"progressUpdated"`
+		MediaId              int     `json:"mediaId"`
 	}
 
 	NewPlaybackManagerOptions struct {
-		WSEventManager             events.WSEventManagerInterface  // Deprecated: use SSEEventManager
-		SSEEventManager            *events.SSEEventManagerAdapter  // Preferred: SSE-based event manager
+		WSEventManager             events.WSEventManagerInterface
+		SSEEventManager            *events.SSEEventManagerAdapter
 		Logger                     *zerolog.Logger
 		Platform                   platform.Platform
 		MetadataProvider           metadata.Provider
 		Database                   *db.Database
-		RefreshAnimeCollectionFunc func() // This function is called to refresh the AniList collection
+		RefreshAnimeCollectionFunc func()
 		DiscordPresence            *discordrpc_presence.Presence
 		IsOffline                  *bool
 		ContinuityManager          *continuity.Manager
@@ -253,8 +231,6 @@ func New(opts *NewPlaybackManagerOptions) *PlaybackManager {
 		playbackStatusSubscribers:    result.NewResultMap[string, *PlaybackStatusSubscriber](),
 	}
 
-	pm.playlistHub = newPlaylistHub(pm)
-
 	return pm
 }
 
@@ -266,304 +242,16 @@ func (pm *PlaybackManager) SetSettings(s *Settings) {
 	pm.settings = s
 }
 
-// SetMediaPlayerRepository sets the media player repository and starts listening to media player events
-// - This method is called when the media player is mounted (due to settings change or when the app starts)
-func (pm *PlaybackManager) SetMediaPlayerRepository(mediaPlayerRepository *mediaplayer.Repository) {
-	go func() {
-		// If a previous context exists, cancel it
-		if pm.cancel != nil {
-			pm.cancel()
-		}
-
-		pm.playlistHub.reset()
-
-		// Create a new context for listening to the MediaPlayer instance's event
-		// When this is canceled above, the previous listener goroutine will stop -- this is done to prevent multiple listeners
-		var ctx context.Context
-		ctx, pm.cancel = context.WithCancel(context.Background())
-
-		pm.mu.Lock()
-		// Set the new media player repository instance
-		pm.MediaPlayerRepository = mediaPlayerRepository
-		// Set up event listeners for the media player instance
-		pm.mediaPlayerRepoSubscriber = pm.MediaPlayerRepository.Subscribe("playbackmanager")
-		pm.mu.Unlock()
-
-		// Start listening to new media player events
-		pm.listenToMediaPlayerEvents(ctx)
-
-		// DEVNOTE: pm.listenToClientPlayerEvents()
-	}()
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-type StartPlayingOptions struct {
-	Payload   string // url or path
-	UserAgent string
-	ClientId  string
-	UserID    uint   // User ID for continuity tracking
-}
-
-func (pm *PlaybackManager) StartPlayingUsingMediaPlayer(opts *StartPlayingOptions) error {
-	// Store user ID for continuity tracking
-	pm.currentUserID = opts.UserID
-
-	event := &LocalFilePlaybackRequestedEvent{
-		Path: opts.Payload,
-	}
-	err := hook.GlobalHookManager.OnLocalFilePlaybackRequested().Trigger(event)
-	if err != nil {
-		return err
-	}
-	opts.Payload = event.Path
-
-	if event.DefaultPrevented {
-		pm.Logger.Debug().Msg("playback manager: Local file playback prevented by hook")
-		return nil
-	}
-
-	pm.playlistHub.reset()
-	if err := pm.checkOrLoadAnimeCollection(); err != nil {
-		return err
-	}
-
-	// Cancel manual tracking if active
-	if pm.manualTrackingCtxCancel != nil {
-		pm.manualTrackingCtxCancel()
-	}
-
-	// Check for resume point before starting playback
-	var resumeTimeSeconds float64
-	if pm.continuityManager.GetSettings().WatchContinuityEnabled {
-		// Get media information from file path
-		_, localFile, _, err := pm.getLocalFilePlaybackDetails(opts.Payload)
-		if err == nil && localFile != nil {
-			// Get the media ID from the local file
-			mediaId := localFile.MediaId
-			episodeNumber := localFile.GetEpisodeNumber()
-
-			if mediaId > 0 && episodeNumber > 0 {
-				// Check for existing resume point using continuity manager's sync manager
-				if pm.continuityManager != nil && pm.continuityManager.GetSyncManager() != nil {
-					resumePoint, err := pm.continuityManager.GetSyncManager().GetResumePoint(opts.UserID, mediaId, episodeNumber)
-					if err == nil && resumePoint != nil {
-						// Only resume if watch time is significant (>30 seconds) and not near completion (<90%)
-						watchTimeSeconds := float64(resumePoint.ResumeTimeSeconds)
-
-						if watchTimeSeconds > 30 && resumePoint.CompletionPercent < 90 {
-							resumeTimeSeconds = watchTimeSeconds
-							pm.Logger.Debug().
-								Float64("resumeTime", resumeTimeSeconds).
-								Int("mediaId", mediaId).
-								Int("episode", episodeNumber).
-								Msg("playback manager: Resume point found")
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// Send the media file to the media player
-	err = pm.MediaPlayerRepository.Play(opts.Payload)
-	if err != nil {
-		return err
-	}
-
-	// If we have a resume point, seek to it after a short delay to allow player to initialize
-	if resumeTimeSeconds > 0 {
-		go func() {
-			// Wait for the player to start and initialize
-			time.Sleep(3 * time.Second)
-
-			pm.Logger.Debug().Float64("seconds", resumeTimeSeconds).Msg("playback manager: Seeking to resume position")
-			err := pm.MediaPlayerRepository.Seek(resumeTimeSeconds)
-			if err != nil {
-				pm.Logger.Error().Err(err).Msg("playback manager: Failed to seek to resume position")
-			}
-		}()
-	}
-
-	trackingEvent := &PlaybackBeforeTrackingEvent{
-		IsStream: false,
-	}
-	err = hook.GlobalHookManager.OnPlaybackBeforeTracking().Trigger(trackingEvent)
-	if err != nil {
-		return err
-	}
-
-	if trackingEvent.DefaultPrevented {
-		return nil
-	}
-
-	// Start tracking
-	pm.MediaPlayerRepository.StartTracking()
-
-	return nil
-}
-
-// StartUntrackedStreamingUsingMediaPlayer starts a stream using the media player without any tracking.
-func (pm *PlaybackManager) StartUntrackedStreamingUsingMediaPlayer(windowTitle string, opts *StartPlayingOptions) (err error) {
-	defer util.HandlePanicInModuleWithError("library/playbackmanager/StartUntrackedStreamingUsingMediaPlayer", &err)
-
-	event := &StreamPlaybackRequestedEvent{
-		WindowTitle:  windowTitle,
-		Payload:      opts.Payload,
-		Media:        nil,
-		AniDbEpisode: "",
-	}
-	err = hook.GlobalHookManager.OnStreamPlaybackRequested().Trigger(event)
-	if err != nil {
-		return err
-	}
-
-	if event.DefaultPrevented {
-		pm.Logger.Debug().Msg("playback manager: Stream playback prevented by hook")
-		return nil
-	}
-
-	pm.Logger.Trace().Msg("playback manager: Starting the media player")
-
-	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
-	episodeNumber := 0
-
-	err = pm.MediaPlayerRepository.Stream(opts.Payload, episodeNumber, 0, windowTitle)
-	if err != nil {
-		pm.Logger.Error().Err(err).Msg("playback manager: Failed to start streaming")
-		return err
-	}
-
-	pm.Logger.Trace().Msg("playback manager: Sent stream to media player")
-
-	return nil
-}
-
-// StartStreamingUsingMediaPlayer starts streaming a video using the media player.
-// This sets PlaybackManager.currentStreamMedia and PlaybackManager.currentStreamEpisode used for progress tracking.
-// Note that PlaybackManager.currentStreamEpisodeCollection is not required to start streaming but is needed for progress tracking.
-func (pm *PlaybackManager) StartStreamingUsingMediaPlayer(windowTitle string, opts *StartPlayingOptions, media *anilist.BaseAnime, aniDbEpisode string) (err error) {
-	defer util.HandlePanicInModuleWithError("library/playbackmanager/StartStreamingUsingMediaPlayer", &err)
-
-	// Store user ID for continuity tracking
-	pm.currentUserID = opts.UserID
-
-	event := &StreamPlaybackRequestedEvent{
-		WindowTitle:  windowTitle,
-		Payload:      opts.Payload,
-		Media:        media,
-		AniDbEpisode: aniDbEpisode,
-	}
-	err = hook.GlobalHookManager.OnStreamPlaybackRequested().Trigger(event)
-	if err != nil {
-		return err
-	}
-
-	aniDbEpisode = event.AniDbEpisode
-	windowTitle = event.WindowTitle
-
-	if event.DefaultPrevented {
-		pm.Logger.Debug().Msg("playback manager: Stream playback prevented by hook")
-		return nil
-	}
-
-	pm.playlistHub.reset()
-	if *pm.isOffline {
-		return errors.New("cannot stream when offline")
-	}
-
-	if event.Media == nil || aniDbEpisode == "" {
-		pm.Logger.Error().Msg("playback manager: cannot start streaming, missing options [StartStreamingUsingMediaPlayer]")
-		return errors.New("cannot start streaming, not enough data provided")
-	}
-
-	pm.Logger.Trace().Msg("playback manager: Starting the media player")
-
-	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
-	// Cancel manual tracking if active
-	if pm.manualTrackingCtxCancel != nil {
-		pm.manualTrackingCtxCancel()
-	}
-
-	pm.currentStreamMedia = mo.Some(event.Media)
-	pm.currentStreamAniDbEpisode = mo.Some(aniDbEpisode)
-
-	// Extract episode number directly from AniDB episode string (simplified without streaming episode collection)
-	episodeNumber := 0
-	if episodeInt, err := strconv.Atoi(aniDbEpisode); err == nil {
-		episodeNumber = episodeInt
-	}
-
-	err = pm.MediaPlayerRepository.Stream(event.Payload, episodeNumber, event.Media.ID, windowTitle)
-	if err != nil {
-		pm.Logger.Error().Err(err).Msg("playback manager: Failed to start streaming")
-		return err
-	}
-
-	pm.Logger.Trace().Msg("playback manager: Sent stream to media player")
-
-	trackingEvent := &PlaybackBeforeTrackingEvent{
-		IsStream: true,
-	}
-	err = hook.GlobalHookManager.OnPlaybackBeforeTracking().Trigger(trackingEvent)
-	if err != nil {
-		return err
-	}
-
-	if trackingEvent.DefaultPrevented {
-		return nil
-	}
-
-	pm.MediaPlayerRepository.StartTrackingTorrentStream()
-
-	pm.Logger.Trace().Msg("playback manager: Started tracking torrent stream")
-
-	return nil
-}
-
-// PlayNextEpisode plays the next episode of the local media that is being watched
-//   - Called when the user clicks on the "Next" button in the client
-//   - Should not be called when the user is watching a playlist
-//   - Should not be called when no next episode is available
-func (pm *PlaybackManager) PlayNextEpisode() (err error) {
-	defer util.HandlePanicInModuleWithError("library/playbackmanager/PlayNextEpisode", &err)
-
-	switch pm.currentPlaybackType {
-	case LocalFilePlayback:
-		if pm.currentLocalFile.IsAbsent() || pm.currentMediaListEntry.IsAbsent() || pm.currentLocalFileWrapperEntry.IsAbsent() {
-			return errors.New("could not play next episode")
-		}
-
-		nextLf, found := pm.currentLocalFileWrapperEntry.MustGet().FindNextEpisode(pm.currentLocalFile.MustGet())
-		if !found {
-			return errors.New("could not play next episode")
-		}
-
-		err = pm.MediaPlayerRepository.Play(nextLf.Path)
-		if err != nil {
-			return err
-		}
-		// Start tracking the video
-		pm.MediaPlayerRepository.StartTracking()
-
-	case StreamPlayback:
-		// Stream playback handling
-	}
-
-	return nil
-}
 
 // GetNextEpisode gets the next [anime.LocalFile] of the local media that is being watched.
 // It will return nil if there is no next episode.
-// This is used by the client's "Auto Play" feature.
 func (pm *PlaybackManager) GetNextEpisode() (ret *anime.LocalFile) {
-	defer util.HandlePanicInModuleThen("library/playbackmanager/GetNextEpisode", func() {
-		ret = nil
-	})
+	defer func() {
+		if r := recover(); r != nil {
+			ret = nil
+		}
+	}()
 
 	switch pm.currentPlaybackType {
 	case LocalFilePlayback:
@@ -572,158 +260,6 @@ func (pm *PlaybackManager) GetNextEpisode() (ret *anime.LocalFile) {
 		}
 		return
 	}
-
-	return nil
-}
-
-// AutoPlayNextEpisode will play the next episode of the local media that is being watched.
-// This calls [PlaybackManager.PlayNextEpisode] only once if multiple clients made the request.
-func (pm *PlaybackManager) AutoPlayNextEpisode() error {
-	pm.autoPlayMu.Lock()
-	defer pm.autoPlayMu.Unlock()
-
-	pm.Logger.Trace().Msg("playback manager: Auto play request received")
-
-	if !pm.settings.AutoPlayNextEpisode {
-		return nil
-	}
-
-	lf := pm.GetNextEpisode()
-	// This shouldn't happen because the client should check if there is a next episode before sending the request.
-	// However, it will happen if there are multiple clients launching the request.
-	if lf == nil {
-		pm.Logger.Warn().Msg("playback manager: No next episode to play")
-		return nil
-	}
-
-	if err := pm.PlayNextEpisode(); err != nil {
-		pm.Logger.Error().Err(err).Msg("playback manager: Failed to auto play next episode")
-		return fmt.Errorf("failed to auto play next episode: %w", err)
-	}
-
-	// Remove the next episode from the queue
-	pm.nextEpisodeLocalFile = mo.None[*anime.LocalFile]()
-
-	return nil
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Pause pauses the current media player playback.
-func (pm *PlaybackManager) Pause() error {
-	return pm.MediaPlayerRepository.Pause()
-}
-
-// Resume resumes the current media player playback.
-func (pm *PlaybackManager) Resume() error {
-	return pm.MediaPlayerRepository.Resume()
-}
-
-// Seek seeks to the specified time in the current media.
-func (pm *PlaybackManager) Seek(seconds float64) error {
-	return pm.MediaPlayerRepository.Seek(seconds)
-}
-
-// PullStatus pulls the current media player playback status at the time of the call.
-func (pm *PlaybackManager) PullStatus() (*mediaplayer.PlaybackStatus, bool) {
-	return pm.MediaPlayerRepository.PullStatus()
-}
-
-// Cancel stops the current media player playback and publishes a "normal" event.
-func (pm *PlaybackManager) Cancel() error {
-	pm.MediaPlayerRepository.Stop()
-	return nil
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Playlist
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// CancelCurrentPlaylist cancels the current playlist.
-// This is an action triggered by the client.
-func (pm *PlaybackManager) CancelCurrentPlaylist() error {
-	go pm.playlistHub.reset()
-	return nil
-}
-
-// RequestNextPlaylistFile will play the next file in the playlist.
-// This is an action triggered by the client.
-func (pm *PlaybackManager) RequestNextPlaylistFile() error {
-	go pm.playlistHub.playNextFile()
-	return nil
-}
-
-// StartPlaylist starts a playlist.
-// This action is triggered by the client.
-func (pm *PlaybackManager) StartPlaylist(playlist *anime.Playlist) (err error) {
-	defer util.HandlePanicInModuleWithError("library/playbackmanager/StartPlaylist", &err)
-
-	pm.playlistHub.loadPlaylist(playlist)
-
-	_ = pm.checkOrLoadAnimeCollection()
-
-	// Play the first video in the playlist
-	firstVidPath := playlist.LocalFiles[0].Path
-	err = pm.MediaPlayerRepository.Play(firstVidPath)
-	if err != nil {
-		return err
-	}
-
-	// Start tracking the video
-	pm.MediaPlayerRepository.StartTracking()
-
-	// Create a new context for the playlist hub
-	var ctx context.Context
-	ctx, pm.playlistHub.cancel = context.WithCancel(context.Background())
-
-	// Listen to new play requests
-	go func() {
-		pm.Logger.Debug().Msg("playback manager: Listening for new file requests")
-		for {
-			select {
-			// When the playlist hub context is cancelled (No playlist is being played)
-			case <-ctx.Done():
-				pm.Logger.Debug().Msg("playback manager: Playlist context cancelled")
-				// Send event to the client -- nil signals that no playlist is being played
-				pm.wsEventManager.SendEventToUser(pm.currentUserID, events.PlaybackManagerPlaylistState, nil)
-				return
-			case path := <-pm.playlistHub.requestNewFileCh:
-				// requestNewFileCh receives the path of the next video to play
-				// The channel is fed when it's time to play the next video or when the client requests the next video
-				// see: RequestNextPlaylistFile, playlistHub code
-				pm.Logger.Debug().Str("path", path).Msg("playback manager: Playing next file")
-				// Send notification to the client
-				pm.wsEventManager.SendEventToUser(pm.currentUserID, events.InfoToast, "Playing next file in playlist")
-				// Play the requested video
-				err := pm.MediaPlayerRepository.Play(path)
-				if err != nil {
-					pm.Logger.Error().Err(err).Msg("playback manager: Failed to play next file in playlist")
-					pm.playlistHub.cancel()
-					return
-				}
-				// Start tracking the video
-				pm.MediaPlayerRepository.StartTracking()
-			case <-pm.playlistHub.endOfPlaylistCh:
-				pm.Logger.Debug().Msg("playback manager: End of playlist")
-				pm.wsEventManager.SendEventToUser(pm.currentUserID, events.InfoToast, "End of playlist")
-				// Send event to the client -- nil signals that no playlist is being played
-				pm.wsEventManager.SendEventToUser(pm.currentUserID, events.PlaybackManagerPlaylistState, nil)
-				go pm.MediaPlayerRepository.Stop()
-				pm.playlistHub.cancel()
-				return
-			}
-		}
-	}()
-
-	// Delete playlist in goroutine
-	// Note: This is a system operation, but we need a userID for the new signature
-	// Since playlists are user-specific, we should get the userID from the playlist context
-	// For now, we'll skip the deletion as it should be handled by the playlist handler
-	go func() {
-		pm.Logger.Debug().Str("name", playlist.Name).Msgf("playback manager: Playlist deletion should be handled by playlist handler")
-		// TODO: Consider removing this deletion or getting proper user context
-		// err := db_bridge.DeletePlaylist(pm.Database, userID, playlist.DbId)
-	}()
 
 	return nil
 }
@@ -751,10 +287,13 @@ func (pm *PlaybackManager) getUserSpecificPlatform() (platform.Platform, error) 
 }
 
 func (pm *PlaybackManager) checkOrLoadAnimeCollection() (err error) {
-	defer util.HandlePanicInModuleWithError("library/playbackmanager/checkOrLoadAnimeCollection", &err)
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic in checkOrLoadAnimeCollection: %v", r)
+		}
+	}()
 
 	if pm.animeCollection.IsAbsent() {
-		// If the anime collection is not present, we retrieve it from the user-specific platform
 		userPlatform, err := pm.getUserSpecificPlatform()
 		if err != nil {
 			pm.Logger.Error().Err(err).Uint("userID", pm.currentUserID).Msg("playback manager: Failed to get user-specific platform")
@@ -778,21 +317,6 @@ func (pm *PlaybackManager) SubscribeToPlaybackStatus(id string) *PlaybackStatusS
 	}
 	pm.playbackStatusSubscribers.Set(id, subscriber)
 	return subscriber
-}
-
-func (pm *PlaybackManager) RegisterMediaPlayerCallback(callback func(event PlaybackEvent, cancelFunc func())) (cancel func()) {
-	id := uuid.NewString()
-	playbackSubscriber := pm.SubscribeToPlaybackStatus(id)
-	cancel = func() {
-		pm.UnsubscribeFromPlaybackStatus(id)
-	}
-	go func(playbackSubscriber *PlaybackStatusSubscriber) {
-		for event := range playbackSubscriber.EventCh {
-			callback(event, cancel)
-		}
-	}(playbackSubscriber)
-
-	return cancel
 }
 
 func (pm *PlaybackManager) UnsubscribeFromPlaybackStatus(id string) {

@@ -1,9 +1,7 @@
 package troubleshooter
 
 import (
-	"fmt"
 	"seanime/internal/database/models"
-	"seanime/internal/mediaplayers/mediaplayer"
 
 	"github.com/rs/zerolog"
 )
@@ -20,7 +18,6 @@ type (
 	}
 
 	Modules struct {
-		MediaPlayerRepository *mediaplayer.Repository
 	}
 
 	NewTroubleshooterOptions struct {
@@ -61,10 +58,9 @@ const (
 )
 
 const (
-	ModulePlayback         Module = "Playback"
-	ModuleMediaPlayer      Module = "Media player"
-	ModuleAnimeLibrary     Module = "Anime library"
-	ModuleMediaStreaming   Module = "Media streaming"
+	ModulePlayback       Module = "Playback"
+	ModuleAnimeLibrary   Module = "Anime library"
+	ModuleMediaStreaming Module = "Media streaming"
 )
 
 func NewTroubleshooter(opts NewTroubleshooterOptions, modules *Modules) *Troubleshooter {
@@ -110,10 +106,9 @@ func (t *Troubleshooter) checkPlayback() {
 	case "desktop_media_player":
 		t.currentResult.AddItem(ResultItem{
 			Module:      ModulePlayback,
-			Observation: "Your downloaded anime files will be played using the desktop media player you have selected on this device.",
+			Observation: "Desktop media player support has been removed. Please use media streaming or external player link.",
 			Level:       LevelInfo,
 		})
-		t.checkDesktopMediaPlayer()
 	case "media_streaming":
 		t.currentResult.AddItem(ResultItem{
 			Module:      ModulePlayback,
@@ -125,34 +120,6 @@ func (t *Troubleshooter) checkPlayback() {
 			Module:      ModulePlayback,
 			Observation: "Your downloaded anime files will be played using the external player link you have entered on this device.",
 			Level:       LevelInfo,
-		})
-	}
-}
-
-func (t *Troubleshooter) checkDesktopMediaPlayer() {
-	t.logger.Info().Msg("troubleshooter: Checking desktop media player")
-
-	binaryPath := t.modules.MediaPlayerRepository.GetExecutablePath()
-	defaultPlayer := t.modules.MediaPlayerRepository.GetDefault()
-
-	if binaryPath == "" {
-		t.currentResult.AddItem(ResultItem{
-			Module:         ModuleMediaPlayer,
-			Observation:    fmt.Sprintf("You have selected %s as your desktop media player, but haven't set up the application path for it in the settings.", defaultPlayer),
-			Recommendation: "Set up the application path for your desktop media player in the settings.",
-			Level:          LevelError,
-		})
-	}
-
-	_, err := IsExecutable(binaryPath)
-	if err != nil {
-		t.currentResult.AddItem(ResultItem{
-			Module:         ModuleMediaPlayer,
-			Observation:    fmt.Sprintf("The application path for your desktop media player is not valid"),
-			Recommendation: "Set up the application path for your desktop media player in the settings.",
-			Level:          LevelError,
-			Errors:         []string{err.Error()},
-			Logs:           []string{binaryPath},
 		})
 	}
 }
