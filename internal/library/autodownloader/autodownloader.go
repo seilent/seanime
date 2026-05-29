@@ -11,7 +11,6 @@ import (
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
 	"seanime/internal/hook"
 	"seanime/internal/library/anime"
-	"seanime/internal/notifier"
 	"seanime/internal/torrent_clients/torrent_client"
 	"seanime/internal/torrents/torrent"
 	"seanime/internal/util"
@@ -464,20 +463,7 @@ func (ad *AutoDownloader) checkForNewEpisodes() {
 	}
 	p.Wait()
 
-	if downloaded > 0 {
-		if ad.settings.DownloadAutomatically {
-			notifier.GlobalNotifier.Notify(
-				notifier.AutoDownloader,
-				fmt.Sprintf("%d %s %s been downloaded.", downloaded, util.Pluralize(downloaded, "episode", "episodes"), util.Pluralize(downloaded, "has", "have")),
-			)
-		} else {
-			notifier.GlobalNotifier.Notify(
-				notifier.AutoDownloader,
-				fmt.Sprintf("%d %s %s been added to the queue.", downloaded, util.Pluralize(downloaded, "episode", "episodes"), util.Pluralize(downloaded, "has", "have")),
-			)
-		}
-	}
-
+	_ = downloaded
 }
 
 func (ad *AutoDownloader) torrentFollowsRule(
@@ -555,8 +541,6 @@ func (ad *AutoDownloader) downloadTorrent(t *NormalizedTorrent, rule *anime.Auto
 		ad.logger.Error().Msg("autodownloader: torrent client not found")
 		return false
 	}
-
-
 
 	// Get torrent magnet
 	magnet, err := t.GetMagnet(providerExtension.GetProvider())

@@ -11,7 +11,6 @@ import (
 	"seanime/internal/library/autodownloader"
 	"seanime/internal/library/scanner"
 	"seanime/internal/library/summary"
-	"seanime/internal/notifier"
 	"seanime/internal/platforms/platform"
 	"seanime/internal/util"
 	"sync"
@@ -262,8 +261,6 @@ func (as *AutoScanner) scan() {
 
 	// Refresh the queue
 	go as.autoDownloader.CleanUpDownloadedItems()
-
-	notifier.GlobalNotifier.Notify(notifier.AutoScanner, "Your library has been scanned.")
 
 	return
 }

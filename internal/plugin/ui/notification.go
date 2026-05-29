@@ -1,8 +1,6 @@
 package plugin_ui
 
 import (
-	"seanime/internal/notifier"
-
 	"github.com/dop251/goja"
 )
 
@@ -30,7 +28,8 @@ func (n *NotificationManager) jsNotify(call goja.FunctionCall) goja.Value {
 		return goja.Undefined()
 	}
 
-	notifier.GlobalNotifier.Notify(notifier.Notification(n.ctx.ext.Name), message)
+	// notifications are disabled (on-demand web app); accept and ignore
+	_ = message
 
 	return goja.Undefined()
 }
