@@ -27,8 +27,8 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 		return
 	}
 
-	// Get all releasing anime IDs
-	releasingIDs, err := ctx.App.Database.GetReleasingAnimeIDs()
+	// Get all releasing anime IDs that have local files (are in the library)
+	releasingIDs, err := ctx.App.Database.GetReleasingAnimeIDsInLibrary()
 	if err != nil {
 		logger.Error().Err(err).Msg("cron/subsplease-sync: Failed to get releasing anime")
 		return

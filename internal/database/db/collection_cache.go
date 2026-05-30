@@ -87,6 +87,17 @@ func (db *Database) GetReleasingAnimeIDs() ([]int, error) {
 	return ids, err
 }
 
+// GetReleasingAnimeIDsInLibrary returns AniList IDs of releasing anime that have local files.
+func (db *Database) GetReleasingAnimeIDsInLibrary() ([]int, error) {
+	var ids []int
+	err := db.gormdb.Raw(`
+		SELECT DISTINCT cm.anilist_id FROM cached_media cm
+		INNER JOIN global_anime_file_mappings gm ON cm.anilist_id = gm.anilist_id
+		WHERE cm.status = ? AND cm.type = ?
+	`, "RELEASING", "anime").Pluck("anilist_id", &ids).Error
+	return ids, err
+}
+
 // UpsertCachedMediaDetail upserts only the detail-page blob columns on a CachedMedia row.
 // The column set is disjoint from UpsertCachedMediaBatch to avoid clobbering collection data.
 func (db *Database) UpsertCachedMediaDetail(id int, mediaType string, detail []byte) error {
