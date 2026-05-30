@@ -279,7 +279,7 @@ func (r *Repository) SearchAnime(ctx context.Context, opts AnimeSearchOptions) (
 
 	// Filter to 1080p only
 	torrents = lo.Filter(torrents, func(t *hibiketorrent.AnimeTorrent, _ int) bool {
-		return t.Resolution == "1080"
+		return t.Resolution == "1080" || t.Resolution == "1080p"
 	})
 
 	// Sort by group priority (SubsPlease > Erai-raws > others), then by seeders
@@ -303,7 +303,7 @@ func (r *Repository) SearchAnime(ctx context.Context, opts AnimeSearchOptions) (
 	})
 
 	previews = lo.Filter(previews, func(p *Preview, _ int) bool {
-		return p != nil && p.Torrent != nil && p.Torrent.Resolution == "1080"
+		return p != nil && p.Torrent != nil && (p.Torrent.Resolution == "1080" || p.Torrent.Resolution == "1080p")
 	})
 	slices.SortFunc(previews, func(i, j *Preview) int {
 		pi, pj := groupPriority(i.Torrent.Name), groupPriority(j.Torrent.Name)
