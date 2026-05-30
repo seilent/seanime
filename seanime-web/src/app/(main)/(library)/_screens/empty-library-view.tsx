@@ -1,4 +1,3 @@
-import { useSmartLibraryScan } from "@/app/(main)/(library)/_hooks/use-smart-library-scan"
 import { __mainLibrary_paramsAtom, __mainLibrary_paramsInputAtom } from "@/app/(main)/(library)/_lib/handle-library-collection"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { DiscoverPageHeader } from "@/app/(main)/discover/_components/discover-page-header"
@@ -12,7 +11,6 @@ import { StaticTabs } from "@/components/ui/tabs"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useAtom, useSetAtom } from "jotai/react"
 import React from "react"
-import { FiSearch } from "react-icons/fi"
 import { LuCog } from "react-icons/lu"
 
 type EmptyLibraryViewProps = {
@@ -29,7 +27,6 @@ export function EmptyLibraryView(props: EmptyLibraryViewProps) {
     } = props
 
     const serverStatus = useServerStatus()
-    const { scanLibrary, isPending: isScanning } = useSmartLibraryScan()
 
     if (hasEntries || isLoading) return null
 
@@ -44,16 +41,7 @@ export function EmptyLibraryView(props: EmptyLibraryViewProps) {
                     <div className="w-fit mx-auto space-y-4">
                         {!!serverStatus?.settings?.library?.libraryPath ? <>
                             <h2>Empty library</h2>
-                            <Button
-                                intent="primary-outline"
-                                leftIcon={<FiSearch />}
-                                size="xl"
-                                rounded
-                                onClick={() => scanLibrary()}
-                                loading={isScanning}
-                            >
-                                Scan your library
-                            </Button>
+                            <p className="text-[--muted]">Files will appear here automatically after downloading.</p>
                         </> : (
                             <LuffyError
                                 title="Your library is empty"
@@ -62,7 +50,7 @@ export function EmptyLibraryView(props: EmptyLibraryViewProps) {
                                 <div className="text-center space-y-4">
                                     <SeaLink href="/settings?tab=library">
                                         <Button intent="primary-subtle" leftIcon={<LuCog className="text-xl" />}>
-                                            Set the path to your local library and scan it
+                                            Set the path to your local library
                                         </Button>
                                     </SeaLink>
                                     {serverStatus?.settings?.library?.enableOnlinestream && <p>

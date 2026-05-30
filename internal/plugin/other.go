@@ -290,22 +290,6 @@ func (a *AppContextImpl) BindAutoDownloaderToContextObj(vm *goja.Runtime, obj *g
 	_ = obj.Set("autoDownloader", autoDownloaderObj)
 }
 
-// BindAutoScannerToContextObj binds 'autoScanner' to the UI context object
-func (a *AppContextImpl) BindAutoScannerToContextObj(vm *goja.Runtime, obj *goja.Object, logger *zerolog.Logger, ext *extension.Extension, scheduler *goja_util.Scheduler) {
-
-	autoScannerObj := vm.NewObject()
-	_ = autoScannerObj.Set("notify", func() goja.Value {
-		autoScanner, ok := a.autoScanner.Get()
-		if !ok {
-			goja_bindings.PanicThrowErrorString(vm, "autoScanner not set")
-		}
-		autoScanner.Notify()
-		return goja.Undefined()
-	})
-	_ = obj.Set("autoScanner", autoScannerObj)
-
-}
-
 // BindFileCacherToContextObj binds 'fileCacher' to the UI context object
 func (a *AppContextImpl) BindFileCacherToContextObj(vm *goja.Runtime, obj *goja.Object, logger *zerolog.Logger, ext *extension.Extension, scheduler *goja_util.Scheduler) {
 

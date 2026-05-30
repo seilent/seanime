@@ -9,7 +9,6 @@ import (
 	discordrpc_presence "seanime/internal/discordrpc/presence"
 	"seanime/internal/events"
 	"seanime/internal/library/autodownloader"
-	"seanime/internal/library/autoscanner"
 	"seanime/internal/library/downloadmonitor"
 	"seanime/internal/library/filecleanup"
 	"seanime/internal/library/fillermanager"
@@ -180,24 +179,6 @@ func (a *App) initModulesOnce() {
 	a.AutoDownloader.Start()
 
 	// +---------------------+
-	// |   Auto Scanner      |
-	// +---------------------+
-
-	a.AutoScanner = autoscanner.New(&autoscanner.NewAutoScannerOptions{
-		Database:         a.Database,
-		Platform:         a.AnilistPlatform,
-		Logger:           a.Logger,
-		WSEventManager:   sseAdapter, // Use SSE adapter
-		Enabled:          false,      // Will be set in InitOrRefreshModules
-		AutoDownloader:   a.AutoDownloader,
-		MetadataProvider: a.MetadataProvider,
-		LogsDir:          a.Config.Logs.Dir,
-	})
-
-	// This is run in a goroutine
-	a.AutoScanner.Start()
-
-	// +---------------------+
 	// |  File Cleanup Manager |
 	// +---------------------+
 
@@ -225,11 +206,6 @@ func (a *App) InitOrRefreshModules() {
 	defer a.moduleMu.Unlock()
 
 	a.Logger.Debug().Msgf("app: Refreshing modules")
-
-	// Stop watching if already watching
-	if a.Watcher != nil {
-		a.Watcher.StopWatching()
-	}
 
 	// If Discord presence is already initialized, close it
 	if a.DiscordPresence != nil {
@@ -273,11 +249,6 @@ func (a *App) InitOrRefreshModules() {
 
 		if a.Updater != nil {
 			a.Updater.SetEnabled(!globalSettings.Library.DisableUpdateCheck)
-		}
-
-		// Refresh auto scanner settings
-		if a.AutoScanner != nil {
-			a.AutoScanner.SetSettings(*globalSettings.Library)
 		}
 
 		// Torrent Repository
@@ -385,17 +356,6 @@ func (a *App) InitOrRefreshModules() {
 	}
 
 	// +---------------------+
-	// |   Library Watcher   |
-	// +---------------------+
-
-	// Initialize library watcher
-	if globalSettings.Library != nil && len(globalSettings.Library.LibraryPath) > 0 {
-		go func() {
-			a.initLibraryWatcher(globalSettings.Library.GetLibraryPaths())
-		}()
-	}
-
-	// +---------------------+
 	// |       Discord       |
 	// +---------------------+
 
@@ -446,14 +406,6 @@ func (a *App) performActionsOnce() {
 	go func() {
 		if a.GlobalSettings == nil || a.GlobalSettings.Library == nil {
 			return
-		}
-
-		if a.GlobalSettings.GetLibrary().RefreshLibraryOnStart {
-			go func() {
-				a.Logger.Debug().Msg("app: Refreshing library")
-				a.AutoScanner.RunNow()
-				a.Logger.Info().Msg("app: Refreshed library")
-			}()
 		}
 
 		if a.GlobalSettings.GetLibrary().OpenTorrentClientOnStart && a.TorrentClientRepository != nil {

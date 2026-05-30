@@ -558,11 +558,6 @@ export function UISettings() {
                                             value: "torrent-list",
                                         },
                                         {
-                                            label: "Scan summaries",
-                                            textValue: "Scan summaries",
-                                            value: "scan-summaries",
-                                        },
-                                        {
                                             label: "Search",
                                             textValue: "Search",
                                             value: "search",

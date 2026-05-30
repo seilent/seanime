@@ -315,12 +315,7 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 				return
 			}
 
-			h.App.Logger.Info().Msg("AniList collection fetched, triggering initial library scan")
-
-			// 2. Trigger system scan to discover existing files
-			if h.App.SystemScanService != nil {
-				h.App.SystemScanService.NotifyFileChange()
-			}
+			h.App.Logger.Info().Msg("AniList collection fetched during setup")
 		}()
 	}
 
@@ -493,37 +488,6 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 	h.App.InitOrRefreshModules()
 
 	return h.RespondWithData(c, status)
-}
-
-// HandleTriggerLibraryScan
-//
-//	@summary triggers a manual library scan.
-//	@desc This endpoint triggers a manual library scan to discover new files and update the library.
-//	@desc It uses the same scan logic as the automatic file watcher but can be triggered on-demand.
-//	@desc Admin-only operation as it affects system-wide file scanning for all users.
-//	@route /api/v1/admin/system-scan/trigger [POST]
-//	@returns bool
-func (h *Handler) HandleTriggerLibraryScan(c echo.Context) error {
-
-	// Get current user and verify admin privileges
-	user := h.getCurrentUser(c)
-	if user == nil {
-		return h.RespondWithError(c, errors.New("authentication required"))
-	}
-
-	// Verify admin privileges
-	if !user.IsAdmin() {
-		return h.RespondWithError(c, errors.New("admin privileges required"))
-	}
-
-	// Trigger the system scan service if available
-	if h.App.SystemScanService != nil {
-		h.App.SystemScanService.NotifyFileChange()
-		h.App.Logger.Info().Str("username", user.Username).Msg("handlers: Manual system scan triggered by admin")
-		return h.RespondWithData(c, true)
-	}
-
-	return h.RespondWithError(c, errors.New("system scan service not available"))
 }
 
 // HandleSaveAutoDownloaderSettings

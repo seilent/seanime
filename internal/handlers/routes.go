@@ -172,10 +172,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Admin.POST("/whitelist", h.HandleAddToWhitelist)
 	v1Admin.DELETE("/whitelist/:username", h.HandleRemoveFromWhitelist)
 
-	// Admin System Scan Management
-	v1Admin.POST("/system-scan/start", h.HandleStartSystemScan)
-	v1Admin.GET("/system-scan/status", h.HandleGetSystemScanStatus)
-
 	// Admin Unmapped Files Management - handled by global-mapping routes
 
 	// Settings
@@ -203,8 +199,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.DELETE("/auto-downloader/item", h.HandleDeleteAutoDownloaderItem)
 
 	// Other
-	v1.POST("/test-dump", h.HandleTestDump)
-
 	v1.POST("/directory-selector", h.HandleDirectorySelector)
 
 	//
@@ -254,8 +248,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1Library := v1.Group("/library")
 
-	v1Library.POST("/scan", h.HandleScanLocalFiles)
-
 	v1Library.DELETE("/empty-directories", h.HandleRemoveEmptyDirectories)
 
 	v1Library.GET("/local-files", h.HandleGetLocalFiles)
@@ -267,8 +259,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1Library.GET("/collection", h.HandleGetLibraryCollection)
 	v1Library.GET("/schedule", h.HandleGetAnimeCollectionSchedule)
-
-	v1Library.GET("/scan-summaries", h.HandleGetScanSummaries)
 
 	v1Library.GET("/missing-episodes", h.HandleGetMissingEpisodes)
 
@@ -485,15 +475,6 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 
 	v1.POST("/report/issue", h.HandleSaveIssueReport)
 	v1.GET("/report/issue/download", h.HandleDownloadIssueReport)
-
-	//
-	// Admin System Scan
-	//
-
-	v1AdminSystemScan := v1.Group("/admin/system-scan")
-	v1AdminSystemScan.POST("/start", h.HandleStartSystemScan)
-	v1AdminSystemScan.GET("/status", h.HandleGetSystemScanStatus)
-	v1AdminSystemScan.POST("/trigger", h.HandleTriggerLibraryScan)
 
 	//
 	// Global Mapping

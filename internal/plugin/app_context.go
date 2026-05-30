@@ -9,7 +9,6 @@ import (
 	"seanime/internal/events"
 	"seanime/internal/extension"
 	"seanime/internal/library/autodownloader"
-	"seanime/internal/library/autoscanner"
 	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/manga"
@@ -34,7 +33,6 @@ type AppContextModules struct {
 	DiscordPresence                 *discordrpc_presence.Presence
 	TorrentClientRepository         *torrent_client.Repository
 	ContinuityManager               *continuity.Manager
-	AutoScanner                     *autoscanner.AutoScanner
 	AutoDownloader                  *autodownloader.AutoDownloader
 	FileCacher                      *filecache.Cacher
 	FillerManager                   *fillermanager.FillerManager
@@ -105,9 +103,6 @@ type AppContext interface {
 	// BindAutoDownloaderToContextObj binds 'autoDownloader' to the UI context object
 	BindAutoDownloaderToContextObj(vm *goja.Runtime, obj *goja.Object, logger *zerolog.Logger, ext *extension.Extension, scheduler *goja_util.Scheduler)
 
-	// BindAutoScannerToContextObj binds 'autoScanner' to the UI context object
-	BindAutoScannerToContextObj(vm *goja.Runtime, obj *goja.Object, logger *zerolog.Logger, ext *extension.Extension, scheduler *goja_util.Scheduler)
-
 	// BindFileCacherToContextObj binds 'fileCacher' to the UI context object
 	BindFileCacherToContextObj(vm *goja.Runtime, obj *goja.Object, logger *zerolog.Logger, ext *extension.Extension, scheduler *goja_util.Scheduler)
 
@@ -136,7 +131,6 @@ type AppContextImpl struct {
 	fillerManager                   mo.Option[*fillermanager.FillerManager]
 	torrentClientRepository         mo.Option[*torrent_client.Repository]
 	continuityManager               mo.Option[*continuity.Manager]
-	autoScanner                     mo.Option[*autoscanner.AutoScanner]
 	autoDownloader                  mo.Option[*autodownloader.AutoDownloader]
 	fileCacher                      mo.Option[*filecache.Cacher]
 	onRefreshAnilistAnimeCollection mo.Option[func()]
@@ -157,7 +151,6 @@ func NewAppContext() AppContext {
 		fillerManager:                   mo.None[*fillermanager.FillerManager](),
 		torrentClientRepository:         mo.None[*torrent_client.Repository](),
 		continuityManager:               mo.None[*continuity.Manager](),
-		autoScanner:                     mo.None[*autoscanner.AutoScanner](),
 		autoDownloader:                  mo.None[*autodownloader.AutoDownloader](),
 		fileCacher:                      mo.None[*filecache.Cacher](),
 		onRefreshAnilistAnimeCollection: mo.None[func()](),
@@ -242,10 +235,6 @@ func (a *AppContextImpl) SetModulesPartial(modules AppContextModules) {
 
 	if modules.AutoDownloader != nil {
 		a.autoDownloader = mo.Some(modules.AutoDownloader)
-	}
-
-	if modules.AutoScanner != nil {
-		a.autoScanner = mo.Some(modules.AutoScanner)
 	}
 
 	if modules.FileCacher != nil {

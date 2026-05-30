@@ -11,7 +11,7 @@ import (
 	"seanime/internal/hook"
 	"seanime/internal/library/anime"
 	"seanime/internal/library/filesystem"
-	"seanime/internal/library/scanner"
+	"seanime/internal/library/filehydrator"
 	"seanime/internal/library/summary"
 	"seanime/internal/platforms/platform"
 	"seanime/internal/util"
@@ -237,7 +237,7 @@ func (h *Handler) HandleFetchAnimeEntrySuggestions(c echo.Context) error {
 //
 //	@summary matches un-matched local files in the given directory to the given media.
 //	@desc It is used by the "Resolve unmatched media" feature to manually match local files to a specific media entry.
-//	@desc Matching involves the use of scanner.FileHydrator. It will also lock the files.
+//	@desc Matching involves the use of filehydrator.FileHydrator. It will also lock the files.
 //	@desc The response is not used in the frontend. The client should just refetch the entire library collection.
 //	@route /api/v1/library/anime-entry/manual-match [POST]
 //	@returns []anime.LocalFile
@@ -314,7 +314,7 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 		anime.NewNormalizedMedia(media),
 	}
 
-	scanLogger, err := scanner.NewScanLogger(h.App.Config.Logs.Dir)
+	scanLogger, err := filehydrator.NewScanLogger(h.App.Config.Logs.Dir)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
@@ -322,7 +322,7 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 	// Create scan summary logger
 	scanSummaryLogger := summary.NewScanSummaryLogger()
 
-	fh := scanner.FileHydrator{
+	fh := filehydrator.FileHydrator{
 		LocalFiles:         selectedLfs,
 		CompleteAnimeCache: anilist.NewCompleteAnimeCache(),
 		Platform:           userPlatform,
@@ -765,7 +765,7 @@ func (h *Handler) HandleValidateAnimeEntryLocalFiles(c echo.Context) error {
 										anime.NewNormalizedMedia(media),
 									}
 
-									fh := &scanner.FileHydrator{
+									fh := &filehydrator.FileHydrator{
 										LocalFiles:         []*anime.LocalFile{newLf},
 										CompleteAnimeCache: anilist.NewCompleteAnimeCache(),
 										Platform:           userPlatform,

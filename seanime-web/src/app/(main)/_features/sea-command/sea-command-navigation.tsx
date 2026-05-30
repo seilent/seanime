@@ -141,12 +141,6 @@ export function SeaCommandNavigation() {
             show: true,
         },
         {
-            name: "Scan summaries",
-            href: "/scan-summaries",
-            flag: "scan-summaries",
-            show: true,
-        },
-        {
             name: "Extensions",
             href: "/extensions",
             flag: "extensions",

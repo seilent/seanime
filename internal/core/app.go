@@ -18,11 +18,9 @@ import (
 	"seanime/internal/global_mapping"
 	"seanime/internal/hook"
 	"seanime/internal/library/autodownloader"
-	"seanime/internal/library/autoscanner"
 	"seanime/internal/library/filecleanup"
 	"seanime/internal/library/fillermanager"
 	"seanime/internal/library/playbackmanager"
-	"seanime/internal/library/scanner"
 	libsync "seanime/internal/library/sync"
 	"seanime/internal/manga"
 	"seanime/internal/mediastream"
@@ -36,10 +34,8 @@ import (
 	"seanime/internal/updater"
 	"seanime/internal/util"
 	"seanime/internal/util/filecache"
-	"seanime/internal/util/limiter"
 	"seanime/internal/util/result"
 	"sync"
-	"time"
 
 	"github.com/rs/zerolog"
 )
@@ -51,7 +47,6 @@ type (
 		Logger                          *zerolog.Logger
 		TorrentClientRepository         *torrent_client.Repository
 		TorrentRepository               *torrent.Repository
-		Watcher                         *scanner.Watcher
 		AnilistClient                   anilist.AnilistClient
 		AnilistPlatform                 platform.Platform
 		FillerManager                   *fillermanager.FillerManager
@@ -64,7 +59,6 @@ type (
 		NativePlayer                    *nativeplayer.NativePlayer
 		Version                         string
 		Updater                         *updater.Updater
-		AutoScanner                     *autoscanner.AutoScanner
 		PlaybackManager                 *playbackmanager.PlaybackManager
 		FileCacher                      *filecache.Cacher
 		MangaRepository                 *manga.Repository
@@ -97,7 +91,6 @@ type (
 		UserSubscriptionService *global_mapping.UserSubscriptionService
 		ProgressSyncService     *global_mapping.ProgressSyncService
 		FileWatcherService      *global_mapping.FileWatcherService
-		SystemScanService       *SystemScanService
 		FileCleanupManager      *filecleanup.Manager
 	}
 )
@@ -251,20 +244,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	// Initialize ProgressSyncService now that we have the active platform
 	progressSyncService := global_mapping.NewProgressSyncService(database, logger, activePlatform)
 
-	// Initialize SystemScanService for debounced file change notifications
-	systemScanService := NewSystemScanService(&SystemScanServiceOptions{
-		Logger:           logger,
-		Database:         database,
-		Platform:         activePlatform,
-		MetadataProvider: activeMetadataProvider,
-		WSEventManager:   wsEventManager,
-		SSEManager:       sseManager,
-		RateLimiter:      limiter.NewLimiter(time.Second, 10), // Rate limit for AniList API
-		AnimeCache:       anilist.NewCompleteAnimeCache(),
-		DebounceDelay:    5 * time.Second, // 5 second debounce delay
-		CooldownDuration: 1 * time.Minute, // 1 minute cooldown after scan
-	})
-
 	// Initialize extension playground for testing extensions
 	extensionPlaygroundRepository := extension_playground.NewPlaygroundRepository(logger, activePlatform, activeMetadataProvider)
 
@@ -290,7 +269,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		MangaDownloader:               nil, // Initialized in App.initModulesOnce
 		PlaybackManager:               nil, // Initialized in App.initModulesOnce
 		AutoDownloader:                nil, // Initialized in App.initModulesOnce
-		AutoScanner:                   nil, // Initialized in App.initModulesOnce
 		ContinuityManager:             nil, // Initialized in App.initModulesOnce
 		DirectStreamManager:           nil, // Initialized in App.initModulesOnce
 		NativePlayer:                  nil, // Initialized in App.initModulesOnce
@@ -311,7 +289,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 		UserSubscriptionService: userSubscriptionService,
 		ProgressSyncService:     progressSyncService,
 		FileWatcherService:      fileWatcherService,
-		SystemScanService:       systemScanService,
 	}
 
 	// Database tables are created via GORM AutoMigrate during NewDatabase() - no migrations needed
@@ -321,7 +298,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 
 	plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
 		ContinuityManager: app.ContinuityManager,
-		AutoScanner:       app.AutoScanner,
 		AutoDownloader:    app.AutoDownloader,
 		FileCacher:        app.FileCacher,
 	})

@@ -50,7 +50,6 @@ export function PluginManager() {
             "/entry", "/anilist", "/search", "/manga",
             "/settings", "/auto-downloader", "/torrent-list",
             "/schedule", "/extensions", "/sync", "/discover",
-            "/scan-summaries",
 
         ].some(path => event.path.startsWith(path))) {
             router.push(event.path)

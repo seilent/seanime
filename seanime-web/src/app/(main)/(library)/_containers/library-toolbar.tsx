@@ -2,12 +2,10 @@
 import { Anime_LibraryCollectionList, Anime_LocalFile, Anime_UnknownGroup } from "@/api/generated/types"
 import { __bulkAction_modalAtomIsOpen } from "@/app/(main)/(library)/_containers/bulk-action-modal"
 import { __ignoredFileManagerIsOpen } from "@/app/(main)/(library)/_containers/ignored-file-manager"
-import { useSmartLibraryScan } from "@/app/(main)/(library)/_hooks/use-smart-library-scan"
 import { __unknownMedia_drawerIsOpen } from "@/app/(main)/(library)/_containers/unknown-media-manager"
 import { __unmatchedFileManagerIsOpen } from "@/app/(main)/(library)/_containers/unmatched-file-manager"
 import { __library_viewAtom } from "@/app/(main)/(library)/_lib/library-view.atoms"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
-import { SeaLink } from "@/components/shared/sea-link"
 import { Button, IconButton } from "@/components/ui/button"
 import { cn } from "@/components/ui/core/styling"
 import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu"
@@ -16,10 +14,8 @@ import { ThemeLibraryScreenBannerType, useThemeSettings } from "@/lib/theme/hook
 import { useAtom, useSetAtom } from "jotai/react"
 import React from "react"
 import { BiCollection, BiDotsVerticalRounded } from "react-icons/bi"
-import { FiSearch } from "react-icons/fi"
-import { IoLibrary, IoLibrarySharp } from "react-icons/io5"
-import { PiClockCounterClockwiseFill } from "react-icons/pi"
-import { TbFileSad, TbReload } from "react-icons/tb"
+import { IoLibrary } from "react-icons/io5"
+import { TbFileSad } from "react-icons/tb"
 import { PluginAnimeLibraryDropdownItems } from "../../_features/plugin/actions/plugin-actions"
 
 export type LibraryToolbarProps = {
@@ -48,15 +44,14 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
     const ts = useThemeSettings()
     const setBulkActionIsOpen = useSetAtom(__bulkAction_modalAtomIsOpen)
 
-    const status = useServerStatus()
-    const { scanLibrary, refreshLibrary, isPending: isScanning } = useSmartLibraryScan()
+    const serverStatus = useServerStatus()
     const setUnmatchedFileManagerOpen = useSetAtom(__unmatchedFileManagerIsOpen)
     const setIgnoredFileManagerOpen = useSetAtom(__ignoredFileManagerIsOpen)
     const setUnknownMediaManagerOpen = useSetAtom(__unknownMedia_drawerIsOpen)
 
     const [libraryView, setLibraryView] = useAtom(__library_viewAtom)
 
-    const hasLibraryPath = !!status?.settings?.library?.libraryPath
+    const hasLibraryPath = !!serverStatus?.settings?.library?.libraryPath
 
     return (
         <>
@@ -81,18 +76,6 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
                         >
                             Switch view
                         </Tooltip>
-
-                        {/*Show up even when there's no local entries*/}
-                        {!isNakamaLibrary && hasLibraryPath && <Button
-                            data-library-toolbar-scan-button
-                            intent={hasEntries ? "primary-subtle" : "primary"}
-                            leftIcon={hasEntries ? <TbReload className="text-xl" /> : <FiSearch className="text-xl" />}
-                            onClick={() => hasEntries ? refreshLibrary() : scanLibrary()}
-                            loading={isScanning}
-                            hideTextOnSmallScreen
-                        >
-                            {hasEntries ? "Refresh library" : "Scan your library"}
-                        </Button>}
                     </>
                 )}
                 {/* HIDDEN: Resolve unmatched and hidden media buttons - can be reverted if needed
@@ -143,16 +126,6 @@ export function LibraryToolbar(props: LibraryToolbarProps) {
                             <TbFileSad />
                             <span>Ignored files</span>
                         </DropdownMenuItem>
-
-                        <SeaLink href="/scan-summaries">
-                            <DropdownMenuItem
-                                data-library-toolbar-scan-summaries-button
-                            // className={cn({ "!text-[--muted]": !hasEntries })}
-                            >
-                                <PiClockCounterClockwiseFill />
-                                <span>Scan summaries</span>
-                            </DropdownMenuItem>
-                        </SeaLink>
 
                         <PluginAnimeLibraryDropdownItems />
                     </DropdownMenu>}

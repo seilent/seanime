@@ -1,9 +1,7 @@
 "use client"
-import { ScanProgressBar } from "@/app/(main)/(library)/_containers/scan-progress-bar"
 import { ErrorExplainer } from "@/app/(main)/_features/error-explainer/error-explainer"
 import { GlobalSearch } from "@/app/(main)/_features/global-search/global-search"
 import { IssueReport } from "@/app/(main)/_features/issue-report/issue-report"
-import { LibraryWatcher } from "@/app/(main)/_features/library-watcher/library-watcher"
 import { MediaPreviewModal } from "@/app/(main)/_features/media/_containers/media-preview-modal"
 import { MainSidebar } from "@/app/(main)/_features/navigation/main-sidebar"
 import { PluginManager } from "@/app/(main)/_features/plugin/plugin-manager"
@@ -64,8 +62,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <>
             <GlobalSearch />
-            <ScanProgressBar />
-            <LibraryWatcher />
+
             <ChapterDownloadsDrawer />
             <MediaPreviewModal />
             <PlaybackManagerProgressTracking />

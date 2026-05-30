@@ -1,4 +1,4 @@
-package scanner
+package filehydrator
 
 import (
 	"seanime/internal/api/anilist"
@@ -27,6 +27,7 @@ func TestScanLogger(t *testing.T) {
 	tests := []struct {
 		name            string
 		paths           []string
+		forceMediaId    int
 		expectedMediaId int
 	}{
 		{
@@ -37,6 +38,7 @@ func TestScanLogger(t *testing.T) {
 				"E:/Anime/[SubsPlease] 86 - Eighty Six (01-23) (1080p) [Batch]/[SubsPlease] 86 - Eighty Six - 22v2 (1080p) [58BF43B4].mkv",
 				"E:/Anime/[SubsPlease] 86 - Eighty Six (01-23) (1080p) [Batch]/[SubsPlease] 86 - Eighty Six - 23v2 (1080p) [D94B4894].mkv",
 			},
+			forceMediaId:    131586,
 			expectedMediaId: 131586, // 86 - Eighty Six Part 2
 		},
 	}
@@ -57,38 +59,8 @@ func TestScanLogger(t *testing.T) {
 			var lfs []*anime.LocalFile
 			for _, path := range tt.paths {
 				lf := anime.NewLocalFile(path, "E:/Anime")
+				lf.MediaId = tt.forceMediaId
 				lfs = append(lfs, lf)
-			}
-
-			// +---------------------+
-			// |   MediaContainer    |
-			// +---------------------+
-
-			mc := NewMediaContainer(&MediaContainerOptions{
-				AllMedia:   allMedia,
-				ScanLogger: scanLogger,
-			})
-
-			for _, nm := range mc.NormalizedMedia {
-				t.Logf("media id: %d, title: %s", nm.ID, nm.GetTitleSafe())
-			}
-
-			// +---------------------+
-			// |      Matcher        |
-			// +---------------------+
-
-			matcher := &Matcher{
-				LocalFiles:         lfs,
-				MediaContainer:     mc,
-				CompleteAnimeCache: completeAnimeCache,
-				Logger:             util.NewLogger(),
-				ScanLogger:         scanLogger,
-				ScanSummaryLogger:  nil,
-			}
-
-			err = matcher.MatchLocalFilesWithMedia()
-			if err != nil {
-				t.Fatal("expected result, got error:", err.Error())
 			}
 
 			// +---------------------+
@@ -97,7 +69,7 @@ func TestScanLogger(t *testing.T) {
 
 			fh := FileHydrator{
 				LocalFiles:         lfs,
-				AllMedia:           mc.NormalizedMedia,
+				AllMedia:           allMedia,
 				CompleteAnimeCache: completeAnimeCache,
 				Platform:           anilistPlatform,
 				MetadataProvider:   metadataProvider,
@@ -105,7 +77,7 @@ func TestScanLogger(t *testing.T) {
 				Logger:             logger,
 				ScanLogger:         scanLogger,
 				ScanSummaryLogger:  nil,
-				ForceMediaId:       0,
+				ForceMediaId:       tt.forceMediaId,
 			}
 
 			fh.HydrateMetadata()

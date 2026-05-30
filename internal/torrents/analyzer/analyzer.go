@@ -6,9 +6,8 @@ import (
 	"seanime/internal/api/anilist"
 	"seanime/internal/api/metadata"
 	"seanime/internal/library/anime"
-	"seanime/internal/library/scanner"
+	"seanime/internal/library/filehydrator"
 	"seanime/internal/platforms/platform"
-	"seanime/internal/util"
 	"seanime/internal/util/limiter"
 
 	"github.com/rs/zerolog"
@@ -193,7 +192,9 @@ func (f *File) GetIndex() int {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// scanFiles scans the files and matches them with the media.
+// scanFiles scans the files and hydrates them with the known media.
+// Since the analyzer is always invoked for a known media, we use ForceMediaId
+// to skip fuzzy matching entirely.
 func (a *Analyzer) scanFiles() error {
 
 	completeAnimeCache := anilist.NewCompleteAnimeCache()
@@ -202,7 +203,7 @@ func (a *Analyzer) scanFiles() error {
 	lfs := a.getLocalFiles() // Extract local files from the Files
 
 	// +---------------------+
-	// |   MediaContainer    |
+	// |   Media Tree        |
 	// +---------------------+
 
 	tree := anilist.NewCompleteAnimeRelationTree()
@@ -212,43 +213,24 @@ func (a *Analyzer) scanFiles() error {
 
 	allMedia := tree.Values()
 
-	mc := scanner.NewMediaContainer(&scanner.MediaContainerOptions{
-		AllMedia: allMedia,
-	})
-
-	//scanLogger, _ := scanner.NewScanLogger("./logs")
-
-	// +---------------------+
-	// |      Matcher        |
-	// +---------------------+
-
-	matcher := &scanner.Matcher{
-		LocalFiles:         lfs,
-		MediaContainer:     mc,
-		CompleteAnimeCache: completeAnimeCache,
-		Logger:             util.NewLogger(),
-		ScanLogger:         nil,
-		ScanSummaryLogger:  nil,
+	// Build normalized media list from the relation tree
+	normalizedMedia := make([]*anime.NormalizedMedia, 0, len(allMedia))
+	for _, m := range allMedia {
+		normalizedMedia = append(normalizedMedia, anime.NewNormalizedMedia(m.ToBaseAnime()))
 	}
 
-	err := matcher.MatchLocalFilesWithMedia()
-	if err != nil {
-		return err
-	}
-
-	if a.forceMatch {
-		for _, lf := range lfs {
-			lf.MediaId = a.media.GetID()
-		}
+	// Force all local files to have the known media ID
+	for _, lf := range lfs {
+		lf.MediaId = a.media.GetID()
 	}
 
 	// +---------------------+
 	// |    FileHydrator     |
 	// +---------------------+
 
-	fh := &scanner.FileHydrator{
+	fh := &filehydrator.FileHydrator{
 		LocalFiles:         lfs,
-		AllMedia:           mc.NormalizedMedia,
+		AllMedia:           normalizedMedia,
 		CompleteAnimeCache: completeAnimeCache,
 		Platform:           a.platform,
 		MetadataProvider:   a.metadataProvider,
@@ -256,7 +238,7 @@ func (a *Analyzer) scanFiles() error {
 		Logger:             a.logger,
 		ScanLogger:         nil,
 		ScanSummaryLogger:  nil,
-		ForceMediaId:       map[bool]int{true: a.media.GetID(), false: 0}[a.forceMatch],
+		ForceMediaId:       a.media.GetID(),
 	}
 
 	fh.HydrateMetadata()

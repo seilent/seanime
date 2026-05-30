@@ -6,7 +6,6 @@ import (
 	"seanime/internal/events"
 	"seanime/internal/global_mapping"
 	"seanime/internal/library/anime"
-	"seanime/internal/library/scanner"
 	"sync"
 
 	"github.com/rs/zerolog"
@@ -21,7 +20,6 @@ type SyncManager struct {
 	enhancedWS        *events.EnhancedWSEventManager
 	localFileManager  *LocalFileManager
 	progressManager   *ProgressManager
-	enhancedWatcher   *scanner.EnhancedWatcher
 	globalMappingSvc  *global_mapping.GlobalMappingService
 
 	// Configuration
@@ -71,20 +69,6 @@ func (sm *SyncManager) initializeComponents() error {
 	// 3. Progress Manager
 	sm.progressManager = NewProgressManager(sm.db, sm.enhancedWS, sm.logger)
 	
-	// 4. Enhanced Watcher
-	var err error
-	sm.enhancedWatcher, err = scanner.NewEnhancedWatcher(&scanner.EnhancedWatcherOptions{
-		Logger:            sm.logger,
-		EnhancedWS:        sm.enhancedWS,
-		LocalFileProcessor: sm.localFileManager,
-		Database:          sm.db,
-		LibraryPaths:      sm.libraryPaths,
-		ProcessingWorkers: 3,
-	})
-	if err != nil {
-		return err
-	}
-	
 	return nil
 }
 
@@ -96,15 +80,6 @@ func (sm *SyncManager) Start() error {
 	if sm.isRunning {
 		return nil
 	}
-	
-	// Initialize file watcher
-	err := sm.enhancedWatcher.InitLibraryFileWatcher()
-	if err != nil {
-		return err
-	}
-	
-	// Start file watcher
-	sm.enhancedWatcher.StartWatching()
 	
 	sm.isRunning = true
 	sm.logger.Info().Msg("sync-manager: Started all sync operations")
@@ -120,9 +95,6 @@ func (sm *SyncManager) Stop() {
 	if !sm.isRunning {
 		return
 	}
-	
-	// Stop file watcher
-	sm.enhancedWatcher.StopWatching()
 	
 	// Stop progress manager
 	sm.progressManager.Close()
@@ -209,10 +181,6 @@ func (sm *SyncManager) GetStats() map[string]interface{} {
 	stats := map[string]interface{}{
 		"isRunning":     sm.isRunning,
 		"libraryPaths":  sm.libraryPaths,
-	}
-	
-	if sm.enhancedWatcher != nil {
-		stats["watcher"] = sm.enhancedWatcher.GetStats()
 	}
 	
 	// Add component-specific stats here as needed
