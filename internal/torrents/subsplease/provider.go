@@ -1,35 +1,43 @@
 package subsplease
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
 
-	"github.com/mmcdole/gofeed"
 	"github.com/rs/zerolog"
 )
 
 const (
 	ProviderName = "subsplease"
-	rssURL       = "https://subsplease.org/rss/?t&r=1080"
+	showsURL     = "https://subsplease.org/shows/"
+	apiURL       = "https://subsplease.org/api/"
 )
 
-// episodeRegex extracts episode number from SubsPlease title format:
-// [SubsPlease] Show Name - 08 (1080p) [CRC32]
-var episodeRegex = regexp.MustCompile(`- (\d+) \(`)
-
-// infoHashRegex extracts btih from magnet link
-var infoHashRegex = regexp.MustCompile(`btih:([0-9a-fA-F]+)`)
+var sidRegex = regexp.MustCompile(`sid="(\d+)"`)
+var infoHashRegex = regexp.MustCompile(`btih:([0-9a-zA-Z]+)`)
 
 type Provider struct {
 	logger *zerolog.Logger
+	// slug -> sid cache
+	mu       sync.RWMutex
+	sidCache map[string]string
 }
 
 func NewProvider(logger *zerolog.Logger) hibiketorrent.AnimeProvider {
-	return &Provider{logger: logger}
+	return &Provider{
+		logger:   logger,
+		sidCache: make(map[string]string),
+	}
 }
 
 func (p *Provider) GetSettings() hibiketorrent.AnimeProviderSettings {
@@ -44,72 +52,37 @@ func (p *Provider) GetSettings() hibiketorrent.AnimeProviderSettings {
 }
 
 func (p *Provider) Search(opts hibiketorrent.AnimeSearchOptions) ([]*hibiketorrent.AnimeTorrent, error) {
-	return p.fetchAndFilter(opts.Query, 0, false)
+	// Search by slug directly
+	slug := titleToSlug(opts.Query)
+	return p.fetchShowEpisodes(slug, 0)
 }
 
 func (p *Provider) SmartSearch(opts hibiketorrent.AnimeSmartSearchOptions) ([]*hibiketorrent.AnimeTorrent, error) {
-	// Build search terms from media titles
-	titles := []string{strings.ToLower(opts.Media.RomajiTitle)}
+	// Build candidate slugs from titles and synonyms
+	slugs := []string{}
+	slugs = append(slugs, titleToSlug(opts.Media.RomajiTitle))
 	if opts.Media.EnglishTitle != nil && *opts.Media.EnglishTitle != "" {
-		titles = append(titles, strings.ToLower(*opts.Media.EnglishTitle))
+		slugs = append(slugs, titleToSlug(*opts.Media.EnglishTitle))
 	}
 	for _, syn := range opts.Media.Synonyms {
-		// Only use romaji/latin synonyms
 		if isLatin(syn) {
-			titles = append(titles, strings.ToLower(syn))
+			slugs = append(slugs, titleToSlug(syn))
 		}
 	}
 
-	var results []*hibiketorrent.AnimeTorrent
-	seen := make(map[string]struct{})
-
-	feed, err := p.parseFeed()
-	if err != nil {
-		return nil, err
+	// Try each slug until one works
+	for _, slug := range slugs {
+		results, err := p.fetchShowEpisodes(slug, opts.EpisodeNumber)
+		if err == nil && len(results) > 0 {
+			return results, nil
+		}
 	}
 
-	for _, item := range feed.Items {
-		lowerTitle := strings.ToLower(item.Title)
-		matched := false
-		for _, t := range titles {
-			if strings.Contains(lowerTitle, t) {
-				matched = true
-				break
-			}
-		}
-		if !matched {
-			continue
-		}
-
-		// Filter by episode number if specified
-		if opts.EpisodeNumber > 0 {
-			ep := extractEpisode(item.Title)
-			if ep != opts.EpisodeNumber {
-				continue
-			}
-		}
-
-		torrent := p.itemToTorrent(item)
-		if _, exists := seen[torrent.Link]; exists {
-			continue
-		}
-		seen[torrent.Link] = struct{}{}
-		results = append(results, torrent)
-	}
-
-	return results, nil
+	return nil, fmt.Errorf("show not found on SubsPlease")
 }
 
 func (p *Provider) GetLatest() ([]*hibiketorrent.AnimeTorrent, error) {
-	feed, err := p.parseFeed()
-	if err != nil {
-		return nil, err
-	}
-	var results []*hibiketorrent.AnimeTorrent
-	for _, item := range feed.Items {
-		results = append(results, p.itemToTorrent(item))
-	}
-	return results, nil
+	return nil, nil
 }
 
 func (p *Provider) GetTorrentInfoHash(torrent *hibiketorrent.AnimeTorrent) (string, error) {
@@ -127,70 +100,153 @@ func (p *Provider) GetTorrentMagnetLink(torrent *hibiketorrent.AnimeTorrent) (st
 	return torrent.MagnetLink, nil
 }
 
-func (p *Provider) parseFeed() (*gofeed.Feed, error) {
-	fp := gofeed.NewParser()
-	return fp.ParseURL(rssURL)
-}
-
-func (p *Provider) fetchAndFilter(query string, episodeNumber int, batch bool) ([]*hibiketorrent.AnimeTorrent, error) {
-	feed, err := p.parseFeed()
+// fetchShowEpisodes gets episodes from the SubsPlease API for a given slug
+func (p *Provider) fetchShowEpisodes(slug string, episodeNumber int) ([]*hibiketorrent.AnimeTorrent, error) {
+	sid, err := p.getSid(slug)
 	if err != nil {
 		return nil, err
 	}
 
-	lowerQuery := strings.ToLower(query)
-	var results []*hibiketorrent.AnimeTorrent
-	for _, item := range feed.Items {
-		if query != "" && !strings.Contains(strings.ToLower(item.Title), lowerQuery) {
-			continue
-		}
-		results = append(results, p.itemToTorrent(item))
+	// Call the show API
+	u := fmt.Sprintf("%s?f=show&tz=UTC&sid=%s", apiURL, sid)
+	resp, err := http.Get(u)
+	if err != nil {
+		return nil, err
 	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var showData struct {
+		Episode map[string]struct {
+			ReleaseDate string `json:"release_date"`
+			Show        string `json:"show"`
+			Episode     string `json:"episode"`
+			Downloads   []struct {
+				Res     string `json:"res"`
+				Torrent string `json:"torrent"`
+				Magnet  string `json:"magnet"`
+			} `json:"downloads"`
+		} `json:"episode"`
+	}
+	if err := json.Unmarshal(body, &showData); err != nil {
+		return nil, err
+	}
+
+	var results []*hibiketorrent.AnimeTorrent
+	for _, ep := range showData.Episode {
+		// Filter by episode if specified
+		if episodeNumber > 0 {
+			epNum, _ := strconv.Atoi(ep.Episode)
+			if epNum != episodeNumber {
+				continue
+			}
+		}
+
+		// Find 1080p download
+		for _, dl := range ep.Downloads {
+			if dl.Res != "1080" {
+				continue
+			}
+
+			infoHash := ""
+			if matches := infoHashRegex.FindStringSubmatch(dl.Magnet); len(matches) > 1 {
+				infoHash = strings.ToLower(matches[1])
+			}
+
+			date := ""
+			if t, err := time.Parse("Mon, 02 Jan 2006 15:04:05 -0700", ep.ReleaseDate); err == nil {
+				date = t.Format(time.RFC3339)
+			}
+
+			epNum, _ := strconv.Atoi(ep.Episode)
+			name := fmt.Sprintf("[SubsPlease] %s - %s (1080p)", ep.Show, ep.Episode)
+
+			results = append(results, &hibiketorrent.AnimeTorrent{
+				Name:          name,
+				Date:          date,
+				Link:          dl.Torrent,
+				DownloadUrl:   dl.Torrent,
+				MagnetLink:    dl.Magnet,
+				InfoHash:      infoHash,
+				Resolution:    "1080",
+				EpisodeNumber: epNum,
+				Provider:      ProviderName,
+			})
+			break
+		}
+	}
+
 	return results, nil
 }
 
-func (p *Provider) itemToTorrent(item *gofeed.Item) *hibiketorrent.AnimeTorrent {
-	date := ""
-	if item.PublishedParsed != nil {
-		date = item.PublishedParsed.Format(time.RFC3339)
+// getSid resolves a slug to a numeric sid, using cache
+func (p *Provider) getSid(slug string) (string, error) {
+	p.mu.RLock()
+	if sid, ok := p.sidCache[slug]; ok {
+		p.mu.RUnlock()
+		return sid, nil
+	}
+	p.mu.RUnlock()
+
+	// Fetch the show page to extract sid
+	resp, err := http.Get(showsURL + slug + "/")
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("show page not found: %s", slug)
 	}
 
-	infoHash := ""
-	magnetLink := ""
-	if strings.HasPrefix(item.Link, "magnet:") {
-		magnetLink = item.Link
-		matches := infoHashRegex.FindStringSubmatch(item.Link)
-		if len(matches) > 1 {
-			infoHash = strings.ToLower(matches[1])
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	matches := sidRegex.FindSubmatch(body)
+	if len(matches) < 2 {
+		return "", fmt.Errorf("sid not found on page: %s", slug)
+	}
+
+	sid := string(matches[1])
+	p.mu.Lock()
+	p.sidCache[slug] = sid
+	p.mu.Unlock()
+
+	return sid, nil
+}
+
+// titleToSlug converts a title to a SubsPlease URL slug
+func titleToSlug(title string) string {
+	s := strings.ToLower(title)
+	// Remove common punctuation
+	s = strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
+			return r
+		case r == ' ', r == '-':
+			return '-'
+		default:
+			return -1
 		}
+	}, s)
+	// Collapse multiple dashes
+	for strings.Contains(s, "--") {
+		s = strings.ReplaceAll(s, "--", "-")
 	}
-
-	return &hibiketorrent.AnimeTorrent{
-		Name:          item.Title,
-		Date:          date,
-		Link:          item.Link,
-		MagnetLink:    magnetLink,
-		InfoHash:      infoHash,
-		Resolution:    "1080",
-		EpisodeNumber: extractEpisode(item.Title),
-		Provider:      ProviderName,
-	}
+	s = strings.Trim(s, "-")
+	return url.PathEscape(s)
 }
 
-func extractEpisode(title string) int {
-	matches := episodeRegex.FindStringSubmatch(title)
-	if len(matches) > 1 {
-		ep := 0
-		fmt.Sscanf(matches[1], "%d", &ep)
-		return ep
-	}
-	return 0
-}
-
-// isLatin checks if a string contains only latin/ASCII characters (romaji synonyms)
+// isLatin checks if a string contains only latin/ASCII characters
 func isLatin(s string) bool {
 	for _, r := range s {
-		if r > 0x024F { // Beyond Latin Extended-B
+		if r > 0x024F {
 			return false
 		}
 	}
