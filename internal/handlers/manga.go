@@ -19,8 +19,7 @@ import (
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 var (
-	baseMangaCache    = result.NewCache[int, *anilist.BaseManga]()
-	mangaDetailsCache = result.NewCache[int, *anilist.MangaDetailsById_Media]()
+	baseMangaCache = result.NewCache[int, *anilist.BaseManga]()
 )
 
 // HandleGetAnilistMangaCollection
@@ -178,21 +177,16 @@ func (h *Handler) HandleGetMangaEntryDetails(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	if detailsMedia, found := mangaDetailsCache.Get(id); found {
-		return h.RespondWithData(c, detailsMedia)
+	// Use shared SWR detail cache via App
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
 	}
 
-	userPlatform, err := h.GetUserPlatform(c)
+	details, err := h.App.GetMangaDetailsForUser(user, id)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
-	
-	details, err := userPlatform.GetMangaDetails(c.Request().Context(), id)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-
-	mangaDetailsCache.SetT(id, details, 1*time.Hour)
 
 	return h.RespondWithData(c, details)
 }

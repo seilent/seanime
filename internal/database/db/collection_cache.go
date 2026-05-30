@@ -64,3 +64,31 @@ func (db *Database) UpsertCachedUserMediaList(userID uint, variant string, data 
 		DoUpdates: clause.AssignmentColumns([]string{"data", "updated_at"}),
 	}).Create(&row).Error
 }
+
+// GetCachedMediaByID retrieves a single cached media row by AniList ID.
+func (db *Database) GetCachedMediaByID(id int) (*models.CachedMedia, bool, error) {
+	var row models.CachedMedia
+	err := db.gormdb.Where("anilist_id = ?", id).First(&row).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+	return &row, true, nil
+}
+
+// UpsertCachedMediaDetail upserts only the detail-page blob columns on a CachedMedia row.
+// The column set is disjoint from UpsertCachedMediaBatch to avoid clobbering collection data.
+func (db *Database) UpsertCachedMediaDetail(id int, mediaType string, detail []byte) error {
+	row := models.CachedMedia{
+		AnilistID:       id,
+		Type:            mediaType,
+		DetailData:      detail,
+		DetailUpdatedAt: time.Now(),
+	}
+	return db.gormdb.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "anilist_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"type", "detail_data", "detail_updated_at"}),
+	}).Create(&row).Error
+}

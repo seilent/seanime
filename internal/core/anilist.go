@@ -731,3 +731,130 @@ func (a *App) getUserIDFromToken(token string) string {
 
 	return ""
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SWR Cache Helpers — Detail Pages (Phase 2)
+// Shared across users (keyed by anilist_id), uses same collectionCacheTTL + swrInflight.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// fetchAnimeDetailsForUser performs a live AniList detail fetch using the user's token.
+func (a *App) fetchAnimeDetailsForUser(dbUser *models.User, mediaId int) (*anilist.AnimeDetailsById_Media, error) {
+	token, err := a.getUserTokenForDBUser(dbUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user token: %w", err)
+	}
+	client := anilist.NewAnilistClient(token)
+	platform := anilist_platform.NewAnilistPlatform(client, a.Logger)
+	return platform.GetAnimeDetails(context.Background(), mediaId)
+}
+
+// persistAnimeDetail marshals and upserts the detail blob. Errors are logged only.
+func (a *App) persistAnimeDetail(mediaId int, d *anilist.AnimeDetailsById_Media) {
+	if d == nil {
+		return
+	}
+	data, err := json.Marshal(d)
+	if err != nil {
+		a.Logger.Error().Err(err).Int("mediaId", mediaId).Msg("core: [SWR] failed to marshal anime detail")
+		return
+	}
+	if err := a.Database.UpsertCachedMediaDetail(mediaId, "anime", data); err != nil {
+		a.Logger.Error().Err(err).Int("mediaId", mediaId).Msg("core: [SWR] failed to upsert anime detail")
+	}
+}
+
+// GetAnimeDetailsForUser returns anime details with SWR caching (shared across users).
+func (a *App) GetAnimeDetailsForUser(dbUser *models.User, mediaId int) (*anilist.AnimeDetailsById_Media, error) {
+	// SWR: try cache first
+	row, found, _ := a.Database.GetCachedMediaByID(mediaId)
+	if found && len(row.DetailData) > 0 {
+		var cached anilist.AnimeDetailsById_Media
+		if err := json.Unmarshal(row.DetailData, &cached); err == nil {
+			// Spawn background revalidation if stale
+			if time.Since(row.DetailUpdatedAt) >= collectionCacheTTL {
+				key := fmt.Sprintf("animedetail:%d", mediaId)
+				if _, loaded := swrInflight.LoadOrStore(key, struct{}{}); !loaded {
+					go func() {
+						defer swrInflight.Delete(key)
+						d, err := a.fetchAnimeDetailsForUser(dbUser, mediaId)
+						if err != nil {
+							a.Logger.Warn().Err(err).Int("mediaId", mediaId).Msg("core: [SWR] background anime detail revalidation failed")
+							return
+						}
+						a.persistAnimeDetail(mediaId, d)
+					}()
+				}
+			}
+			return &cached, nil
+		}
+	}
+
+	// Cold miss or corrupt cache: live fetch
+	d, err := a.fetchAnimeDetailsForUser(dbUser, mediaId)
+	if err != nil {
+		return nil, err
+	}
+	a.persistAnimeDetail(mediaId, d)
+	return d, nil
+}
+
+// fetchMangaDetailsForUser performs a live AniList manga detail fetch using the user's token.
+func (a *App) fetchMangaDetailsForUser(dbUser *models.User, mediaId int) (*anilist.MangaDetailsById_Media, error) {
+	token, err := a.getUserTokenForDBUser(dbUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user token: %w", err)
+	}
+	client := anilist.NewAnilistClient(token)
+	platform := anilist_platform.NewAnilistPlatform(client, a.Logger)
+	return platform.GetMangaDetails(context.Background(), mediaId)
+}
+
+// persistMangaDetail marshals and upserts the manga detail blob. Errors are logged only.
+func (a *App) persistMangaDetail(mediaId int, d *anilist.MangaDetailsById_Media) {
+	if d == nil {
+		return
+	}
+	data, err := json.Marshal(d)
+	if err != nil {
+		a.Logger.Error().Err(err).Int("mediaId", mediaId).Msg("core: [SWR] failed to marshal manga detail")
+		return
+	}
+	if err := a.Database.UpsertCachedMediaDetail(mediaId, "manga", data); err != nil {
+		a.Logger.Error().Err(err).Int("mediaId", mediaId).Msg("core: [SWR] failed to upsert manga detail")
+	}
+}
+
+// GetMangaDetailsForUser returns manga details with SWR caching (shared across users).
+func (a *App) GetMangaDetailsForUser(dbUser *models.User, mediaId int) (*anilist.MangaDetailsById_Media, error) {
+	// SWR: try cache first
+	row, found, _ := a.Database.GetCachedMediaByID(mediaId)
+	if found && len(row.DetailData) > 0 {
+		var cached anilist.MangaDetailsById_Media
+		if err := json.Unmarshal(row.DetailData, &cached); err == nil {
+			// Spawn background revalidation if stale
+			if time.Since(row.DetailUpdatedAt) >= collectionCacheTTL {
+				key := fmt.Sprintf("mangadetail:%d", mediaId)
+				if _, loaded := swrInflight.LoadOrStore(key, struct{}{}); !loaded {
+					go func() {
+						defer swrInflight.Delete(key)
+						d, err := a.fetchMangaDetailsForUser(dbUser, mediaId)
+						if err != nil {
+							a.Logger.Warn().Err(err).Int("mediaId", mediaId).Msg("core: [SWR] background manga detail revalidation failed")
+							return
+						}
+						a.persistMangaDetail(mediaId, d)
+					}()
+				}
+			}
+			return &cached, nil
+		}
+	}
+
+	// Cold miss or corrupt cache: live fetch
+	d, err := a.fetchMangaDetailsForUser(dbUser, mediaId)
+	if err != nil {
+		return nil, err
+	}
+	a.persistMangaDetail(mediaId, d)
+	return d, nil
+}

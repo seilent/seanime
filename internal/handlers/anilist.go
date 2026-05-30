@@ -140,10 +140,6 @@ func (h *Handler) HandleEditAnilistListEntry(c echo.Context) error {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-var (
-	detailsCache = result.NewCache[int, *anilist.AnimeDetailsById_Media]()
-)
-
 // HandleGetAnilistAnimeDetails
 //
 //	@summary returns more details about an AniList anime entry.
@@ -158,21 +154,16 @@ func (h *Handler) HandleGetAnilistAnimeDetails(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	if details, ok := detailsCache.Get(mId); ok {
-		return h.RespondWithData(c, details)
+	// Use shared SWR detail cache via App
+	user := h.getCurrentUser(c)
+	if user == nil {
+		return h.RespondWithError(c, errors.New("user not authenticated"))
 	}
 
-	// Get user-specific AniList platform
-	userPlatform, err := h.GetUserPlatform(c)
+	details, err := h.App.GetAnimeDetailsForUser(user, mId)
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
-
-	details, err := userPlatform.GetAnimeDetails(c.Request().Context(), mId)
-	if err != nil {
-		return h.RespondWithError(c, err)
-	}
-	detailsCache.Set(mId, details)
 
 	return h.RespondWithData(c, details)
 }

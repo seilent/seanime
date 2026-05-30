@@ -599,15 +599,17 @@ type PendingDownloadIntent struct {
 
 // CachedMedia stores individual media objects from AniList collections for SWR cache rehydration.
 type CachedMedia struct {
-	AnilistID   int       `gorm:"column:anilist_id;primaryKey" json:"anilistId"`
-	Type        string    `gorm:"column:type;index" json:"type"`                // "anime" or "manga"
-	Format      string    `gorm:"column:format" json:"format"`
-	Status      string    `gorm:"column:status" json:"status"`
-	Season      string    `gorm:"column:season" json:"season"`
-	SeasonYear  int       `gorm:"column:season_year" json:"seasonYear"`
-	TitleRomaji string    `gorm:"column:title_romaji" json:"titleRomaji"`
-	Data        []byte    `gorm:"column:data" json:"data"`
-	UpdatedAt   time.Time `gorm:"column:updated_at" json:"updatedAt"`
+	AnilistID       int       `gorm:"column:anilist_id;primaryKey" json:"anilistId"`
+	Type            string    `gorm:"column:type;index" json:"type"`                // "anime" or "manga"
+	Format          string    `gorm:"column:format" json:"format"`
+	Status          string    `gorm:"column:status" json:"status"`
+	Season          string    `gorm:"column:season" json:"season"`
+	SeasonYear      int       `gorm:"column:season_year" json:"seasonYear"`
+	TitleRomaji     string    `gorm:"column:title_romaji" json:"titleRomaji"`
+	Data            []byte    `gorm:"column:data" json:"data"`
+	UpdatedAt       time.Time `gorm:"column:updated_at" json:"updatedAt"`
+	DetailData      []byte    `gorm:"column:detail_data" json:"detailData"`             // Phase 2: full detail-page response blob
+	DetailUpdatedAt time.Time `gorm:"column:detail_updated_at" json:"detailUpdatedAt"` // Phase 2: SWR timestamp for detail cache
 }
 
 // CachedUserMediaList stores a user's collection skeleton (entries with media stripped to id-only) for SWR cache.
