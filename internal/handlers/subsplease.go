@@ -38,10 +38,16 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 	}
 
 	// Build media for smart search
+	status := b.Media.GetStatus()
+	format := b.Media.GetFormat()
+	if status == nil || format == nil {
+		return h.RespondWithData(c, []*hibiketorrent.AnimeTorrent{})
+	}
+
 	queryMedia := hibiketorrent.Media{
 		ID:           b.Media.GetID(),
-		Status:       string(*b.Media.GetStatus()),
-		Format:       string(*b.Media.GetFormat()),
+		Status:       string(*status),
+		Format:       string(*format),
 		EnglishTitle: b.Media.GetTitle().GetEnglish(),
 		RomajiTitle:  b.Media.GetRomajiTitleSafe(),
 		EpisodeCount: b.Media.GetTotalEpisodeCount(),

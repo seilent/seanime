@@ -35,10 +35,10 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
     })
 
     useEffect(() => {
-        if (entry.media && !syncStarted.current) {
+        if (entry.media?.id && entry.media?.status && entry.media?.format && !syncStarted.current) {
             fetchSpEpisodes({ media: entry.media })
         }
-    }, [entry.mediaId])
+    }, [entry.media?.id])
 
     // Download mutation
     const { mutate: download, isPending } = useTorrentClientDownload()
