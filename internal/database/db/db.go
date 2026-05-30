@@ -59,6 +59,9 @@ func NewDatabase(appDataDir, dbName string, logger *zerolog.Logger) (*Database, 
 		return nil, err
 	}
 
+	// One-time data migration: remap removed 'animetosho' provider to 'nyaa'
+	migrateAnimetoshoToNyaa(db, logger)
+
 	database := &Database{
 		gormdb:           db,
 		Logger:           logger,
@@ -149,4 +152,16 @@ func migrateTables(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+// migrateAnimetoshoToNyaa remaps the removed 'animetosho' torrent provider to 'nyaa'.
+// Idempotent: the WHERE clause ensures no-op if already migrated.
+func migrateAnimetoshoToNyaa(db *gorm.DB, logger *zerolog.Logger) {
+	r1 := db.Exec(`UPDATE global_settings SET torrent_provider = 'nyaa' WHERE torrent_provider = 'animetosho'`)
+	r2 := db.Exec(`UPDATE global_settings SET auto_downloader_provider = 'nyaa' WHERE auto_downloader_provider = 'animetosho'`)
+
+	affected := r1.RowsAffected + r2.RowsAffected
+	if affected > 0 {
+		logger.Info().Int64("rows", affected).Msg("db: Migrated animetosho -> nyaa provider")
+	}
 }
