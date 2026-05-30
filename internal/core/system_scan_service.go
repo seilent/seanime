@@ -75,7 +75,11 @@ func NewSystemScanService(opts *SystemScanServiceOptions) *SystemScanService {
 		rateLimiter:       opts.RateLimiter,
 		animeCache:        opts.AnimeCache,
 		fileChangeCh:      make(chan struct{}, 1),
-		enabled:           true,
+		// Disabled: files are mapped authoritatively at download time via the
+		// download monitor (PendingDownloadIntent -> correct mediaId). The fuzzy
+		// re-scan here clears ALL mappings and re-guesses them, which corrupts
+		// accurate download-time bindings. No other file-ingest route exists.
+		enabled:           false,
 		debounceDelay:     debounceDelay,
 		cooldownDuration:  cooldownDuration,
 		lastScanCompleted: time.Time{}, // Zero time initially
