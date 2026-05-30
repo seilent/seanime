@@ -158,7 +158,8 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 	isBatchDownload := len(b.Torrents) == 1 && b.Torrents[0].IsBatch
 
 	// For batch downloads or explicit request, delete existing files
-	if isBatchDownload || b.DeleteExistingFiles {
+	// Smart-select is additive (per-episode replace handled by downloadmonitor), so skip blanket wipe
+	if (isBatchDownload || b.DeleteExistingFiles) && !b.SmartSelect.Enabled {
 		if b.Media != nil {
 			// Get all local files for this media
 			localFiles, err := db_bridge.GetLocalFilesByMediaId(h.App.Database, b.Media.ID)

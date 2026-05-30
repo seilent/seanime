@@ -74,16 +74,11 @@ export function TorrentConfirmationModal({ onToggleTorrent, media, entry }: {
             && media.format !== "MOVIE"
             && media.status === "FINISHED"
             && !!media.episodes && media.episodes > 1
-            && !!entry.downloadInfo?.episodesToDownload && entry.downloadInfo?.episodesToDownload.length > 0
-            && entry.downloadInfo?.episodesToDownload.length !== (media.episodes || (media.nextAiringEpisode?.episode! - 1))
     }, [
         selectedTorrents,
         media.format,
         media.status,
         media.episodes,
-        entry.downloadInfo?.episodesToDownload,
-        media.nextAiringEpisode?.episode,
-        serverStatus?.settings?.torrent?.defaultTorrentClient,
     ])
 
 

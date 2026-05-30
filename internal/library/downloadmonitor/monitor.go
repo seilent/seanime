@@ -101,6 +101,13 @@ func (m *Monitor) tick() {
 			}
 			storedContentPath := ""
 
+			// Build per-episode index of existing mappings for per-episode replace
+			existingMappings, _ := m.db.GetGlobalMappingsByAniListID(intent.MediaID)
+			byEp := make(map[int][]*models.GlobalAnimeFileMapping)
+			for _, em := range existingMappings {
+				byEp[em.EpisodeNumber] = append(byEp[em.EpisodeNumber], em)
+			}
+
 			for _, v := range videos {
 				target := v
 				if isFolder {
@@ -111,6 +118,18 @@ func (m *Monitor) tick() {
 					}
 				}
 				ep := parseEpisode(filepath.Base(target), len(videos))
+
+				// Per-episode replace: remove old file(s) for this (media, episode) if different path
+				cleanTarget := filepath.Clean(target)
+				for _, old := range byEp[ep] {
+					if filepath.Clean(old.LocalFilePath) != cleanTarget {
+						if err := os.Remove(old.LocalFilePath); err != nil {
+							m.logger.Debug().Err(err).Str("path", old.LocalFilePath).Msg("downloadmonitor: could not remove old episode file")
+						}
+						_ = m.db.DeleteGlobalMapping(old.LocalFilePath)
+					}
+				}
+
 				m.db.UpsertGlobalMapping(&models.GlobalAnimeFileMapping{
 					AniListID:     intent.MediaID,
 					LocalFilePath: target,
