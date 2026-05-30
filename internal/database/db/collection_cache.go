@@ -1,9 +1,11 @@
 package db
 
 import (
+	"errors"
 	"seanime/internal/database/models"
 	"time"
 
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -40,7 +42,7 @@ func (db *Database) GetCachedUserMediaList(userID uint, variant string) (*models
 	var row models.CachedUserMediaList
 	err := db.gormdb.Where("user_id = ? AND variant = ?", userID, variant).First(&row).Error
 	if err != nil {
-		if err.Error() == "record not found" {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, false, nil
 		}
 		return nil, false, err
