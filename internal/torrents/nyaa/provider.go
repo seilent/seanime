@@ -204,7 +204,10 @@ func buildSmartSearchQueries(opts *hibiketorrent.AnimeSmartSearchOptions) ([]str
 
 	allTitles := []*string{&romTitle, engTitle}
 	for _, synonym := range opts.Media.Synonyms {
-		allTitles = append(allTitles, &synonym)
+		if isLatin(synonym) {
+			s := synonym
+			allTitles = append(allTitles, &s)
+		}
 	}
 
 	season := 0
@@ -611,4 +614,14 @@ func (t *Torrent) toAnimeTorrent(providerName string) *hibiketorrent.AnimeTorren
 	ret.EpisodeNumber = episode
 
 	return ret
+}
+
+// isLatin checks if a string contains only latin/ASCII characters
+func isLatin(s string) bool {
+	for _, r := range s {
+		if r > 0x024F { // Beyond Latin Extended-B
+			return false
+		}
+	}
+	return true
 }

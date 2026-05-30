@@ -106,7 +106,7 @@ func (r *Repository) SearchAnime(ctx context.Context, opts AnimeSearchOptions) (
 		RomajiTitle:          opts.Media.GetRomajiTitleSafe(),
 		EpisodeCount:         opts.Media.GetTotalEpisodeCount(),
 		AbsoluteSeasonOffset: 0,
-		Synonyms:             opts.Media.GetSynonymsContainingSeason(),
+		Synonyms:             opts.Media.GetSynonymsDeref(),
 		IsAdult:              *opts.Media.GetIsAdult(),
 		StartDate: &hibiketorrent.FuzzyDate{
 			Year:  *opts.Media.GetStartDate().GetYear(),
