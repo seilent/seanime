@@ -1,9 +1,4 @@
 /**
- * Is offline
- */
-declare const __isOffline__: boolean
-
-/**
  * Fetch
  */
 declare function fetch(url: string, options?: FetchOptions): Promise<FetchResponse>
