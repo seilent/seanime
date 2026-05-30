@@ -15,6 +15,7 @@ import (
 	"seanime/internal/util/result"
 	"slices"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/5rahim/habari"
@@ -276,14 +277,39 @@ func (r *Repository) SearchAnime(ctx context.Context, opts AnimeSearchOptions) (
 		}
 	}
 
-	// sort both by seeders
+	// Filter to 1080p only
+	torrents = lo.Filter(torrents, func(t *hibiketorrent.AnimeTorrent, _ int) bool {
+		return t.Resolution == "1080"
+	})
+
+	// Sort by group priority (SubsPlease > Erai-raws > others), then by seeders
+	groupPriority := func(name string) int {
+		lower := strings.ToLower(name)
+		switch {
+		case strings.Contains(lower, "[subsplease]"):
+			return 0
+		case strings.Contains(lower, "[erai-raws]"):
+			return 1
+		default:
+			return 2
+		}
+	}
 	slices.SortFunc(torrents, func(i, j *hibiketorrent.AnimeTorrent) int {
+		pi, pj := groupPriority(i.Name), groupPriority(j.Name)
+		if pi != pj {
+			return cmp.Compare(pi, pj)
+		}
 		return cmp.Compare(j.Seeders, i.Seeders)
 	})
+
 	previews = lo.Filter(previews, func(p *Preview, _ int) bool {
-		return p != nil && p.Torrent != nil
+		return p != nil && p.Torrent != nil && p.Torrent.Resolution == "1080"
 	})
 	slices.SortFunc(previews, func(i, j *Preview) int {
+		pi, pj := groupPriority(i.Torrent.Name), groupPriority(j.Torrent.Name)
+		if pi != pj {
+			return cmp.Compare(pi, pj)
+		}
 		return cmp.Compare(j.Torrent.Seeders, i.Torrent.Seeders)
 	})
 
