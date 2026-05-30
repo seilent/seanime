@@ -25,8 +25,6 @@ type (
 		rawAnimeCollection     mo.Option[*anilist.AnimeCollection]
 		mangaCollection        mo.Option[*anilist.MangaCollection]
 		rawMangaCollection     mo.Option[*anilist.MangaCollection]
-		isOffline              bool
-		offlinePlatformEnabled bool
 		baseAnimeCache         *result.BoundedCache[int, *anilist.BaseAnime]
 	}
 )

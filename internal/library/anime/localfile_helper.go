@@ -74,10 +74,6 @@ func (f *LocalFile) GetAniDBEpisode() string {
 	return f.Metadata.AniDBEpisode
 }
 
-func (f *LocalFile) IsLocked() bool {
-	return f.Locked
-}
-
 func (f *LocalFile) IsIgnored() bool {
 	return f.Ignored
 }

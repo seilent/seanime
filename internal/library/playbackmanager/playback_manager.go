@@ -83,7 +83,6 @@ type (
 		currentManualTrackingState  mo.Option[*ManualTrackingState]
 		manualTrackingWg            sync.WaitGroup
 
-		isOffline       *bool
 		animeCollection mo.Option[*anilist.AnimeCollection]
 
 		playbackStatusSubscribers *result.Map[string, *PlaybackStatusSubscriber]
@@ -174,7 +173,6 @@ type (
 		Database                   *db.Database
 		RefreshAnimeCollectionFunc func()
 		DiscordPresence            *discordrpc_presence.Presence
-		IsOffline                  *bool
 		ContinuityManager          *continuity.Manager
 	}
 
@@ -217,7 +215,6 @@ func New(opts *NewPlaybackManagerOptions) *PlaybackManager {
 		autoPlayMu:                   sync.Mutex{},
 		eventMu:                      sync.RWMutex{},
 		historyMap:                   make(map[string]map[uint]PlaybackState),
-		isOffline:                    opts.IsOffline,
 		nextEpisodeLocalFile:         mo.None[*anime.LocalFile](),
 		currentStreamEpisode:         mo.None[*anime.Episode](),
 		currentStreamMedia:           mo.None[*anilist.BaseAnime](),

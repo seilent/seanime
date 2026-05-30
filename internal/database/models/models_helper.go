@@ -38,12 +38,7 @@ func (s *Settings) GetDiscord() *DiscordSettings {
 	return s.Discord
 }
 
-func (s *Settings) GetNotifications() *NotificationSettings {
-	if s == nil || s.Notifications == nil {
-		return &NotificationSettings{}
-	}
-	return s.Notifications
-}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -16,10 +16,10 @@ import { createIsolation } from "jotai-scope"
 import Image from "next/image"
 import React, { memo } from "react"
 import { AiFillWarning } from "react-icons/ai"
-import { BiDotsHorizontal, BiLockOpenAlt } from "react-icons/bi"
+import { BiDotsHorizontal } from "react-icons/bi"
 import { MdInfo, MdOutlineOndemandVideo, MdOutlineRemoveDone } from "react-icons/md"
 import { RiEdit2Line } from "react-icons/ri"
-import { VscVerified } from "react-icons/vsc"
+
 import { useCopyToClipboard } from "react-use"
 import { toast } from "sonner"
 
@@ -63,20 +63,6 @@ export const EpisodeItem = memo(({ episode, media, isWatched, onPlay, percentage
                 progressNumber={episode.progressNumber}
                 description={episode.episodeMetadata?.summary || episode.episodeMetadata?.overview}
                 action={<>
-                    {episode.localFile && <IconButton
-                        icon={episode.localFile?.locked ? <VscVerified /> : <BiLockOpenAlt />}
-                        intent={episode.localFile?.locked ? "success-basic" : "warning-basic"}
-                        size="md"
-                        className="hover:opacity-60"
-                        loading={isPending}
-                        onClick={() => {
-                            if (episode.localFile) {
-                                updateLocalFile(episode.localFile, {
-                                    locked: !episode.localFile?.locked,
-                                })
-                            }
-                        }}
-                    />}
 
                     <DropdownMenu
                         trigger={
@@ -108,7 +94,6 @@ export const EpisodeItem = memo(({ episode, media, isWatched, onPlay, percentage
                                 if (episode.localFile) {
                                     updateLocalFile(episode.localFile, {
                                         mediaId: 0,
-                                        locked: false,
                                         ignored: false,
                                     })
                                 }

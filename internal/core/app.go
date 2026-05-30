@@ -320,7 +320,6 @@ func NewApp(configOpts *ConfigOptions, selfupdater *updater.SelfUpdater) *App {
 	app.initModulesOnce()
 
 	plugin.GlobalAppContext.SetModulesPartial(plugin.AppContextModules{
-		IsOffline:         util.NewBool(false),
 		ContinuityManager: app.ContinuityManager,
 		AutoScanner:       app.AutoScanner,
 		AutoDownloader:    app.AutoDownloader,

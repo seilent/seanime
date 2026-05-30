@@ -2,7 +2,7 @@
 import { AL_AnimeDetailsById_Media, Anime_Entry } from "@/api/generated/types"
 import { TrailerModal } from "@/app/(main)/_features/anime/_components/trailer-modal"
 import { AnimeAutoDownloaderButton } from "@/app/(main)/_features/anime/_containers/anime-auto-downloader-button"
-import { ToggleLockFilesButton } from "@/app/(main)/_features/anime/_containers/toggle-lock-files-button"
+
 import { AnimeEntryStudio } from "@/app/(main)/_features/media/_components/anime-entry-studio"
 import {
     AnimeEntryRankings,
@@ -85,11 +85,6 @@ export function MetaSection(props: { entry: Anime_Entry, details: AL_AnimeDetail
 
                 {!!entry.libraryData && <>
                     <AnimeEntrySilenceToggle mediaId={entry.mediaId} size="md" />
-                    <ToggleLockFilesButton
-                        allFilesLocked={entry.libraryData.allFilesLocked}
-                        mediaId={entry.mediaId}
-                        size="md"
-                    />
                 </>}
                 <AnimeEntryDropdownMenu entry={entry} />
             </div>

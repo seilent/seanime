@@ -102,23 +102,7 @@ export function ServerSettings(props: ServerSettingsProps) {
                     name="openWebURLOnStart"
                     label="Open localhost web URL on startup"
                 />
-                <Field.Switch
-                    side="right"
-                    name="disableNotifications"
-                    label="Disable system notifications"
-                />
-                {/*<Separator />*/}
-                <Field.Switch
-                    side="right"
-                    name="disableAutoDownloaderNotifications"
-                    label="Disable Auto Downloader system notifications"
-                />
-                {/*<Separator />*/}
-                <Field.Switch
-                    side="right"
-                    name="disableAutoScannerNotifications"
-                    label="Disable Auto Scanner system notifications"
-                />
+
             </SettingsCard>
 
             <SettingsCard title="Keyboard shortcuts">

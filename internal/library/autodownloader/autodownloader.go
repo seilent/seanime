@@ -47,7 +47,6 @@ type (
 		startCh                 chan struct{}
 		debugTrace              bool
 		mu                      sync.Mutex
-		isOffline               *bool
 	}
 
 	NewAutoDownloaderOptions struct {
@@ -57,7 +56,6 @@ type (
 		WSEventManager          events.WSEventManagerInterface
 		Database                *db.Database
 		MetadataProvider        metadata.Provider
-		IsOffline               *bool
 	}
 
 	tmpTorrentToDownload struct {
@@ -87,7 +85,6 @@ func New(opts *NewAutoDownloaderOptions) *AutoDownloader {
 		startCh:           make(chan struct{}, 1),
 		debugTrace:        true,
 		mu:                sync.Mutex{},
-		isOffline:         opts.IsOffline,
 	}
 }
 
@@ -226,11 +223,6 @@ func (ad *AutoDownloader) start() {
 
 func (ad *AutoDownloader) checkForNewEpisodes() {
 	defer util.HandlePanicInModuleThen("autodownloader/checkForNewEpisodes", func() {})
-
-	if ad.isOffline != nil && *ad.isOffline {
-		ad.logger.Debug().Msg("autodownloader: Skipping check for new episodes. AutoDownloader is in offline mode.")
-		return
-	}
 
 	ad.mu.Lock()
 	if ad == nil || ad.torrentRepository == nil || !ad.settings.Enabled || ad.settings.Provider == "" || ad.settings.Provider == torrent.ProviderNone {

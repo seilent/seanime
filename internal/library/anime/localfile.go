@@ -22,7 +22,6 @@ type (
 		ParsedData       *LocalFileParsedData   `json:"parsedInfo"`
 		ParsedFolderData []*LocalFileParsedData `json:"parsedFolderInfo"`
 		Metadata         *LocalFileMetadata     `json:"metadata"`
-		Locked           bool                   `json:"locked"`
 		Ignored          bool                   `json:"ignored"` // Unused for now
 		MediaId          int                    `json:"mediaId"`
 	}
@@ -94,7 +93,6 @@ func newLocalFile(opath string, info *filesystem.SeparatedFilePath) *LocalFile {
 			AniDBEpisode: "",
 			Type:         "",
 		},
-		Locked:  false,
 		Ignored: false,
 		MediaId: 0,
 	}

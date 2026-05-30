@@ -67,7 +67,6 @@ func (h *Handler) HandleLocalFileBulkAction(c echo.Context) error {
 		return h.RespondWithError(c, errors.New("authentication required"))
 	}
 
-	// Lock/unlock are NO-OPs — Locked field is inert
 	lfs, _, err := db_bridge.GetLocalFilesForUser(h.App.Database, user.ID)
 	if err != nil {
 		return h.RespondWithError(c, err)
@@ -88,7 +87,6 @@ func (h *Handler) HandleUpdateLocalFileData(c echo.Context) error {
 	type body struct {
 		Path     string                   `json:"path"`
 		Metadata *anime.LocalFileMetadata `json:"metadata"`
-		Locked   bool                     `json:"locked"`
 		Ignored  bool                     `json:"ignored"`
 		MediaId  int                      `json:"mediaId"`
 	}
@@ -156,7 +154,7 @@ func (h *Handler) HandleUpdateLocalFiles(c echo.Context) error {
 
 	switch b.Action {
 	case "lock", "unlock":
-		// NO-OP — Locked field is inert
+		// No-op
 	case "ignore":
 		for _, path := range b.Paths {
 			_ = h.App.Database.SetGlobalMappingIgnored(path, true)

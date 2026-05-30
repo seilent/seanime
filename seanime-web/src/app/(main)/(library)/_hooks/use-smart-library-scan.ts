@@ -34,7 +34,6 @@ export function useSmartLibraryScan() {
             if (anilistCollection || !anilistLoading) {
                 // AniList data is available (or finished loading), proceed with local scan
                 scanLocalFiles({
-                    skipLockedFiles: true,
                     skipIgnoredFiles: true,
                 })
                 setIsWaitingForAnilist(false)
@@ -51,7 +50,6 @@ export function useSmartLibraryScan() {
         // For refresh, skip AniList data waiting - just scan local files immediately
         setScannerIsScanning(true)
         scanLocalFiles({
-            skipLockedFiles: true,
             skipIgnoredFiles: true,
         })
     }

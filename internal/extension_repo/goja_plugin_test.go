@@ -778,7 +778,6 @@ func getPlaybackManager(t *testing.T) (*playbackmanager.PlaybackManager, *anilis
 			// Do nothing
 		},
 		DiscordPresence:   nil,
-		IsOffline:         lo.ToPtr(false),
 		ContinuityManager: continuityManager,
 	})
 

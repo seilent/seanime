@@ -50,11 +50,6 @@ type ConsoleLog struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-type UnlockedLocalFile struct {
-	Path    string `json:"path"`
-	MediaId int    `json:"mediaId"`
-}
-
 type IssueReport struct {
 	CreatedAt          time.Time            `json:"createdAt"`
 	UserAgent          string               `json:"userAgent"`
@@ -65,7 +60,6 @@ type IssueReport struct {
 	NetworkLogs        []*NetworkLog        `json:"networkLogs,omitempty"`
 	ReactQueryLogs     []*ReactQueryLog     `json:"reactQueryLogs,omitempty"`
 	ConsoleLogs        []*ConsoleLog        `json:"consoleLogs,omitempty"`
-	UnlockedLocalFiles []*UnlockedLocalFile `json:"unlockedLocalFiles,omitempty"`
 	ScanLogs           []string             `json:"scanLogs,omitempty"`
 	ServerLogs         string               `json:"serverLogs,omitempty"`
 	ServerStatus       string               `json:"status,omitempty"`
@@ -82,7 +76,6 @@ func NewIssueReport(userAgent, appVersion, _os, arch string, logsDir string, isA
 		NetworkLogs:        make([]*NetworkLog, 0),
 		ReactQueryLogs:     make([]*ReactQueryLog, 0),
 		ConsoleLogs:        make([]*ConsoleLog, 0),
-		UnlockedLocalFiles: make([]*UnlockedLocalFile, 0),
 		ScanLogs:           make([]string, 0),
 		ServerLogs:         "",
 		ServerStatus:       "",

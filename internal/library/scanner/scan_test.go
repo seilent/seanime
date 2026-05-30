@@ -57,7 +57,6 @@ func TestScanner_Scan(t *testing.T) {
 				Logger:             util.NewLogger(),
 				WSEventManager:     wsEventManager,
 				ExistingLocalFiles: existingLfs,
-				SkipLockedFiles:    false,
 				SkipIgnoredFiles:   false,
 				ScanLogger:         nil,
 				ScanSummaryLogger:  nil,

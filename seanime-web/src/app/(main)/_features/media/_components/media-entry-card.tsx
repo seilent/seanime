@@ -8,7 +8,7 @@ import {
 import { getAtomicLibraryEntryAtom } from "@/app/(main)/_atoms/anime-library-collection.atoms"
 import { usePlayNext } from "@/app/(main)/_atoms/playback.atoms"
 import { AnimeEntryCardUnwatchedBadge } from "@/app/(main)/_features/anime/_containers/anime-entry-card-unwatched-badge"
-import { ToggleLockFilesButton } from "@/app/(main)/_features/anime/_containers/toggle-lock-files-button"
+
 import { SeaContextMenu } from "@/app/(main)/_features/context-menu/sea-context-menu"
 import {
     __mediaEntryCard_hoveredPopupId,
@@ -270,9 +270,6 @@ export function MediaEntryCard<T extends "anime" | "manga">(props: MediaEntryCar
                         </MediaEntryCardHoverPopupBody>
 
                         <MediaEntryCardHoverPopupFooter>
-
-                            {(type === "anime" && !!libraryData) &&
-                                <ToggleLockFilesButton mediaId={media.id} allFilesLocked={libraryData.allFilesLocked} />}
 
                             {!hideAnilistEntryEditButton && <AnilistMediaEntryModal listData={listData} media={media} type={type} forceModal />}
 

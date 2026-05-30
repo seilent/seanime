@@ -31,7 +31,6 @@ type Scanner struct {
 	Logger             *zerolog.Logger
 	WSEventManager     events.WSEventManagerInterface
 	ExistingLocalFiles []*anime.LocalFile
-	SkipLockedFiles    bool
 	SkipIgnoredFiles   bool
 	ScanSummaryLogger  *summary.ScanSummaryLogger
 	ScanLogger         *ScanLogger
@@ -72,14 +71,12 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 	event := &ScanStartedEvent{
 		LibraryPath:       scn.DirPath,
 		OtherLibraryPaths: scn.OtherDirPaths,
-		SkipLocked:        scn.SkipLockedFiles,
 		SkipIgnored:       scn.SkipIgnoredFiles,
 		LocalFiles:        scn.ExistingLocalFiles,
 	}
 	_ = hook.GlobalHookManager.OnScanStarted().Trigger(event)
 	scn.DirPath = event.LibraryPath
 	scn.OtherDirPaths = event.OtherLibraryPaths
-	scn.SkipLockedFiles = event.SkipLocked
 	scn.SkipIgnoredFiles = event.SkipIgnored
 
 	// Default prevented, return the local files
@@ -167,11 +164,10 @@ func (scn *Scanner) Scan(ctx context.Context) (lfs []*anime.LocalFile, err error
 
 	// Get skipped files depending on options
 	skippedLfs := make(map[string]*anime.LocalFile)
-	if (scn.SkipLockedFiles || scn.SkipIgnoredFiles) && scn.ExistingLocalFiles != nil {
-		// Retrieve skipped files from existing local files
-		// SkipLockedFiles now means "skip files that already have a global mapping" (MediaId != 0)
+	if scn.ExistingLocalFiles != nil {
+		// Skip files that already have a global mapping (MediaId != 0) or are ignored
 		for _, lf := range scn.ExistingLocalFiles {
-			if scn.SkipLockedFiles && lf.MediaId != 0 {
+			if lf.MediaId != 0 {
 				skippedLfs[lf.GetNormalizedPath()] = lf
 			} else if scn.SkipIgnoredFiles && lf.IsIgnored() {
 				skippedLfs[lf.GetNormalizedPath()] = lf

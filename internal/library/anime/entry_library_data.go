@@ -3,13 +3,10 @@ package anime
 import (
 	"seanime/internal/hook"
 	"strings"
-
-	"github.com/samber/lo"
 )
 
 type (
 	EntryLibraryData struct {
-		AllFilesLocked bool   `json:"allFilesLocked"`
 		SharedPath     string `json:"sharedPath"`
 		UnwatchedCount int    `json:"unwatchedCount"`
 		MainFileCount  int    `json:"mainFileCount"`
@@ -44,7 +41,6 @@ func NewEntryLibraryData(opts *NewEntryLibraryDataOptions) (ret *EntryLibraryDat
 	sharedPath = strings.TrimSuffix(strings.TrimSuffix(sharedPath, "\\"), "/")
 
 	ret = &EntryLibraryData{
-		AllFilesLocked: lo.EveryBy(reqEvent.EntryLocalFiles, func(item *LocalFile) bool { return item.Locked }),
 		SharedPath:     sharedPath,
 	}
 	ok = true

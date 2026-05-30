@@ -131,7 +131,6 @@ func (h *Handler) HandleAnimeEntryBulkAction(c echo.Context) error {
 			Where("anilist_id = ?", p.MediaId).
 			Updates(map[string]interface{}{"anilist_id": 0, "ignored": false})
 	case "toggle-lock":
-		// NO-OP — Locked field is inert
 	}
 
 	// Return current local files
@@ -291,10 +290,8 @@ func (h *Handler) HandleAnimeEntryManualMatch(c echo.Context) error {
 	})
 
 	// Add the media id to the selected local files
-	// Also, lock the files
 	selectedLfs = lop.Map(selectedLfs, func(item *anime.LocalFile, _ int) *anime.LocalFile {
 		item.MediaId = b.MediaId
-		item.Locked = true
 		item.Ignored = false
 		return item
 	})
@@ -759,7 +756,6 @@ func (h *Handler) HandleValidateAnimeEntryLocalFiles(c echo.Context) error {
 						newLf := anime.NewLocalFile(filePath, libraryPaths[0])
 						if newLf != nil {
 							newLf.MediaId = b.MediaId
-							newLf.Locked = true
 
 							// Extract metadata using FileHydrator
 							if userPlatform, err := h.GetUserPlatform(c); err == nil {

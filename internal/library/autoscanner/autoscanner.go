@@ -222,7 +222,6 @@ func (as *AutoScanner) scan() {
 		Logger:             as.logger,
 		WSEventManager:     as.wsEventManager,
 		ExistingLocalFiles: existingLfs,
-		SkipLockedFiles:    true, // Skip locked files by default.
 		SkipIgnoredFiles:   true,
 		ScanSummaryLogger:  scanSummaryLogger,
 		ScanLogger:         scanLogger,

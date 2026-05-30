@@ -157,7 +157,6 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 		Torrent         models.TorrentSettings      `json:"torrent"`
 		Anilist         models.AnilistSettings      `json:"anilist"`
 		Manga           models.MangaSettings        `json:"manga"`
-		Notifications   models.NotificationSettings `json:"notifications"`
 		EnableTranscode bool                        `json:"enableTranscode"`
 		// Admin AniList token for authentication
 		AdminAnilistToken string `json:"adminAnilistToken,omitempty"`
@@ -296,7 +295,6 @@ func (h *Handler) HandleGettingStarted(c echo.Context) error {
 			AutoUpdateProgress:  true,
 			Anilist:             &b.Anilist,
 			Manga:               &b.Manga,
-			Notifications:       &b.Notifications,
 		})
 
 		if err != nil {
@@ -370,7 +368,6 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		Anilist             models.AnilistSettings      `json:"anilist"`
 		Discord             models.DiscordSettings      `json:"discord"`
 		Manga               models.MangaSettings        `json:"manga"`
-		Notifications       models.NotificationSettings `json:"notifications"`
 		AutoUpdateProgress  bool                        `json:"autoUpdateProgress"`
 		AutoPlayNextEpisode bool                        `json:"autoPlayNextEpisode"`
 	}
@@ -478,7 +475,6 @@ func (h *Handler) HandleSaveSettings(c echo.Context) error {
 		Anilist:             &b.Anilist,
 		Discord:             &b.Discord,
 		Manga:               &b.Manga,
-		Notifications:       &b.Notifications,
 	}
 
 	// Note: Library/Torrent/AutoDownloader settings are now global-only and not part of user settings

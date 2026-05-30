@@ -23,7 +23,6 @@ import (
 func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 
 	type body struct {
-		SkipLockedFiles  bool `json:"skipLockedFiles"`
 		SkipIgnoredFiles bool `json:"skipIgnoredFiles"`
 	}
 
@@ -96,7 +95,6 @@ func (h *Handler) HandleScanLocalFiles(c echo.Context) error {
 		Logger:             h.App.Logger,
 		WSEventManager:     events.NewSSEEventManagerAdapter(h.App.SSEManager),
 		ExistingLocalFiles: existingLfs,
-		SkipLockedFiles:    b.SkipLockedFiles,
 		SkipIgnoredFiles:   b.SkipIgnoredFiles,
 		ScanSummaryLogger:  scanSummaryLogger,
 		ScanLogger:         scanLogger,

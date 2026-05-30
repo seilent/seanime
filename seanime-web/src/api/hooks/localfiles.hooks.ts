@@ -68,7 +68,6 @@ export function useUpdateLocalFileData(id: Nullish<number>) {
             opts.mutate({
                 path: lf.path,
                 metadata: lf.metadata,
-                locked: lf.locked,
                 ignored: lf.ignored,
                 mediaId: lf.mediaId,
                 ...variables,

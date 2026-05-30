@@ -335,11 +335,7 @@ export default function Page() {
                                         enableAdultContent: data.enableAdultContent,
                                         blurAdultContent: data.blurAdultContent,
                                     },
-                                    notifications: {
-                                        disableNotifications: data?.disableNotifications ?? false,
-                                        disableAutoDownloaderNotifications: data?.disableAutoDownloaderNotifications ?? false,
-                                        disableAutoScannerNotifications: data?.disableAutoScannerNotifications ?? false,
-                                    },
+
                                 }, {
                                     onSuccess: () => {
                                         formRef.current?.reset(formRef.current.getValues())
@@ -398,9 +394,7 @@ export default function Page() {
                                 richPresenceShowAniListMediaButton: status?.settings?.discord?.richPresenceShowAniListMediaButton ?? false,
                                 richPresenceShowAniListProfileButton: status?.settings?.discord?.richPresenceShowAniListProfileButton ?? false,
                                 richPresenceUseMediaTitleStatus: status?.settings?.discord?.richPresenceUseMediaTitleStatus ?? false,
-                                disableNotifications: status?.settings?.notifications?.disableNotifications ?? false,
-                                disableAutoDownloaderNotifications: status?.settings?.notifications?.disableAutoDownloaderNotifications ?? false,
-                                disableAutoScannerNotifications: status?.settings?.notifications?.disableAutoScannerNotifications ?? false,
+
                                 defaultMangaProvider: status?.settings?.manga?.defaultMangaProvider || "-",
                                 mangaAutoUpdateProgress: status?.settings?.manga?.mangaAutoUpdateProgress ?? false,
                                 showActiveTorrentCount: status?.settings?.torrent?.showActiveTorrentCount ?? false,

@@ -86,8 +86,6 @@ func ShareBinds(vm *goja.Runtime, logger *zerolog.Logger) {
 		}
 	}
 
-	vm.Set("__isOffline__", plugin.GlobalAppContext.IsOffline())
-
 	vm.Set("$toString", func(raw any, maxReaderBytes int) (string, error) {
 		switch v := raw.(type) {
 		case io.Reader:

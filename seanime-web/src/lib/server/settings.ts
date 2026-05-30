@@ -85,9 +85,7 @@ export const settingsSchema = z.object({
     richPresenceShowAniListMediaButton: z.boolean().optional().default(false),
     richPresenceShowAniListProfileButton: z.boolean().optional().default(false),
     richPresenceUseMediaTitleStatus: z.boolean().optional().default(true),
-    disableNotifications: z.boolean().optional().default(false),
-    disableAutoDownloaderNotifications: z.boolean().optional().default(false),
-    disableAutoScannerNotifications: z.boolean().optional().default(false),
+
     defaultMangaProvider: z.string().optional().default(""),
     mangaAutoUpdateProgress: z.boolean().optional().default(false),
     autoPlayNextEpisode: z.boolean().optional().default(false),
@@ -149,11 +147,7 @@ export const getDefaultSettings = (data: z.infer<typeof gettingStartedSchema>): 
         mangaAutoUpdateProgress: false,
         mangaLocalSourceDirectory: "",
     },
-    notifications: {
-        disableNotifications: false,
-        disableAutoDownloaderNotifications: false,
-        disableAutoScannerNotifications: false,
-    },
+
     enableTranscode: data.enableTranscode || true,
 })
 

@@ -39,7 +39,6 @@ func GetLocalFilesFromGlobalMappings(database *db.Database) ([]*anime.LocalFile,
 			Type:         fileType,
 		}
 
-		localFile.Locked = false
 		localFile.Ignored = mapping.Ignored
 
 		localFiles = append(localFiles, localFile)

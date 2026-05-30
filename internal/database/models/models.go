@@ -51,7 +51,6 @@ type Settings struct {
 	Anilist             *AnilistSettings      `gorm:"embedded" json:"anilist"`
 	ListSync            *ListSyncSettings     `gorm:"embedded" json:"listSync"`
 	Discord             *DiscordSettings      `gorm:"embedded" json:"discord"`
-	Notifications       *NotificationSettings `gorm:"embedded" json:"notifications"`
 	Manga               *MangaSettings        `gorm:"embedded" json:"manga"`
 	ClientMedia         *ClientMediaSettings  `gorm:"embedded" json:"clientMedia"`
 	// Virtual fields populated from GlobalSettings for frontend compatibility
@@ -198,11 +197,7 @@ type DiscordSettings struct {
 	RichPresenceUseMediaTitleStatus         bool `gorm:"column:rich_presence_use_media_title_status;default:true" json:"richPresenceUseMediaTitleStatus"`
 }
 
-type NotificationSettings struct {
-	DisableNotifications               bool `gorm:"column:disable_notifications" json:"disableNotifications"`
-	DisableAutoDownloaderNotifications bool `gorm:"column:disable_auto_downloader_notifications" json:"disableAutoDownloaderNotifications"`
-	DisableAutoScannerNotifications    bool `gorm:"column:disable_auto_scanner_notifications" json:"disableAutoScannerNotifications"`
-}
+
 
 // +---------------------+
 // |         MAL         |

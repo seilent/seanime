@@ -53,7 +53,6 @@ type (
 
 		settings *Settings
 
-		isOffline       *bool
 		animeCollection mo.Option[*anilist.AnimeCollection]
 		animeCache      *result.Cache[int, *anilist.BaseAnime]
 
@@ -74,7 +73,6 @@ type (
 		DiscordPresence            *discordrpc_presence.Presence
 		Platform                   platform.Platform
 		RefreshAnimeCollectionFunc func()
-		IsOffline                  *bool
 		NativePlayer               *nativeplayer.NativePlayer
 	}
 )
@@ -88,7 +86,6 @@ func NewManager(options NewManagerOptions) *Manager {
 		discordPresence:            options.DiscordPresence,
 		platform:                   options.Platform,
 		refreshAnimeCollectionFunc: options.RefreshAnimeCollectionFunc,
-		isOffline:                  options.IsOffline,
 		currentStream:              mo.None[Stream](),
 		nativePlayer:               options.NativePlayer,
 		parserCache:                result.NewCache[string, *mkvparser.MetadataParser](),

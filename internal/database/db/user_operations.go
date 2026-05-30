@@ -272,11 +272,7 @@ func (db *Database) CreateDefaultSettingsForUser(userID uint) (*models.Settings,
 			RichPresenceShowAniListProfileButton:    true,
 			RichPresenceUseMediaTitleStatus:         true,
 		},
-		Notifications: &models.NotificationSettings{
-			DisableNotifications:               false,
-			DisableAutoDownloaderNotifications: false,
-			DisableAutoScannerNotifications:    false,
-		},
+
 		ClientMedia: &models.ClientMediaSettings{
 			DirectPlayOnly: false,
 		},

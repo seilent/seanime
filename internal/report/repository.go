@@ -65,17 +65,6 @@ func (r *Repository) SaveIssueReport(opts SaveIssueReportOptions) error {
 	issueReport.NetworkLogs = opts.NetworkLogs
 	issueReport.ReactQueryLogs = opts.ReactQueryLogs
 	issueReport.ConsoleLogs = opts.ConsoleLogs
-	if opts.IsAnimeLibraryIssue {
-		for _, localFile := range opts.LocalFiles {
-			if localFile.Locked {
-				continue
-			}
-			issueReport.UnlockedLocalFiles = append(issueReport.UnlockedLocalFiles, &UnlockedLocalFile{
-				Path:    localFile.Path,
-				MediaId: localFile.MediaId,
-			})
-		}
-	}
 
 	r.savedIssueReport = mo.Some(issueReport)
 

@@ -37,7 +37,6 @@ func (r *Repository) GetMangaPageContainer(
 	mediaId int,
 	chapterId string,
 	doublePage bool,
-	isOffline *bool,
 ) (ret *PageContainer, err error) {
 	defer util.HandlePanicInModuleWithError("manga/GetMangaPageContainer", &err)
 
@@ -52,14 +51,6 @@ func (r *Repository) GetMangaPageContainer(
 	}
 
 	_, isLocalProvider := providerExtension.GetProvider().(*manga_providers.Local)
-
-	if *isOffline && !isLocalProvider {
-		ret, err = r.getDownloadedMangaPageContainer(provider, mediaId, chapterId)
-		if err != nil {
-			return nil, err
-		}
-		return ret, nil
-	}
 
 	if !isLocalProvider {
 		ret, _ = r.getDownloadedMangaPageContainer(provider, mediaId, chapterId)

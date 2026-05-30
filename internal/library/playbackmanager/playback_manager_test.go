@@ -51,7 +51,6 @@ func getPlaybackManager(t *testing.T) (*playbackmanager.PlaybackManager, *anilis
 			// Do nothing
 		},
 		DiscordPresence:   nil,
-		IsOffline:         &[]bool{false}[0],
 		ContinuityManager: continuityManager,
 	}), animeCollection, nil
 }

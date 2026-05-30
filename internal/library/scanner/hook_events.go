@@ -14,8 +14,6 @@ type ScanStartedEvent struct {
 	LibraryPath string `json:"libraryPath"`
 	// Other directories to scan
 	OtherLibraryPaths []string `json:"otherLibraryPaths"`
-	// Whether to skip locked files
-	SkipLocked bool `json:"skipLocked"`
 	// Whether to skip ignored files
 	SkipIgnored bool `json:"skipIgnored"`
 	// All previously scanned local files

@@ -157,21 +157,21 @@ func (m *Manager) listenToNativePlayerEvents() {
 					m.Logger.Debug().Msgf("directstream: Video paused")
 
 					// Discord
-					if m.discordPresence != nil && !*m.isOffline {
+					if m.discordPresence != nil {
 						go m.discordPresence.UpdateAnimeActivity(int(event.CurrentTime), int(event.Duration), true)
 					}
 				case *nativeplayer.VideoResumedEvent:
 					m.Logger.Debug().Msgf("directstream: Video resumed")
 
 					// Discord
-					if m.discordPresence != nil && !*m.isOffline {
+					if m.discordPresence != nil {
 						go m.discordPresence.UpdateAnimeActivity(int(event.CurrentTime), int(event.Duration), false)
 					}
 				case *nativeplayer.VideoEndedEvent:
 					m.Logger.Debug().Msgf("directstream: Video ended")
 
 					// Discord
-					if m.discordPresence != nil && !*m.isOffline {
+					if m.discordPresence != nil {
 						go m.discordPresence.Close()
 					}
 				case *nativeplayer.VideoSeekedEvent:
@@ -195,7 +195,7 @@ func (m *Manager) listenToNativePlayerEvents() {
 					}
 
 					// Discord
-					if m.discordPresence != nil && !*m.isOffline {
+					if m.discordPresence != nil {
 						go m.discordPresence.SetAnimeActivity(&discordrpc_presence.AnimeActivity{
 							ID:            cs.Media().GetID(),
 							Title:         cs.Media().GetPreferredTitle(),
@@ -211,7 +211,7 @@ func (m *Manager) listenToNativePlayerEvents() {
 					cs.StreamError(fmt.Errorf(event.Error))
 
 					// Discord
-					if m.discordPresence != nil && !*m.isOffline {
+					if m.discordPresence != nil {
 						go m.discordPresence.Close()
 					}
 				case *nativeplayer.SubtitleFileUploadedEvent:
@@ -222,7 +222,7 @@ func (m *Manager) listenToNativePlayerEvents() {
 					cs.Terminate()
 
 					// Discord
-					if m.discordPresence != nil && !*m.isOffline {
+					if m.discordPresence != nil {
 						go m.discordPresence.Close()
 					}
 				case *nativeplayer.VideoStatusEvent:
@@ -245,7 +245,7 @@ func (m *Manager) listenToNativePlayerEvents() {
 					})
 
 					// Discord
-					if m.discordPresence != nil && !*m.isOffline {
+					if m.discordPresence != nil {
 						go m.discordPresence.UpdateAnimeActivity(int(event.Status.CurrentTime), int(event.Status.Duration), event.Status.Paused)
 					}
 				case *nativeplayer.VideoCompletedEvent:
