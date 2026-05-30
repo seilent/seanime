@@ -29,7 +29,7 @@ export const LuffyError: React.FC<LuffyErrorProps> = (props) => {
                 >
                     <Image
                         data-luffy-error-image
-                        src="/luffy-01.png"
+                        src="/shiki-01.png"
                         alt={""}
                         fill
                         quality={100}

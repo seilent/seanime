@@ -249,7 +249,7 @@ export function GlobalSearch() {
                                                         className="h-[10rem] w-[10rem] mx-auto flex-none rounded-[--radius-md] object-cover object-center relative overflow-hidden"
                                                     >
                                                         <Image
-                                                            src="/luffy-01.png"
+                                                            src="/shiki-01.png"
                                                             alt={""}
                                                             fill
                                                             quality={100}
