@@ -37,9 +37,6 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 
 	// Quick check from cache
 	sid, cachedEpCount, _ := h.App.Database.GetSubspleaseInfo(b.Media.ID)
-	if sid == "" {
-		return h.RespondWithData(c, SubspleaseStatus{Available: false})
-	}
 
 	// Count local SubsPlease files
 	localFiles, _ := db_bridge.GetLocalFilesByMediaId(h.App.Database, b.Media.ID)
@@ -55,8 +52,8 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		}
 	}
 
-	// If local count matches cached SP count, we're in sync
-	if localSpCount >= cachedEpCount && cachedEpCount > 0 {
+	// If cached and local count matches, we're in sync — no need to query SubsPlease
+	if sid != "" && localSpCount >= cachedEpCount && cachedEpCount > 0 {
 		return h.RespondWithData(c, SubspleaseStatus{
 			Available:    true,
 			EpisodeCount: cachedEpCount,
@@ -94,13 +91,12 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		EpisodeNumber: 0,
 	})
 	if err != nil || len(torrents) == 0 {
-		return h.RespondWithData(c, SubspleaseStatus{Available: true, EpisodeCount: cachedEpCount, LocalCount: localSpCount})
+		return h.RespondWithData(c, SubspleaseStatus{Available: false})
 	}
 
-	// Update cached episode count if changed
-	if len(torrents) != cachedEpCount {
-		_ = h.App.Database.SetSubspleaseEpisodeCount(b.Media.ID, len(torrents))
-	}
+	// Cache that this anime is on SubsPlease
+	_ = h.App.Database.SetSubsPleaseSid(b.Media.ID, "found")
+	_ = h.App.Database.SetSubspleaseEpisodeCount(b.Media.ID, len(torrents))
 
 	// Find episodes to sync
 	var toSync []*hibiketorrent.AnimeTorrent
