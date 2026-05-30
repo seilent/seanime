@@ -5,7 +5,7 @@ import { AnimeMetaActionButton } from "@/app/(main)/entry/_components/meta-secti
 import { __torrentSearch_selectionAtom } from "@/app/(main)/entry/_containers/torrent-search/torrent-search-drawer"
 import { useServerMutation } from "@/api/client/requests"
 import { useSetAtom } from "jotai/react"
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { BiCheck, BiDownload } from "react-icons/bi"
 import { FiSearch } from "react-icons/fi"
 
@@ -19,7 +19,8 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
 
     // SubsPlease sync state
     const [spEpisodes, setSpEpisodes] = useState<HibikeTorrent_AnimeTorrent[]>([])
-    const [synced, setSynced] = useState(false)
+    const syncStarted = useRef(false)
+    const syncCount = useRef(0)
 
     // Check SubsPlease for available episodes
     const { mutate: fetchSpEpisodes } = useServerMutation<HibikeTorrent_AnimeTorrent[], { media: any }>({
@@ -27,23 +28,25 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
         method: "POST",
         mutationKey: ["subsplease-episodes", String(entry.mediaId)],
         onSuccess: (data) => {
-            setSpEpisodes(data || [])
+            if (!syncStarted.current) {
+                setSpEpisodes(data || [])
+            }
         },
     })
 
     useEffect(() => {
-        if (entry.media) {
+        if (entry.media && !syncStarted.current) {
             fetchSpEpisodes({ media: entry.media })
         }
     }, [entry.mediaId])
 
     // Download mutation
-    const { mutate: download, isPending } = useTorrentClientDownload(() => {
-        setSynced(true)
-    })
+    const { mutate: download, isPending } = useTorrentClientDownload()
 
     const handleDirectDownload = () => {
         if (!spEpisodes.length || !libraryPath) return
+        syncStarted.current = true
+        syncCount.current = spEpisodes.length
         download({
             torrents: spEpisodes,
             destination: libraryPath,
@@ -53,8 +56,8 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
         })
     }
 
-    // Show synced state after download started
-    if (synced) {
+    // After sync started, always show the downloading state
+    if (syncStarted.current) {
         return (
             <div className="contents" data-torrent-search-button-container>
                 <AnimeMetaActionButton
@@ -65,7 +68,7 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
                     disabled
                     data-torrent-search-button
                 >
-                    Downloading {spEpisodes.length} episode{spEpisodes.length > 1 ? "s" : ""}
+                    Downloading {syncCount.current} episode{syncCount.current > 1 ? "s" : ""}
                 </AnimeMetaActionButton>
             </div>
         )
