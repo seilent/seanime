@@ -152,7 +152,7 @@ func (p *PlaybackManager) newMediaContainer(filepath string, streamType StreamTy
 	p.logger.Debug().Msg("mediastream: Extracted attachments")
 
 	// Directly serve the file.
-	streamUrl := "/api/v1/mediastream/direct"
+	streamUrl := fmt.Sprintf("/api/v1/mediastream/direct?v=%s", hash)
 
 	// Set the stream URL.
 	ret.StreamUrl = streamUrl

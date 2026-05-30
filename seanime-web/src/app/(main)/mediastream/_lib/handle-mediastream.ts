@@ -226,6 +226,7 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
      * @param newUrl
      */
     function changeUrl(newUrl: string | undefined) {
+        if (newUrl === undefined) return
         logger("MEDIASTREAM").info("[changeUrl] called,", "request url:", newUrl)
         if (prevUrlRef.current !== newUrl) {
             logger("MEDIASTREAM").info("Resetting playback error status")
