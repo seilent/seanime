@@ -202,7 +202,7 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 		if hash == "" {
 			hash = parseHashFromMagnet(b.Torrents[0].MagnetLink)
 		}
-		if err2 := h.App.Database.UpsertPendingDownloadIntent(hash, b.Media.ID); err2 != nil {
+		if err2 := h.App.Database.UpsertPendingDownloadIntent(hash, b.Media.ID, b.Destination); err2 != nil {
 			h.App.Logger.Warn().Err(err2).Msg("torrent-client: Failed to record download intent")
 		}
 	} else {
@@ -236,7 +236,7 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 			if hash == "" && i < len(magnets) {
 				hash = parseHashFromMagnet(magnets[i])
 			}
-			if err2 := h.App.Database.UpsertPendingDownloadIntent(hash, b.Media.ID); err2 != nil {
+			if err2 := h.App.Database.UpsertPendingDownloadIntent(hash, b.Media.ID, b.Destination); err2 != nil {
 				h.App.Logger.Warn().Err(err2).Msg("torrent-client: Failed to record download intent")
 			}
 		}

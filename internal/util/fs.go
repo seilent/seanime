@@ -432,6 +432,8 @@ func HardlinkOrCopy(src, dst string) error {
 		if os.SameFile(srcInfo, dstInfo) {
 			return nil
 		}
+		// dst exists but is a different file — refuse to overwrite
+		return fmt.Errorf("hardlink: destination already exists with different content: %s", dst)
 	}
 	// Try hardlink first
 	if err := os.Link(src, dst); err == nil {
@@ -447,7 +449,14 @@ func HardlinkOrCopy(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer out.Close()
-	_, err = io.Copy(out, in)
-	return err
+	if _, err = io.Copy(out, in); err != nil {
+		out.Close()
+		os.Remove(dst)
+		return err
+	}
+	if err = out.Close(); err != nil {
+		os.Remove(dst)
+		return err
+	}
+	return nil
 }

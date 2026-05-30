@@ -588,6 +588,7 @@ type PendingDownloadIntent struct {
 	Completed    bool   `gorm:"column:completed" json:"completed"`
 	FlattenState string `gorm:"column:flatten_state" json:"flattenState"` // ""=pending, "linked"
 	ContentPath  string `gorm:"column:content_path" json:"contentPath"`
+	Destination  string `gorm:"column:destination" json:"destination"`
 }
 
 // +---------------------+

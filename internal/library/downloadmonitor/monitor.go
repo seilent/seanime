@@ -95,7 +95,10 @@ func (m *Monitor) tick() {
 			info, statErr := os.Stat(contentPath)
 			isFolder := statErr == nil && info.IsDir()
 			videos := collectVideos(contentPath)
-			destDir := filepath.Dir(contentPath) // anime/<Title>/
+			destDir := intent.Destination // known anime/<Title>/ dir from download time
+			if destDir == "" {
+				destDir = filepath.Dir(contentPath)
+			}
 			storedContentPath := ""
 
 			for _, v := range videos {
@@ -130,11 +133,11 @@ func (m *Monitor) tick() {
 			continue // still seeding
 		}
 
-		if intent.ContentPath != "" {
-			parent := filepath.Dir(intent.ContentPath)
-			// SAFETY: only remove a proper subfolder, never the parent anime/<Title>/ or above
-			if intent.ContentPath != parent && filepath.Base(intent.ContentPath) != "" {
-				os.RemoveAll(intent.ContentPath)
+		if intent.ContentPath != "" && intent.Destination != "" {
+			cp := filepath.Clean(intent.ContentPath)
+			dest := filepath.Clean(intent.Destination)
+			if cp != dest && filepath.Dir(cp) == dest {
+				os.RemoveAll(cp)
 			}
 		}
 

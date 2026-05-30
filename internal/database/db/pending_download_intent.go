@@ -5,13 +5,25 @@ import (
 	"strings"
 )
 
-func (db *Database) UpsertPendingDownloadIntent(hash string, mediaId int) error {
+func (db *Database) UpsertPendingDownloadIntent(hash string, mediaId int, destination string) error {
 	hash = strings.ToLower(strings.TrimSpace(hash))
 	if hash == "" {
 		return nil
 	}
-	intent := &models.PendingDownloadIntent{Hash: hash, MediaID: mediaId}
-	return db.gormdb.Where("hash = ?", hash).FirstOrCreate(intent).Error
+	intent := &models.PendingDownloadIntent{}
+	result := db.gormdb.Where("hash = ?", hash).FirstOrCreate(intent, &models.PendingDownloadIntent{
+		Hash:        hash,
+		MediaID:     mediaId,
+		Destination: destination,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	// Update destination if the row already existed
+	if intent.Destination == "" && destination != "" {
+		return db.gormdb.Model(intent).Update("destination", destination).Error
+	}
+	return nil
 }
 
 func (db *Database) GetIncompletePendingDownloadIntents() ([]*models.PendingDownloadIntent, error) {
