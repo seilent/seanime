@@ -21,7 +21,6 @@ func RunJobs(app *core.App) {
 	refetchReleaseTicker := time.NewTicker(1 * time.Hour)
 	refetchAnnouncementsTicker := time.NewTicker(10 * time.Minute)
 	subspleaseSyncTicker := time.NewTicker(5 * time.Minute)
-	subspleaseCatchUpTicker := time.NewTicker(30 * time.Minute)
 
 	go func() {
 		for {
@@ -61,15 +60,13 @@ func RunJobs(app *core.App) {
 	}()
 
 	go func() {
-		// Run catch-up once on startup after a short delay
+		// Run once on startup after a short delay
 		time.Sleep(2 * time.Minute)
-		SubsPleaseCatchUpJob(ctx)
+		SubsPleaseSyncJob(ctx)
 		for {
 			select {
 			case <-subspleaseSyncTicker.C:
 				SubsPleaseSyncJob(ctx)
-			case <-subspleaseCatchUpTicker.C:
-				SubsPleaseCatchUpJob(ctx)
 			}
 		}
 	}()

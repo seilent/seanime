@@ -8,8 +8,6 @@ import (
 	"regexp"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
-	"seanime/internal/extension"
-	hibiketorrent "seanime/internal/extension/hibike/torrent"
 	"strconv"
 	"strings"
 
@@ -176,113 +174,6 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 			}
 		}
 		logger.Info().Int("total", totalDownloaded).Msg("cron/sp-sync: Sync complete")
-	}
-}
-
-// SubsPleaseCatchUpJob does a full sync using per-show API for anime that need catch-up.
-// Runs less frequently (every 30 min).
-func SubsPleaseCatchUpJob(ctx *JobCtx) {
-	logger := ctx.App.Logger
-
-	libraryPath, err := ctx.App.Database.GetLibraryPathFromSettings()
-	if err != nil || libraryPath == "" {
-		return
-	}
-
-	releasingIDs, err := ctx.App.Database.GetReleasingAnimeIDsInLibrary()
-	if err != nil || len(releasingIDs) == 0 {
-		return
-	}
-
-	cachedMedia, err := ctx.App.Database.GetCachedMediaByIDs(releasingIDs)
-	if err != nil {
-		return
-	}
-
-	providerExt, ok := extension.GetExtension[extension.AnimeTorrentProviderExtension](
-		ctx.App.ExtensionRepository.GetExtensionBank(), "subsplease",
-	)
-	if !ok {
-		return
-	}
-
-	if !ctx.App.TorrentClientRepository.Start() {
-		return
-	}
-
-	for _, id := range releasingIDs {
-		cached, exists := cachedMedia[id]
-		if !exists {
-			continue
-		}
-
-		var media anilist.BaseAnime
-		if err := json.Unmarshal(cached.Data, &media); err != nil {
-			continue
-		}
-
-		status := media.GetStatus()
-		format := media.GetFormat()
-		if status == nil || format == nil {
-			continue
-		}
-
-		queryMedia := hibiketorrent.Media{
-			ID:           media.GetID(),
-			Status:       string(*status),
-			Format:       string(*format),
-			EnglishTitle: media.GetTitle().GetEnglish(),
-			RomajiTitle:  media.GetRomajiTitleSafe(),
-			EpisodeCount: media.GetTotalEpisodeCount(),
-			Synonyms:     media.GetSynonymsDeref(),
-		}
-
-		torrents, err := providerExt.GetProvider().SmartSearch(hibiketorrent.AnimeSmartSearchOptions{
-			Media:         queryMedia,
-			EpisodeNumber: 0,
-		})
-		if err != nil || len(torrents) == 0 {
-			continue
-		}
-
-		// Mark as available on SubsPlease
-		_ = ctx.App.Database.SetSubsPleaseSid(id, "found")
-		_ = ctx.App.Database.SetSubspleaseEpisodeCount(id, len(torrents))
-
-		// Check what needs syncing
-		localFiles, _ := db_bridge.GetLocalFilesByMediaId(ctx.App.Database, id)
-		syncedEps := make(map[int]bool)
-		for _, lf := range localFiles {
-			if strings.Contains(lf.LocalFilePath, "[SubsPlease]") {
-				syncedEps[lf.EpisodeNumber] = true
-			}
-		}
-
-		var magnets []string
-		for _, t := range torrents {
-			if t.EpisodeNumber > 0 && !syncedEps[t.EpisodeNumber] {
-				magnets = append(magnets, t.MagnetLink)
-
-				// Delete old file
-				for _, lf := range localFiles {
-					if lf.EpisodeNumber == t.EpisodeNumber && !strings.Contains(lf.LocalFilePath, "[SubsPlease]") {
-						_ = os.Remove(lf.LocalFilePath)
-						_ = ctx.App.Database.DeleteGlobalMapping(lf.LocalFilePath)
-					}
-				}
-
-				hash := extractHexHash(t.MagnetLink)
-				if hash != "" {
-					_ = ctx.App.Database.UpsertPendingDownloadIntent(hash, id, libraryPath)
-				}
-			}
-		}
-
-		if len(magnets) > 0 {
-			_ = ctx.App.TorrentClientRepository.AddMagnets(magnets, libraryPath)
-			logger.Info().Int("mediaId", id).Str("title", cached.TitleRomaji).Int("episodes", len(magnets)).
-				Msg("cron/sp-catchup: Queued episodes")
-		}
 	}
 }
 
