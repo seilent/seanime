@@ -27771,18 +27771,6 @@
         "comments": []
       },
       {
-        "name": "Offline",
-        "jsonName": "Offline",
-        "goType": "INTERNAL_Config_Offline",
-        "inlineStructType": "struct{\nDir string\nAssetDir string}",
-        "typescriptType": "INTERNAL_Config_Offline",
-        "usedTypescriptType": "{ Dir: string; AssetDir: string; }",
-        "usedStructName": "core.Config_Offline",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "Manga",
         "jsonName": "Manga",
         "goType": "INTERNAL_Config_Manga",
@@ -27978,34 +27966,6 @@
       {
         "name": "TranscodeDir",
         "jsonName": "TranscodeDir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/core/config.go",
-    "filename": "config.go",
-    "name": "Config_Offline",
-    "formattedName": "INTERNAL_Config_Offline",
-    "package": "core",
-    "fields": [
-      {
-        "name": "Dir",
-        "jsonName": "Dir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AssetDir",
-        "jsonName": "AssetDir",
         "goType": "string",
         "typescriptType": "string",
         "required": true,
@@ -28911,17 +28871,6 @@
         "comments": []
       },
       {
-        "name": "Notifications",
-        "jsonName": "notifications",
-        "goType": "NotificationSettings",
-        "typescriptType": "Models_NotificationSettings",
-        "usedTypescriptType": "Models_NotificationSettings",
-        "usedStructName": "models.NotificationSettings",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "Manga",
         "jsonName": "manga",
         "goType": "MangaSettings",
@@ -29623,43 +29572,6 @@
       {
         "name": "RichPresenceUseMediaTitleStatus",
         "jsonName": "richPresenceUseMediaTitleStatus",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/database/models/models.go",
-    "filename": "models.go",
-    "name": "NotificationSettings",
-    "formattedName": "Models_NotificationSettings",
-    "package": "models",
-    "fields": [
-      {
-        "name": "DisableNotifications",
-        "jsonName": "disableNotifications",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DisableAutoDownloaderNotifications",
-        "jsonName": "disableAutoDownloaderNotifications",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DisableAutoScannerNotifications",
-        "jsonName": "disableAutoScannerNotifications",
         "goType": "bool",
         "typescriptType": "boolean",
         "required": true,
@@ -31615,6 +31527,169 @@
     ]
   },
   {
+    "filepath": "../internal/database/models/models.go",
+    "filename": "models.go",
+    "name": "CachedMedia",
+    "formattedName": "Models_CachedMedia",
+    "package": "models",
+    "fields": [
+      {
+        "name": "AnilistID",
+        "jsonName": "anilistId",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Type",
+        "jsonName": "type",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": [
+          " \"anime\" or \"manga\""
+        ]
+      },
+      {
+        "name": "Format",
+        "jsonName": "format",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Status",
+        "jsonName": "status",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Season",
+        "jsonName": "season",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "SeasonYear",
+        "jsonName": "seasonYear",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "TitleRomaji",
+        "jsonName": "titleRomaji",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Data",
+        "jsonName": "data",
+        "goType": "string",
+        "typescriptType": "Array\u003cstring\u003e",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "UpdatedAt",
+        "jsonName": "updatedAt",
+        "goType": "time.Time",
+        "typescriptType": "string",
+        "usedStructName": "time.Time",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "DetailData",
+        "jsonName": "detailData",
+        "goType": "string",
+        "typescriptType": "Array\u003cstring\u003e",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Phase 2: full detail-page response blob"
+        ]
+      },
+      {
+        "name": "DetailUpdatedAt",
+        "jsonName": "detailUpdatedAt",
+        "goType": "time.Time",
+        "typescriptType": "string",
+        "usedStructName": "time.Time",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Phase 2: SWR timestamp for detail cache"
+        ]
+      }
+    ],
+    "comments": [
+      " CachedMedia stores individual media objects from AniList collections for SWR cache rehydration."
+    ]
+  },
+  {
+    "filepath": "../internal/database/models/models.go",
+    "filename": "models.go",
+    "name": "CachedUserMediaList",
+    "formattedName": "Models_CachedUserMediaList",
+    "package": "models",
+    "fields": [
+      {
+        "name": "UserID",
+        "jsonName": "userId",
+        "goType": "uint",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Variant",
+        "jsonName": "variant",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": [
+          " \"anime\", \"anime_raw\", \"manga\", \"manga_raw\""
+        ]
+      },
+      {
+        "name": "Data",
+        "jsonName": "data",
+        "goType": "string",
+        "typescriptType": "Array\u003cstring\u003e",
+        "required": false,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " CachedUserMediaList stores a user's collection skeleton (entries with media stripped to id-only) for SWR cache."
+    ],
+    "embeddedStructNames": [
+      "models.BaseModel"
+    ]
+  },
+  {
     "filepath": "../internal/database/models/user.go",
     "filename": "user.go",
     "name": "User",
@@ -32021,15 +32096,6 @@
         "comments": []
       },
       {
-        "name": "isOffline",
-        "jsonName": "isOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
         "name": "animeCollection",
         "jsonName": "animeCollection",
         "goType": "",
@@ -32172,15 +32238,6 @@
         "goType": "",
         "typescriptType": "any",
         "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsOffline",
-        "jsonName": "IsOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": false,
         "public": true,
         "comments": []
       },
@@ -42367,15 +42424,6 @@
     "package": "anime",
     "fields": [
       {
-        "name": "AllFilesLocked",
-        "jsonName": "allFilesLocked",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "SharedPath",
         "jsonName": "sharedPath",
         "goType": "string",
@@ -43891,15 +43939,6 @@
         "comments": []
       },
       {
-        "name": "Locked",
-        "jsonName": "locked",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "Ignored",
         "jsonName": "ignored",
         "goType": "bool",
@@ -44578,15 +44617,6 @@
         "required": false,
         "public": false,
         "comments": []
-      },
-      {
-        "name": "isOffline",
-        "jsonName": "isOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": false,
-        "public": false,
-        "comments": []
       }
     ],
     "comments": []
@@ -44660,15 +44690,6 @@
         "typescriptType": "Metadata_Provider",
         "usedTypescriptType": "Metadata_Provider",
         "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsOffline",
-        "jsonName": "IsOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
         "required": false,
         "public": true,
         "comments": []
@@ -46223,15 +46244,6 @@
         "comments": []
       },
       {
-        "name": "isOffline",
-        "jsonName": "isOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
         "name": "animeCollection",
         "jsonName": "animeCollection",
         "goType": "",
@@ -46741,15 +46753,6 @@
         "comments": []
       },
       {
-        "name": "IsOffline",
-        "jsonName": "IsOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "ContinuityManager",
         "jsonName": "ContinuityManager",
         "goType": "continuity.Manager",
@@ -47172,15 +47175,6 @@
         "goType": "[]string",
         "typescriptType": "Array\u003cstring\u003e",
         "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SkipLocked",
-        "jsonName": "skipLocked",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
         "public": true,
         "comments": []
       },
@@ -48582,15 +48576,6 @@
         "usedTypescriptType": "Anime_LocalFile",
         "usedStructName": "anime.LocalFile",
         "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SkipLockedFiles",
-        "jsonName": "SkipLockedFiles",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
         "public": true,
         "comments": []
       },
@@ -50711,15 +50696,6 @@
         "required": true,
         "public": false,
         "comments": []
-      },
-      {
-        "name": "isOffline",
-        "jsonName": "isOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": false,
-        "public": false,
-        "comments": []
       }
     ],
     "comments": []
@@ -50870,15 +50846,6 @@
         "typescriptType": "Manga_Repository",
         "usedTypescriptType": "Manga_Repository",
         "usedStructName": "manga.Repository",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "IsOffline",
-        "jsonName": "IsOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
         "required": false,
         "public": true,
         "comments": []
@@ -57203,24 +57170,6 @@
         "comments": []
       },
       {
-        "name": "isOffline",
-        "jsonName": "isOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "offlinePlatformEnabled",
-        "jsonName": "offlinePlatformEnabled",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
         "name": "baseAnimeCache",
         "jsonName": "baseAnimeCache",
         "goType": "",
@@ -57890,15 +57839,6 @@
     "package": "plugin",
     "fields": [
       {
-        "name": "IsOffline",
-        "jsonName": "IsOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "Database",
         "jsonName": "Database",
         "goType": "db.Database",
@@ -58230,15 +58170,6 @@
         "jsonName": "onRefreshAnilistMangaCollection",
         "goType": "",
         "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "isOffline",
-        "jsonName": "isOffline",
-        "goType": "bool",
-        "typescriptType": "boolean",
         "required": true,
         "public": false,
         "comments": []
@@ -63461,34 +63392,6 @@
   {
     "filepath": "../internal/report/report.go",
     "filename": "report.go",
-    "name": "UnlockedLocalFile",
-    "formattedName": "Report_UnlockedLocalFile",
-    "package": "report",
-    "fields": [
-      {
-        "name": "Path",
-        "jsonName": "path",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MediaId",
-        "jsonName": "mediaId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/report/report.go",
-    "filename": "report.go",
     "name": "IssueReport",
     "formattedName": "Report_IssueReport",
     "package": "report",
@@ -63579,17 +63482,6 @@
         "typescriptType": "Array\u003cReport_ConsoleLog\u003e",
         "usedTypescriptType": "Report_ConsoleLog",
         "usedStructName": "report.ConsoleLog",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UnlockedLocalFiles",
-        "jsonName": "unlockedLocalFiles",
-        "goType": "[]UnlockedLocalFile",
-        "typescriptType": "Array\u003cReport_UnlockedLocalFile\u003e",
-        "usedTypescriptType": "Report_UnlockedLocalFile",
-        "usedStructName": "report.UnlockedLocalFile",
         "required": false,
         "public": true,
         "comments": []

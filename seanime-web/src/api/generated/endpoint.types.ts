@@ -23,7 +23,6 @@ import type {
     Models_LibrarySettings,
     Models_MangaSettings,
     Models_MediaPlayerSettings,
-    Models_NotificationSettings,
     Models_Theme,
     Models_TorrentSettings,
     Report_ClickLog,
@@ -724,7 +723,6 @@ export type LocalFileBulkAction_Variables = {
 export type UpdateLocalFileData_Variables = {
     path: string
     metadata?: Anime_LocalFileMetadata
-    locked: boolean
     ignored: boolean
     mediaId: number
 }
@@ -1151,7 +1149,6 @@ export type SaveIssueReport_Variables = {
  * Route scans the user's library.
  */
 export type ScanLocalFiles_Variables = {
-    skipLockedFiles: boolean
     skipIgnoredFiles: boolean
 }
 
@@ -1175,7 +1172,6 @@ export type GettingStarted_Variables = {
     torrent: Models_TorrentSettings
     anilist: Models_AnilistSettings
     manga: Models_MangaSettings
-    notifications: Models_NotificationSettings
     enableTranscode: boolean
     /**
      *  Admin AniList token for authentication
@@ -1199,7 +1195,6 @@ export type SaveSettings_Variables = {
     anilist: Models_AnilistSettings
     discord: Models_DiscordSettings
     manga: Models_MangaSettings
-    notifications: Models_NotificationSettings
     autoUpdateProgress: boolean
     autoPlayNextEpisode: boolean
 }

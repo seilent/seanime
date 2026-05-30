@@ -1391,7 +1391,6 @@ export type Anime_EntryDownloadInfo = {
  * - Package: anime
  */
 export type Anime_EntryLibraryData = {
-    allFilesLocked: boolean
     sharedPath: string
     unwatchedCount: number
     mainFileCount: number
@@ -1563,7 +1562,6 @@ export type Anime_LocalFile = {
     parsedInfo?: Anime_LocalFileParsedData
     parsedFolderInfo?: Array<Anime_LocalFileParsedData>
     metadata?: Anime_LocalFileMetadata
-    locked: boolean
     /**
      * Unused for now
      */
@@ -3215,17 +3213,6 @@ export type Models_MediaPlayerSettings = {
  * - Filepath: internal/database/models/models.go
  * - Filename: models.go
  * - Package: models
- */
-export type Models_NotificationSettings = {
-    disableNotifications: boolean
-    disableAutoDownloaderNotifications: boolean
-    disableAutoScannerNotifications: boolean
-}
-
-/**
- * - Filepath: internal/database/models/models.go
- * - Filename: models.go
- * - Package: models
  * @description
  *  Settings - per-user settings
  */
@@ -3240,7 +3227,6 @@ export type Models_Settings = {
     anilist?: Models_AnilistSettings
     listSync?: Models_ListSyncSettings
     discord?: Models_DiscordSettings
-    notifications?: Models_NotificationSettings
     manga?: Models_MangaSettings
     clientMedia?: Models_ClientMediaSettings
     /**
@@ -3581,7 +3567,6 @@ export type Report_IssueReport = {
     networkLogs?: Array<Report_NetworkLog>
     reactQueryLogs?: Array<Report_ReactQueryLog>
     consoleLogs?: Array<Report_ConsoleLog>
-    unlockedLocalFiles?: Array<Report_UnlockedLocalFile>
     scanLogs?: Array<string>
     serverLogs?: string
     status?: string
@@ -3618,16 +3603,6 @@ export type Report_ReactQueryLog = {
     dataPreview: string
     dataType: string
     timestamp?: string
-}
-
-/**
- * - Filepath: internal/report/report.go
- * - Filename: report.go
- * - Package: report
- */
-export type Report_UnlockedLocalFile = {
-    path: string
-    mediaId: number
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -4062,15 +4062,6 @@
           "descriptions": []
         },
         {
-          "name": "Locked",
-          "jsonName": "locked",
-          "goType": "bool",
-          "usedStructType": "",
-          "typescriptType": "boolean",
-          "required": true,
-          "descriptions": []
-        },
-        {
           "name": "Ignored",
           "jsonName": "ignored",
           "goType": "bool",
@@ -6358,15 +6349,6 @@
       "params": [],
       "bodyFields": [
         {
-          "name": "SkipLockedFiles",
-          "jsonName": "skipLockedFiles",
-          "goType": "bool",
-          "usedStructType": "",
-          "typescriptType": "boolean",
-          "required": true,
-          "descriptions": []
-        },
-        {
           "name": "SkipIgnoredFiles",
           "jsonName": "skipIgnoredFiles",
           "goType": "bool",
@@ -6619,15 +6601,6 @@
           "descriptions": []
         },
         {
-          "name": "Notifications",
-          "jsonName": "notifications",
-          "goType": "models.NotificationSettings",
-          "usedStructType": "models.NotificationSettings",
-          "typescriptType": "Models_NotificationSettings",
-          "required": true,
-          "descriptions": []
-        },
-        {
           "name": "EnableTranscode",
           "jsonName": "enableTranscode",
           "goType": "bool",
@@ -6733,15 +6706,6 @@
           "goType": "models.MangaSettings",
           "usedStructType": "models.MangaSettings",
           "typescriptType": "Models_MangaSettings",
-          "required": true,
-          "descriptions": []
-        },
-        {
-          "name": "Notifications",
-          "jsonName": "notifications",
-          "goType": "models.NotificationSettings",
-          "usedStructType": "models.NotificationSettings",
-          "typescriptType": "Models_NotificationSettings",
           "required": true,
           "descriptions": []
         },
