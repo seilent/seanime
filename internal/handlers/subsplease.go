@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"os"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/extension"
@@ -42,13 +41,10 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 	localFiles, _ := db_bridge.GetLocalFilesByMediaId(h.App.Database, b.Media.ID)
 	localSpCount := 0
 	syncedEps := make(map[int]bool)
-	replaceFiles := make(map[int]string)
 	for _, lf := range localFiles {
 		if strings.Contains(lf.LocalFilePath, "[SubsPlease]") {
 			localSpCount++
 			syncedEps[lf.EpisodeNumber] = true
-		} else {
-			replaceFiles[lf.EpisodeNumber] = lf.LocalFilePath
 		}
 	}
 
@@ -103,12 +99,6 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 	for _, t := range torrents {
 		if t.EpisodeNumber > 0 && !syncedEps[t.EpisodeNumber] {
 			toSync = append(toSync, t)
-
-			// Delete old non-SubsPlease file
-			if oldPath, exists := replaceFiles[t.EpisodeNumber]; exists {
-				_ = os.Remove(oldPath)
-				_ = h.App.Database.DeleteGlobalMapping(oldPath)
-			}
 		}
 	}
 
