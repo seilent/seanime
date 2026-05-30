@@ -78,6 +78,15 @@ func (db *Database) GetCachedMediaByID(id int) (*models.CachedMedia, bool, error
 	return &row, true, nil
 }
 
+// GetReleasingAnimeIDs returns AniList IDs of all cached anime with status RELEASING.
+func (db *Database) GetReleasingAnimeIDs() ([]int, error) {
+	var ids []int
+	err := db.gormdb.Model(&models.CachedMedia{}).
+		Where("status = ? AND type = ?", "RELEASING", "anime").
+		Pluck("anilist_id", &ids).Error
+	return ids, err
+}
+
 // UpsertCachedMediaDetail upserts only the detail-page blob columns on a CachedMedia row.
 // The column set is disjoint from UpsertCachedMediaBatch to avoid clobbering collection data.
 func (db *Database) UpsertCachedMediaDetail(id int, mediaType string, detail []byte) error {

@@ -20,6 +20,7 @@ func RunJobs(app *core.App) {
 	refreshLocalDataTicker := time.NewTicker(30 * time.Minute)
 	refetchReleaseTicker := time.NewTicker(1 * time.Hour)
 	refetchAnnouncementsTicker := time.NewTicker(10 * time.Minute)
+	subspleaseSyncTicker := time.NewTicker(30 * time.Minute)
 
 	go func() {
 		for {
@@ -54,6 +55,18 @@ func RunJobs(app *core.App) {
 			select {
 			case <-refetchAnnouncementsTicker.C:
 				app.Updater.FetchAnnouncements()
+			}
+		}
+	}()
+
+	go func() {
+		// Run once on startup after a short delay
+		time.Sleep(2 * time.Minute)
+		SubsPleaseSyncJob(ctx)
+		for {
+			select {
+			case <-subspleaseSyncTicker.C:
+				SubsPleaseSyncJob(ctx)
 			}
 		}
 	}()
