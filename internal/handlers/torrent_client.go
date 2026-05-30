@@ -8,8 +8,10 @@ import (
 	"seanime/internal/database/db_bridge"
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
 	"seanime/internal/torrent_clients/torrent_client"
+	"strconv"
 	"strings"
 
+	"github.com/5rahim/habari"
 	"github.com/labstack/echo/v4"
 )
 
@@ -313,4 +315,53 @@ func parseHashFromMagnet(magnet string) string {
 		return strings.ToLower(strings.TrimPrefix(xt, "urn:btih:"))
 	}
 	return ""
+}
+
+// ActiveDownloadItem represents an in-progress download mapped to an episode.
+type ActiveDownloadItem struct {
+	MediaId  int     `json:"mediaId"`
+	Episode  int     `json:"episode"`  // 0 = whole batch / unknown
+	Progress float64 `json:"progress"`
+}
+
+// HandleGetActiveDownloads
+//
+//	@summary returns currently downloading episodes with progress.
+//	@desc This handler is used by the client to show download spinners on episodes.
+//
+//	@route /api/v1/torrent-client/active-downloads [GET]
+//	@returns []handlers.ActiveDownloadItem
+func (h *Handler) HandleGetActiveDownloads(c echo.Context) error {
+	items := make([]ActiveDownloadItem, 0)
+
+	intents, err := h.App.Database.GetIncompletePendingDownloadIntents()
+	if err != nil || len(intents) == 0 {
+		return h.RespondWithData(c, items)
+	}
+
+	torrents, err := h.App.TorrentClientRepository.GetList()
+	if err != nil {
+		return h.RespondWithData(c, items)
+	}
+
+	byHash := make(map[string]*torrent_client.Torrent, len(torrents))
+	for _, t := range torrents {
+		byHash[strings.ToLower(t.Hash)] = t
+	}
+
+	for _, intent := range intents {
+		t, ok := byHash[strings.ToLower(intent.Hash)]
+		if !ok || t.Status == torrent_client.TorrentStatusSeeding || t.Status == torrent_client.TorrentStatusStopped {
+			continue
+		}
+		ep := 0
+		if meta := habari.Parse(t.Name); meta != nil && len(meta.EpisodeNumber) == 1 {
+			if n, e := strconv.Atoi(meta.EpisodeNumber[0]); e == nil {
+				ep = n
+			}
+		}
+		items = append(items, ActiveDownloadItem{MediaId: intent.MediaID, Episode: ep, Progress: t.Progress})
+	}
+
+	return h.RespondWithData(c, items)
 }
