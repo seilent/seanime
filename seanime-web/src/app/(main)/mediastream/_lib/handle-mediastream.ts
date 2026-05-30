@@ -137,69 +137,86 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
     /**
      * Effect used to set LibASS renderer
      * Add subtitle renderer
+     * - Uses mediaContainer?.hash as a dep to guarantee re-creation on every episode change
+     *   (streamUrl is constant "/api/v1/mediastream/direct" and fonts may be referentially stable)
      */
     React.useEffect(() => {
-        if (playerRef.current && !!mediaContainer?.mediaInfo?.fonts?.length) {
-            logger("MEDIASTREAM").info("Adding JASSUB renderer to player", mediaContainer?.mediaInfo?.fonts?.length, "fonts")
-            const legacyWasmUrl = process.env.NODE_ENV === "development"
-                ? "/jassub/jassub-worker.wasm.js" : legacy_getAssetUrl("/jassub/jassub-worker.wasm.js")
+        if (!playerRef.current || !mediaContainer?.mediaInfo?.fonts?.length) {
+            return
+        }
 
-            logger("MEDIASTREAM").info("Loading JASSUB renderer")
+        logger("MEDIASTREAM").info("Adding JASSUB renderer to player", mediaContainer?.mediaInfo?.fonts?.length, "fonts")
+        const legacyWasmUrl = process.env.NODE_ENV === "development"
+            ? "/jassub/jassub-worker.wasm.js" : legacy_getAssetUrl("/jassub/jassub-worker.wasm.js")
 
-            const fonts = mediaContainer?.mediaInfo?.fonts?.map(name => `${getServerBaseUrl()}/api/v1/mediastream/att/${name}`) || []
+        logger("MEDIASTREAM").info("Loading JASSUB renderer")
 
-            // Extracted fonts
-            let availableFonts: Record<string, string> = {}
-            let firstFont = ""
-            if (!!fonts?.length) {
-                for (const font of fonts) {
-                    const name = font.split("/").pop()?.split(".")[0]
-                    if (name) {
-                        if (!firstFont) {
-                            firstFont = name.toLowerCase()
-                        }
-                        availableFonts[name.toLowerCase()] = font
+        const fonts = mediaContainer?.mediaInfo?.fonts?.map(name => `${getServerBaseUrl()}/api/v1/mediastream/att/${name}`) || []
+
+        // Extracted fonts
+        let availableFonts: Record<string, string> = {}
+        let firstFont = ""
+        if (!!fonts?.length) {
+            for (const font of fonts) {
+                const name = font.split("/").pop()?.split(".")[0]
+                if (name) {
+                    if (!firstFont) {
+                        firstFont = name.toLowerCase()
                     }
+                    availableFonts[name.toLowerCase()] = font
                 }
             }
+        }
 
-            // Fallback font if no fonts are available
-            if (!firstFont) {
-                firstFont = "liberation sans"
+        // Fallback font if no fonts are available
+        if (!firstFont) {
+            firstFont = "liberation sans"
+        }
+        if (Object.keys(availableFonts).length === 0) {
+            availableFonts = {
+                "liberation sans": getServerBaseUrl() + `/jassub/default.woff2`,
             }
-            if (Object.keys(availableFonts).length === 0) {
-                availableFonts = {
-                    "liberation sans": getServerBaseUrl() + `/jassub/default.woff2`,
-                }
+        }
+
+        logger("MEDIASTREAM").info("Available fonts:", availableFonts)
+        logger("MEDIASTREAM").info("Fallback font:", firstFont)
+
+        // @ts-expect-error
+        const renderer = new LibASSTextRenderer(() => import("jassub"), {
+            wasmUrl: "/jassub/jassub-worker.wasm",
+            workerUrl: "/jassub/jassub-worker.js",
+            legacyWasmUrl: legacyWasmUrl,
+            // Both parameters needed for subs to work on iOS, ref: jellyfin-vue
+            offscreenRender: jassubOffscreenRender, // should be false for iOS
+            prescaleFactor: 0.8,
+            onDemandRender: false,
+            fonts: fonts,
+            availableFonts: availableFonts,
+            fallbackFont: firstFont,
+        })
+        playerRef.current!.textRenderers.add(renderer)
+
+        logger("MEDIASTREAM").info("JASSUB renderer added to player")
+
+        return () => {
+            try {
+                playerRef.current?.textRenderers.remove(renderer)
+            } catch (_) {
+                // Player may already be destroyed (onPlayFile calls playerRef.current?.destroy?.())
             }
-
-            logger("MEDIASTREAM").info("Available fonts:", availableFonts)
-            logger("MEDIASTREAM").info("Fallback font:", firstFont)
-
-            // @ts-expect-error
-            const renderer = new LibASSTextRenderer(() => import("jassub"), {
-                wasmUrl: "/jassub/jassub-worker.wasm",
-                workerUrl: "/jassub/jassub-worker.js",
-                legacyWasmUrl: legacyWasmUrl,
-                // Both parameters needed for subs to work on iOS, ref: jellyfin-vue
-                offscreenRender: jassubOffscreenRender, // should be false for iOS
-                prescaleFactor: 0.8,
-                onDemandRender: false,
-                fonts: fonts,
-                availableFonts: availableFonts,
-                fallbackFont: firstFont,
-            })
-            playerRef.current!.textRenderers.add(renderer)
-
-            logger("MEDIASTREAM").info("JASSUB renderer added to player")
-
-            return () => {
-                playerRef.current!.textRenderers.remove(renderer)
+            // Defensively destroy the underlying JASSUB instance to free the worker/canvas.
+            // vidstack's textRenderers.remove() only calls detach()/freeTrack(), NOT _instance.destroy(),
+            // so the JASSUB worker leaks across episodes unless we destroy it here. The instance is the
+            // private `_instance` field on LibASSTextRenderer.
+            try {
+                (renderer as unknown as { _instance?: { destroy?: () => void } })?._instance?.destroy?.()
+            } catch (_) {
+                // Already disposed or not yet initialized
             }
         }
     }, [
         playerRef.current,
-        mediaContainer?.streamUrl,
+        mediaContainer?.hash,
         mediaContainer?.mediaInfo?.fonts,
         jassubOffscreenRender,
     ])
