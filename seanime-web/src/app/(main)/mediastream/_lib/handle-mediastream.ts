@@ -95,9 +95,11 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
 
     React.useEffect(() => {
         if (isPending) {
+            // Do NOT clear the url here. The stream src is now unique per episode
+            // (?v=<hash>), so the container-changed effect reloads the player
+            // naturally; blanking the url loaded an invalid URI and orphaned the
+            // JASSUB renderer + broke progress tracking on episode switch.
             logger("MEDIASTREAM").info("Loading media container")
-            changeUrl(undefined)
-            logger("MEDIASTREAM").info("Setting URL to undefined")
         }
     }, [isPending])
 
@@ -121,10 +123,10 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
             logger("MEDIASTREAM").info("Changing URL", _newUrl, "streamType:", mediaContainer.streamType)
 
             changeUrl(_newUrl)
-        } else {
-            changeUrl(undefined)
-            logger("MEDIASTREAM").info("Setting URL to undefined")
         }
+        // else: mediaContainer is transiently undefined during a refetch (episode
+        // switch). Keep the previous url instead of blanking it — the new unique
+        // streamUrl will arrive and trigger a clean reload.
 
     }, [mediaContainer?.streamUrl])
 
@@ -226,7 +228,6 @@ export function useHandleMediastream(props: HandleMediastreamProps) {
      * @param newUrl
      */
     function changeUrl(newUrl: string | undefined) {
-        if (newUrl === undefined) return
         logger("MEDIASTREAM").info("[changeUrl] called,", "request url:", newUrl)
         if (prevUrlRef.current !== newUrl) {
             logger("MEDIASTREAM").info("Resetting playback error status")
