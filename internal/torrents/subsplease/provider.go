@@ -60,18 +60,47 @@ func (p *Provider) Search(opts hibiketorrent.AnimeSearchOptions) ([]*hibiketorre
 func (p *Provider) SmartSearch(opts hibiketorrent.AnimeSmartSearchOptions) ([]*hibiketorrent.AnimeTorrent, error) {
 	// Build candidate slugs from titles and synonyms
 	slugs := []string{}
-	slugs = append(slugs, titleToSlug(opts.Media.RomajiTitle))
+
+	// Detect season from titles
+	season := 0
+	romSlug := titleToSlug(opts.Media.RomajiTitle)
+	slugs = append(slugs, romSlug)
+	if s := extractTrailingSeason(opts.Media.RomajiTitle); s > 0 {
+		season = s
+	}
 	if opts.Media.EnglishTitle != nil && *opts.Media.EnglishTitle != "" {
 		slugs = append(slugs, titleToSlug(*opts.Media.EnglishTitle))
+		if s := extractTrailingSeason(*opts.Media.EnglishTitle); s > 0 && season == 0 {
+			season = s
+		}
 	}
 	for _, syn := range opts.Media.Synonyms {
 		if isLatin(syn) {
-			slugs = append(slugs, titleToSlug(syn))
+			slug := titleToSlug(syn)
+			slugs = append(slugs, slug)
+			// Also try without trailing number + "-s{N}"
+			if season > 0 {
+				base := strings.TrimRight(slug, "0123456789")
+				base = strings.TrimRight(base, "-")
+				if base != "" {
+					slugs = append(slugs, fmt.Sprintf("%s-s%d", base, season))
+				}
+			}
+		}
+	}
+
+	// Deduplicate
+	seen := map[string]bool{}
+	unique := []string{}
+	for _, s := range slugs {
+		if !seen[s] {
+			seen[s] = true
+			unique = append(unique, s)
 		}
 	}
 
 	// Try each slug until one works
-	for _, slug := range slugs {
+	for _, slug := range unique {
 		results, err := p.fetchShowEpisodes(slug, opts.EpisodeNumber)
 		if err == nil && len(results) > 0 {
 			return results, nil
@@ -251,4 +280,22 @@ func isLatin(s string) bool {
 		}
 	}
 	return true
+}
+
+// extractTrailingSeason extracts a season number from "Season N" or trailing " N" in a title
+func extractTrailingSeason(title string) int {
+	lower := strings.ToLower(title)
+	// Match "season N"
+	re := regexp.MustCompile(`season\s*(\d+)`)
+	if m := re.FindStringSubmatch(lower); len(m) > 1 {
+		n, _ := strconv.Atoi(m[1])
+		return n
+	}
+	// Match trailing number like "LasTame 2"
+	re2 := regexp.MustCompile(`\s(\d+)$`)
+	if m := re2.FindStringSubmatch(strings.TrimSpace(title)); len(m) > 1 {
+		n, _ := strconv.Atoi(m[1])
+		return n
+	}
+	return 0
 }
