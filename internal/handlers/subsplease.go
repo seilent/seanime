@@ -11,13 +11,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type SubspleaseStatus struct {
+	Available    bool                           `json:"available"`
+	EpisodeCount int                           `json:"episodeCount"` // cached SP episode count
+	LocalCount   int                           `json:"localCount"`   // local SubsPlease files
+	ToSync       []*hibiketorrent.AnimeTorrent `json:"toSync"`       // episodes to download
+}
+
 // HandleGetSubspleaseEpisodes
 //
-//	@summary returns SubsPlease episodes that need syncing (missing or from different group).
-//	@desc Checks SubsPlease for available episodes, compares against local files.
-//	@desc Returns episodes that are either missing or not from SubsPlease.
+//	@summary returns SubsPlease sync status and episodes that need syncing.
+//	@desc Returns cached availability instantly, then includes episodes to sync if available.
 //	@route /api/v1/subsplease/episodes [POST]
-//	@returns []hibiketorrent.AnimeTorrent
+//	@returns handlers.SubspleaseStatus
 func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 
 	type body struct {
@@ -29,24 +35,48 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
-	// Quick check: if this anime isn't known to be on SubsPlease, skip
-	if !h.App.Database.HasSubsPleaseSid(b.Media.ID) {
-		return h.RespondWithData(c, []*hibiketorrent.AnimeTorrent{})
+	// Quick check from cache
+	sid, cachedEpCount, _ := h.App.Database.GetSubspleaseInfo(b.Media.ID)
+	if sid == "" {
+		return h.RespondWithData(c, SubspleaseStatus{Available: false})
 	}
 
-	// Get SubsPlease provider
+	// Count local SubsPlease files
+	localFiles, _ := db_bridge.GetLocalFilesByMediaId(h.App.Database, b.Media.ID)
+	localSpCount := 0
+	syncedEps := make(map[int]bool)
+	replaceFiles := make(map[int]string)
+	for _, lf := range localFiles {
+		if strings.Contains(lf.LocalFilePath, "[SubsPlease]") {
+			localSpCount++
+			syncedEps[lf.EpisodeNumber] = true
+		} else {
+			replaceFiles[lf.EpisodeNumber] = lf.LocalFilePath
+		}
+	}
+
+	// If local count matches cached SP count, we're in sync
+	if localSpCount >= cachedEpCount && cachedEpCount > 0 {
+		return h.RespondWithData(c, SubspleaseStatus{
+			Available:    true,
+			EpisodeCount: cachedEpCount,
+			LocalCount:   localSpCount,
+			ToSync:       nil,
+		})
+	}
+
+	// Need to fetch actual episodes from SubsPlease
+	status := b.Media.GetStatus()
+	format := b.Media.GetFormat()
+	if status == nil || format == nil {
+		return h.RespondWithData(c, SubspleaseStatus{Available: true, EpisodeCount: cachedEpCount, LocalCount: localSpCount})
+	}
+
 	providerExt, ok := extension.GetExtension[extension.AnimeTorrentProviderExtension](
 		h.App.ExtensionRepository.GetExtensionBank(), "subsplease",
 	)
 	if !ok {
-		return h.RespondWithData(c, []*hibiketorrent.AnimeTorrent{})
-	}
-
-	// Build media for smart search
-	status := b.Media.GetStatus()
-	format := b.Media.GetFormat()
-	if status == nil || format == nil {
-		return h.RespondWithData(c, []*hibiketorrent.AnimeTorrent{})
+		return h.RespondWithData(c, SubspleaseStatus{Available: true, EpisodeCount: cachedEpCount, LocalCount: localSpCount})
 	}
 
 	queryMedia := hibiketorrent.Media{
@@ -59,45 +89,37 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		Synonyms:     b.Media.GetSynonymsDeref(),
 	}
 
-	// Fetch all episodes from SubsPlease
 	torrents, err := providerExt.GetProvider().SmartSearch(hibiketorrent.AnimeSmartSearchOptions{
 		Media:         queryMedia,
-		EpisodeNumber: 0, // all episodes
+		EpisodeNumber: 0,
 	})
 	if err != nil || len(torrents) == 0 {
-		return h.RespondWithData(c, []*hibiketorrent.AnimeTorrent{})
+		return h.RespondWithData(c, SubspleaseStatus{Available: true, EpisodeCount: cachedEpCount, LocalCount: localSpCount})
 	}
 
-	// Get local files for this media
-	localFiles, _ := db_bridge.GetLocalFilesByMediaId(h.App.Database, b.Media.ID)
-
-	// Build maps: which episodes are synced (SubsPlease) vs need replacement
-	syncedEps := make(map[int]bool)
-	replaceFiles := make(map[int]string) // episodeNumber -> filePath to delete
-	for _, lf := range localFiles {
-		if strings.Contains(lf.LocalFilePath, "[SubsPlease]") {
-			syncedEps[lf.EpisodeNumber] = true
-		} else {
-			// Non-SubsPlease file that should be replaced
-			replaceFiles[lf.EpisodeNumber] = lf.LocalFilePath
-		}
+	// Update cached episode count if changed
+	if len(torrents) != cachedEpCount {
+		_ = h.App.Database.SetSubspleaseEpisodeCount(b.Media.ID, len(torrents))
 	}
 
-	// Filter to episodes that need syncing
+	// Find episodes to sync
 	var toSync []*hibiketorrent.AnimeTorrent
 	for _, t := range torrents {
 		if t.EpisodeNumber > 0 && !syncedEps[t.EpisodeNumber] {
 			toSync = append(toSync, t)
 
-			// Delete the old non-SubsPlease file and its mapping
+			// Delete old non-SubsPlease file
 			if oldPath, exists := replaceFiles[t.EpisodeNumber]; exists {
 				_ = os.Remove(oldPath)
 				_ = h.App.Database.DeleteGlobalMapping(oldPath)
-				h.App.Logger.Debug().Str("path", oldPath).Int("episode", t.EpisodeNumber).
-					Msg("subsplease sync: deleted old file for replacement")
 			}
 		}
 	}
 
-	return h.RespondWithData(c, toSync)
+	return h.RespondWithData(c, SubspleaseStatus{
+		Available:    true,
+		EpisodeCount: len(torrents),
+		LocalCount:   localSpCount,
+		ToSync:       toSync,
+	})
 }

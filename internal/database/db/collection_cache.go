@@ -105,6 +105,21 @@ func (db *Database) SetSubsPleaseSid(anilistID int, sid string) error {
 		Update("subsplease_sid", sid).Error
 }
 
+// SetSubspleaseEpisodeCount updates the cached SubsPlease episode count.
+func (db *Database) SetSubspleaseEpisodeCount(anilistID int, count int) error {
+	return db.gormdb.Model(&models.CachedMedia{}).
+		Where("anilist_id = ?", anilistID).
+		Update("subsplease_episode_count", count).Error
+}
+
+// GetSubspleaseInfo returns the cached SubsPlease sid and episode count for an anime.
+func (db *Database) GetSubspleaseInfo(anilistID int) (sid string, episodeCount int, err error) {
+	var row models.CachedMedia
+	err = db.gormdb.Select("subsplease_sid, subsplease_episode_count").
+		Where("anilist_id = ?", anilistID).First(&row).Error
+	return row.SubsPleaseSid, row.SubspleaseEpisodeCount, err
+}
+
 // HasSubsPleaseSid checks if an anime has a cached SubsPlease sid.
 func (db *Database) HasSubsPleaseSid(anilistID int) bool {
 	var sid string

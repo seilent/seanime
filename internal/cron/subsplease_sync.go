@@ -100,10 +100,10 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 
 		// Cache the SubsPlease sid if not already cached
 		if cached.SubsPleaseSid == "" {
-			// The provider caches sid internally, but we also persist it in DB
-			// Mark this anime as available on SubsPlease
 			_ = ctx.App.Database.SetSubsPleaseSid(id, "found")
 		}
+		// Always update episode count
+		_ = ctx.App.Database.SetSubspleaseEpisodeCount(id, len(torrents))
 
 		// Get local files for this media
 		localFiles, _ := db_bridge.GetLocalFilesByMediaId(ctx.App.Database, id)

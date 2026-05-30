@@ -9,6 +9,13 @@ import React, { useEffect, useMemo, useRef, useState } from "react"
 import { BiCheck, BiDownload } from "react-icons/bi"
 import { FiSearch } from "react-icons/fi"
 
+type SubspleaseStatus = {
+    available: boolean
+    episodeCount: number
+    localCount: number
+    toSync: HibikeTorrent_AnimeTorrent[] | null
+}
+
 export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
 
     const setter = useSetAtom(__torrentSearch_selectionAtom)
@@ -17,40 +24,35 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
     const count = entry.downloadInfo?.episodesToDownload?.length
     const isMovie = useMemo(() => entry.media?.format === "MOVIE", [entry.media?.format])
 
-    // SubsPlease sync state
-    const [spEpisodes, setSpEpisodes] = useState<HibikeTorrent_AnimeTorrent[]>([])
-    const [spChecked, setSpChecked] = useState(false)
+    const [spStatus, setSpStatus] = useState<SubspleaseStatus | null>(null)
     const syncStarted = useRef(false)
     const syncCount = useRef(0)
 
-    // Check SubsPlease for available episodes
-    const { mutate: fetchSpEpisodes } = useServerMutation<HibikeTorrent_AnimeTorrent[], { media: any }>({
+    const { mutate: fetchSpStatus } = useServerMutation<SubspleaseStatus, { media: any }>({
         endpoint: "/api/v1/subsplease/episodes",
         method: "POST",
-        mutationKey: ["subsplease-episodes", String(entry.mediaId)],
+        mutationKey: ["subsplease-status", String(entry.mediaId)],
         onSuccess: (data) => {
-            if (!syncStarted.current) {
-                setSpEpisodes(data || [])
-                setSpChecked(true)
+            if (!syncStarted.current && data) {
+                setSpStatus(data)
             }
         },
     })
 
     useEffect(() => {
         if (entry.media?.id && entry.media?.status && entry.media?.format && !syncStarted.current) {
-            fetchSpEpisodes({ media: entry.media })
+            fetchSpStatus({ media: entry.media })
         }
     }, [entry.media?.id])
 
-    // Download mutation
     const { mutate: download, isPending } = useTorrentClientDownload()
 
     const handleDirectDownload = () => {
-        if (!spEpisodes.length || !libraryPath) return
+        if (!spStatus?.toSync?.length || !libraryPath) return
         syncStarted.current = true
-        syncCount.current = spEpisodes.length
+        syncCount.current = spStatus.toSync.length
         download({
-            torrents: spEpisodes,
+            torrents: spStatus.toSync,
             destination: libraryPath,
             smartSelect: { enabled: false, missingEpisodeNumbers: [] },
             media: entry.media,
@@ -58,7 +60,7 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
         })
     }
 
-    // After sync started, always show the downloading state
+    // Downloading state
     if (syncStarted.current) {
         return (
             <div className="contents" data-torrent-search-button-container>
@@ -76,13 +78,13 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
         )
     }
 
-    // Fully synced with SubsPlease — hide button
-    if (spChecked && spEpisodes.length === 0) {
+    // Fully synced — hide button
+    if (spStatus?.available && (!spStatus.toSync || spStatus.toSync.length === 0)) {
         return null
     }
 
-    // If SubsPlease has episodes to sync, show sync button
-    if (spEpisodes.length > 0) {
+    // Episodes to sync — show sync button
+    if (spStatus?.toSync && spStatus.toSync.length > 0) {
         return (
             <div className="contents" data-torrent-search-button-container>
                 <AnimeMetaActionButton
@@ -94,13 +96,13 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
                     disabled={isPending}
                     data-torrent-search-button
                 >
-                    {isPending ? "Syncing..." : `Sync ${spEpisodes.length} episode${spEpisodes.length > 1 ? "s" : ""}`}
+                    {isPending ? "Syncing..." : `Sync ${spStatus.toSync.length} episode${spStatus.toSync.length > 1 ? "s" : ""}`}
                 </AnimeMetaActionButton>
             </div>
         )
     }
 
-    // Fallback to normal search button
+    // Fallback — not on SubsPlease or still loading
     return (
         <div className="contents" data-torrent-search-button-container>
             <AnimeMetaActionButton
