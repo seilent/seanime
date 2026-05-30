@@ -54,7 +54,7 @@ func (p *Provider) GetSettings() hibiketorrent.AnimeProviderSettings {
 func (p *Provider) Search(opts hibiketorrent.AnimeSearchOptions) ([]*hibiketorrent.AnimeTorrent, error) {
 	// Search by slug directly
 	slug := titleToSlug(opts.Query)
-	return p.fetchShowEpisodes(slug, 0)
+	return p.fetchShowEpisodes(slug, 0, false, 0)
 }
 
 func (p *Provider) SmartSearch(opts hibiketorrent.AnimeSmartSearchOptions) ([]*hibiketorrent.AnimeTorrent, error) {
@@ -101,7 +101,7 @@ func (p *Provider) SmartSearch(opts hibiketorrent.AnimeSmartSearchOptions) ([]*h
 
 	// Try each slug until one works
 	for _, slug := range unique {
-		results, err := p.fetchShowEpisodes(slug, opts.EpisodeNumber)
+		results, err := p.fetchShowEpisodes(slug, opts.EpisodeNumber, opts.Batch, opts.Media.EpisodeCount)
 		if err == nil && len(results) > 0 {
 			return results, nil
 		}
@@ -130,7 +130,7 @@ func (p *Provider) GetTorrentMagnetLink(torrent *hibiketorrent.AnimeTorrent) (st
 }
 
 // fetchShowEpisodes gets episodes from the SubsPlease API for a given slug
-func (p *Provider) fetchShowEpisodes(slug string, episodeNumber int) ([]*hibiketorrent.AnimeTorrent, error) {
+func (p *Provider) fetchShowEpisodes(slug string, episodeNumber int, batch bool, episodeCount int) ([]*hibiketorrent.AnimeTorrent, error) {
 	sid, err := p.getSid(slug)
 	if err != nil {
 		return nil, err
@@ -167,8 +167,8 @@ func (p *Provider) fetchShowEpisodes(slug string, episodeNumber int) ([]*hibiket
 
 	var results []*hibiketorrent.AnimeTorrent
 	for _, ep := range showData.Episode {
-		// Filter by episode if specified
-		if episodeNumber > 0 {
+		// Filter by episode if specified (skip when batch)
+		if !batch && episodeNumber > 0 {
 			epNum, _ := strconv.Atoi(ep.Episode)
 			if epNum != episodeNumber {
 				continue
@@ -206,6 +206,19 @@ func (p *Provider) fetchShowEpisodes(slug string, episodeNumber int) ([]*hibiket
 				Provider:      ProviderName,
 			})
 			break
+		}
+	}
+
+	// If batch requested and all episodes are available, mark as batch
+	if batch && episodeCount > 0 && len(results) >= episodeCount {
+		showName := ""
+		if len(results) > 0 {
+			// Use show name from first result
+			showName = results[0].Name
+		}
+		for _, r := range results {
+			r.IsBatch = true
+			_ = showName
 		}
 	}
 
