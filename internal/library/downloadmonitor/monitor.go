@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"seanime/internal/database/db"
 	"seanime/internal/database/models"
+	"seanime/internal/events"
 	"seanime/internal/torrent_clients/torrent_client"
 	"seanime/internal/util"
 	"strconv"
@@ -20,14 +21,21 @@ var videoExts = map[string]struct{}{
 	".mkv": {}, ".mp4": {}, ".avi": {}, ".webm": {}, ".m4v": {}, ".ts": {},
 }
 
-type Monitor struct {
-	db     *db.Database
-	repo   *torrent_client.Repository
-	logger *zerolog.Logger
+type downloadProgressItem struct {
+	MediaID  int     `json:"mediaId"`
+	Episode  int     `json:"episode"`
+	Progress float64 `json:"progress"`
 }
 
-func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logger) *Monitor {
-	return &Monitor{db: db, repo: repo, logger: logger}
+type Monitor struct {
+	db             *db.Database
+	repo           *torrent_client.Repository
+	logger         *zerolog.Logger
+	wsEventManager events.WSEventManagerInterface
+}
+
+func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logger, wsEventManager events.WSEventManagerInterface) *Monitor {
+	return &Monitor{db: db, repo: repo, logger: logger, wsEventManager: wsEventManager}
 }
 
 var (
@@ -50,7 +58,19 @@ func (m *Monitor) Start() {
 
 func (m *Monitor) run(stop chan struct{}) {
 	ticker := time.NewTicker(10 * time.Second)
+	progressTicker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
+	defer progressTicker.Stop()
+	go func() {
+		for {
+			select {
+			case <-progressTicker.C:
+				m.emitProgress()
+			case <-stop:
+				return
+			}
+		}
+	}()
 	for {
 		select {
 		case <-ticker.C:
@@ -60,6 +80,39 @@ func (m *Monitor) run(stop chan struct{}) {
 		}
 	}
 }
+
+func (m *Monitor) emitProgress() {
+	intents, _ := m.db.GetIncompletePendingDownloadIntents()
+	if len(intents) == 0 {
+		return
+	}
+	torrents, _ := m.repo.GetList()
+	byHash := make(map[string]*torrent_client.Torrent, len(torrents))
+	for _, t := range torrents {
+		byHash[strings.ToLower(t.Hash)] = t
+	}
+	items := make([]downloadProgressItem, 0)
+	for _, intent := range intents {
+		if intent.FlattenState == "linked" {
+			continue
+		}
+		t, found := byHash[intent.Hash]
+		if !found {
+			continue
+		}
+		episode := 0
+		if meta := habari.Parse(t.Name); meta != nil && len(meta.EpisodeNumber) == 1 {
+			if n, e := strconv.Atoi(meta.EpisodeNumber[0]); e == nil {
+				episode = n
+			}
+		}
+		items = append(items, downloadProgressItem{MediaID: intent.MediaID, Episode: episode, Progress: t.Progress})
+	}
+	if m.wsEventManager != nil {
+		m.wsEventManager.SendEvent(events.DownloadProgress, items)
+	}
+}
+
 
 func (m *Monitor) tick() {
 	defer func() {
@@ -143,6 +196,9 @@ func (m *Monitor) tick() {
 				storedContentPath = contentPath
 			}
 			m.db.SetPendingDownloadIntentLinked(intent.Hash, storedContentPath)
+			if m.wsEventManager != nil {
+				m.wsEventManager.SendEvent(events.InvalidateQueries, []string{events.GetAnimeEntryEndpoint})
+			}
 			m.logger.Info().Str("hash", intent.Hash).Int("files", len(videos)).Msg("downloadmonitor: Linked intent")
 			continue
 		}

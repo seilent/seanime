@@ -25,6 +25,7 @@ export const enum WSEvents {
     PLUGIN_UNLOADED = "plugin-unloaded",
     PLUGIN_LOADED = "plugin-loaded",
     ACTIVE_TORRENT_COUNT_UPDATED = "active-torrent-count-updated",
+    DOWNLOAD_PROGRESS = "download-progress",
     SYNC_LOCAL_QUEUE_STATE = "sync-local-queue-state",
     SYNC_LOCAL_FINISHED = "sync-local-finished",
     SYNC_ANILIST_FINISHED = "sync-anilist-finished",

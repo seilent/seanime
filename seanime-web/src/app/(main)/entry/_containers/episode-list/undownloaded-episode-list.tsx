@@ -1,4 +1,4 @@
-import { useGetActiveDownloads } from "@/api/hooks/torrent_client.hooks"
+import { useDownloadProgress } from "@/app/(main)/entry/_lib/use-download-progress"
 import { AL_BaseAnime, Anime_EntryDownloadInfo } from "@/api/generated/types"
 import { EpisodeGridItem } from "@/app/(main)/_features/anime/_components/episode-grid-item"
 import { PluginEpisodeGridItemMenuItems } from "@/app/(main)/_features/plugin/actions/plugin-actions"
@@ -8,7 +8,6 @@ import {
     __torrentSearch_selectionAtom,
     __torrentSearch_selectionEpisodeAtom,
 } from "@/app/(main)/entry/_containers/torrent-search/torrent-search-drawer"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useSetAtom } from "jotai"
 import React, { startTransition } from "react"
 import { BiCalendarAlt, BiDownload } from "react-icons/bi"
@@ -21,9 +20,12 @@ export function UndownloadedEpisodeList({ downloadInfo, media }: {
 
     const episodes = downloadInfo?.episodesToDownload
 
-    const { data: activeDownloads } = useGetActiveDownloads()
-    const dlEpisodes = new Set((activeDownloads ?? []).filter(d => d.mediaId === media.id && d.episode > 0).map(d => d.episode))
-    const batchDownloading = (activeDownloads ?? []).some(d => d.mediaId === media.id && d.episode === 0)
+    const activeDownloads = useDownloadProgress()
+    const myDownloads = activeDownloads.filter(d => d.mediaId === media.id)
+    const dlEpisodes = new Set(myDownloads.filter(d => d.episode > 0).map(d => d.episode))
+    const batchDownloading = myDownloads.some(d => d.episode === 0)
+    const progressMap = new Map(myDownloads.filter(d => d.episode > 0).map(d => [d.episode, d.progress]))
+    const batchProgress = myDownloads.find(d => d.episode === 0)?.progress ?? 0
 
     const setTorrentSearchIsOpen = useSetAtom(__torrentSearch_selectionAtom)
     const setTorrentSearchEpisode = useSetAtom(__torrentSearch_selectionEpisodeAtom)
@@ -68,7 +70,7 @@ export function UndownloadedEpisodeList({ downloadInfo, media }: {
                                     }}
                                     className="inline-block text-orange-200 text-2xl animate-pulse cursor-pointer py-2"
                                 >
-                                    {(dlEpisodes.has(episode.episodeNumber) || batchDownloading) ? <LoadingSpinner className="size-6" /> : <BiDownload />}
+                                    {(dlEpisodes.has(episode.episodeNumber) || batchDownloading) ? <CircularProgress progress={progressMap.get(episode.episodeNumber) ?? batchProgress} /> : <BiDownload />}
                                 </div>}
 
                                 <EpisodeItemInfoModalButton episode={episode} />
@@ -91,4 +93,18 @@ export function UndownloadedEpisodeList({ downloadInfo, media }: {
         </div>
     )
 
+}
+
+function CircularProgress({ progress }: { progress: number }) {
+    const pct = Math.round(progress * 100)
+    const r = 10, c = 2 * Math.PI * r, offset = c * (1 - progress)
+    return (
+        <svg className="size-6" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r={r} fill="none" stroke="currentColor" opacity={0.25} strokeWidth="3" />
+            <circle cx="12" cy="12" r={r} fill="none" stroke="currentColor" strokeWidth="3"
+                strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
+                transform="rotate(-90 12 12)" />
+            <text x="12" y="12" textAnchor="middle" dominantBaseline="central" fill="currentColor" fontSize="7">{pct}</text>
+        </svg>
+    )
 }

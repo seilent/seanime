@@ -5,7 +5,7 @@ import {
     TorrentClientDownload_Variables,
 } from "@/api/generated/endpoint.types"
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
-import { ActiveDownloadItem, TorrentClient_Torrent } from "@/api/generated/types"
+import { TorrentClient_Torrent } from "@/api/generated/types"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -17,17 +17,6 @@ export function useGetActiveTorrentList(enabled: boolean) {
         refetchInterval: 1500,
         gcTime: 0,
         enabled: enabled,
-    })
-}
-
-export function useGetActiveDownloads() {
-    return useServerQuery<Array<ActiveDownloadItem>>({
-        endpoint: API_ENDPOINTS.TORRENT_CLIENT.GetActiveDownloads.endpoint,
-        method: API_ENDPOINTS.TORRENT_CLIENT.GetActiveDownloads.methods[0],
-        queryKey: [API_ENDPOINTS.TORRENT_CLIENT.GetActiveDownloads.key],
-        refetchInterval: 2000,
-        gcTime: 0,
-        enabled: true,
     })
 }
 

@@ -58,6 +58,7 @@ const (
 	PluginLoaded          = "plugin-loaded"
 
 	ActiveTorrentCountUpdated = "active-torrent-count-updated"
+	DownloadProgress          = "download-progress"
 
 	SyncLocalQueueState = "sync-local-queue-state"
 	SyncLocalFinished   = "sync-local-finished"
