@@ -11,19 +11,22 @@ func (db *Database) UpsertPendingDownloadIntent(hash string, mediaId int, destin
 		return nil
 	}
 	intent := &models.PendingDownloadIntent{}
-	result := db.gormdb.Where("hash = ?", hash).FirstOrCreate(intent, &models.PendingDownloadIntent{
+	err := db.gormdb.Where("hash = ?", hash).First(intent).Error
+	if err == nil {
+		// Re-download of an existing torrent: reset state so the monitor re-processes it.
+		return db.gormdb.Model(intent).Updates(map[string]interface{}{
+			"media_id":      mediaId,
+			"destination":   destination,
+			"completed":     false,
+			"flatten_state": "",
+			"content_path":  "",
+		}).Error
+	}
+	return db.gormdb.Create(&models.PendingDownloadIntent{
 		Hash:        hash,
 		MediaID:     mediaId,
 		Destination: destination,
-	})
-	if result.Error != nil {
-		return result.Error
-	}
-	// Update destination if the row already existed
-	if intent.Destination == "" && destination != "" {
-		return db.gormdb.Model(intent).Update("destination", destination).Error
-	}
-	return nil
+	}).Error
 }
 
 func (db *Database) GetIncompletePendingDownloadIntents() ([]*models.PendingDownloadIntent, error) {
