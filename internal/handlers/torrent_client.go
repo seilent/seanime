@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"path/filepath"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
@@ -181,6 +182,25 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 			}
 			// Purge all existing mappings for this media so new download starts fresh
 			_ = h.App.Database.DeleteGlobalMappingsByAniListID(b.Media.ID)
+		}
+	} else if b.Media != nil {
+		// Per-episode SYNC (SubsPlease only): delete existing local files for the specific
+		// episodes being downloaded, replacing non-SubsPlease releases with SubsPlease.
+		isSubsPlease := len(b.Torrents) > 0 && b.Torrents[0].Provider == "subsplease"
+		if isSubsPlease {
+			localFiles, _ := db_bridge.GetLocalFilesByMediaId(h.App.Database, b.Media.ID)
+			downloadEps := make(map[int]bool)
+			for _, t := range b.Torrents {
+				if t.EpisodeNumber > 0 {
+					downloadEps[t.EpisodeNumber] = true
+				}
+			}
+			for _, lf := range localFiles {
+				if downloadEps[lf.EpisodeNumber] && !strings.Contains(lf.LocalFilePath, "[SubsPlease]") {
+					_ = os.Remove(lf.LocalFilePath)
+					_ = h.App.Database.DeleteGlobalMapping(lf.LocalFilePath)
+				}
+			}
 		}
 	}
 
