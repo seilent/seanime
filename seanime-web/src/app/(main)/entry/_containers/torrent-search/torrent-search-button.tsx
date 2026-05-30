@@ -48,7 +48,7 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
             destination: libraryPath,
             smartSelect: { enabled: false, missingEpisodeNumbers: [] },
             media: entry.media,
-            deleteExistingFiles: false,
+            deleteExistingFiles: true,
         })
     }
 
@@ -65,7 +65,7 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
                     disabled={isPending}
                     data-torrent-search-button
                 >
-                    {isPending ? "Downloading..." : `Download ${spEpisodes.length} episode${spEpisodes.length > 1 ? "s" : ""}`}
+                    {isPending ? "Syncing..." : `Sync ${spEpisodes.length} episode${spEpisodes.length > 1 ? "s" : ""}`}
                 </AnimeMetaActionButton>
             </div>
         )

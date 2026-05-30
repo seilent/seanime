@@ -5,6 +5,7 @@ import (
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/extension"
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -54,20 +55,23 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		return h.RespondWithData(c, []*hibiketorrent.AnimeTorrent{})
 	}
 
-	// Get local files for this media to find which episodes are already downloaded
+	// Get local files for this media to find which episodes need syncing
 	localFiles, _ := db_bridge.GetLocalFilesByMediaId(h.App.Database, b.Media.ID)
-	downloadedEps := make(map[int]bool)
+	syncedEps := make(map[int]bool)
 	for _, lf := range localFiles {
-		downloadedEps[lf.EpisodeNumber] = true
-	}
-
-	// Filter to only missing episodes
-	var missing []*hibiketorrent.AnimeTorrent
-	for _, t := range torrents {
-		if t.EpisodeNumber > 0 && !downloadedEps[t.EpisodeNumber] {
-			missing = append(missing, t)
+		// Only consider it synced if the file is from SubsPlease
+		if strings.Contains(lf.LocalFilePath, "[SubsPlease]") {
+			syncedEps[lf.EpisodeNumber] = true
 		}
 	}
 
-	return h.RespondWithData(c, missing)
+	// Return episodes not yet synced (missing OR from a different group)
+	var toSync []*hibiketorrent.AnimeTorrent
+	for _, t := range torrents {
+		if t.EpisodeNumber > 0 && !syncedEps[t.EpisodeNumber] {
+			toSync = append(toSync, t)
+		}
+	}
+
+	return h.RespondWithData(c, toSync)
 }
