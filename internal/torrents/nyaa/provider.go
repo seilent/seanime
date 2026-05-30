@@ -150,14 +150,17 @@ func (n *Provider) SmartSearch(opts hibiketorrent.AnimeSmartSearchOptions) (ret 
 			res := convertRSS(feed)
 
 			mu.Lock()
-			ret = torrentSliceToAnimeTorrentSlice(res, NyaaProviderName)
+			ret = append(ret, torrentSliceToAnimeTorrentSlice(res, NyaaProviderName)...)
 			mu.Unlock()
 		}(query)
 	}
 	wg.Wait()
 
 	// remove duplicates
-	lo.UniqBy(ret, func(i *hibiketorrent.AnimeTorrent) string {
+	ret = lo.UniqBy(ret, func(i *hibiketorrent.AnimeTorrent) string {
+		if i.InfoHash != "" {
+			return i.InfoHash
+		}
 		return i.Link
 	})
 
@@ -349,41 +352,59 @@ func buildSmartSearchQueries(opts *hibiketorrent.AnimeSmartSearchOptions) ([]str
 
 	}
 
-	titleStr := buildTitleString(titles)
 	batchStr := batchBuff.String()
 	normalStr := normalBuff.String()
 
-	// Replace titleStr if user provided one
-	if opts.Query != "" {
-		titleStr = fmt.Sprintf(`(%s)`, opts.Query)
+	// Build resolution group once
+	resolutionGroup := ""
+	if opts.Resolution != "" {
+		resolutionGroup = fmt.Sprintf("(%s)", opts.Resolution)
+	} else {
+		resolutionGroup = fmt.Sprintf("(%s)", strings.Join([]string{"360", "480", "720", "1080"}, "|"))
 	}
 
-	//println(spew.Sdump(titleStr, batchStr, normalStr))
-
-	// Join groups with spaces (nyaa requires space-separated groups)
-	parts := []string{titleStr}
+	// Build the shared tail (everything after the title group)
+	tailParts := []string{}
 	if batchStr != "" {
-		parts = append(parts, batchStr)
+		tailParts = append(tailParts, batchStr)
 	}
 	if normalStr != "" {
-		parts = append(parts, normalStr)
+		tailParts = append(tailParts, normalStr)
 	}
-	query := strings.Join(parts, " ")
-	if opts.Resolution != "" {
-		query = fmt.Sprintf("%s (%s)", query, opts.Resolution)
-	} else {
-		query = fmt.Sprintf("%s (%s)", query, strings.Join([]string{"360", "480", "720", "1080"}, "|"))
-	}
-	query2 := ""
+	tailParts = append(tailParts, resolutionGroup)
+	tailStr := strings.Join(tailParts, " ")
 
-	// Absolute episode addition
-	if !opts.Batch && opts.Media.AbsoluteSeasonOffset > 0 && !(opts.Media.Format == string(anilist.MediaFormatMovie) && opts.Media.EpisodeCount == 1) {
-		query2 = fmt.Sprintf("%s", buildAbsoluteGroupString(titleStr, opts.Resolution, opts)) // e.g. jujutsu kaisen 25
+	// Replace titles if user provided a query
+	if opts.Query != "" {
+		titles = []string{opts.Query}
 	}
 
-	ret := []string{query}
-	if query2 != "" {
-		ret = append(ret, query2)
+	//println(spew.Sdump(titles, batchStr, normalStr))
+
+	// Build one query per title (avoids over-long OR-group that nyaa silently drops)
+	ret := make([]string, 0, len(titles)*2)
+	seen := make(map[string]struct{})
+	for _, t := range titles {
+		if t == "" {
+			continue
+		}
+		titleStr := buildTitleString([]string{t})
+
+		// Relative query: title + season/part/episode/resolution
+		query := titleStr + " " + tailStr
+		if _, exists := seen[query]; !exists {
+			seen[query] = struct{}{}
+			ret = append(ret, query)
+		}
+
+		// Absolute episode addition
+		if !opts.Batch && opts.Media.AbsoluteSeasonOffset > 0 && !(opts.Media.Format == string(anilist.MediaFormatMovie) && opts.Media.EpisodeCount == 1) {
+			query2 := buildAbsoluteGroupString(titleStr, opts.Resolution, opts) // e.g. jujutsu kaisen 25
+			if _, exists := seen[query2]; !exists {
+				seen[query2] = struct{}{}
+				ret = append(ret, query2)
+			}
+		}
 	}
 
 	return ret, true
