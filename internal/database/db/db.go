@@ -32,7 +32,11 @@ func NewDatabase(appDataDir, dbName string, logger *zerolog.Logger) (*Database, 
 	if os.Getenv("TEST_ENV") == "true" {
 		sqlitePath = ":memory:"
 	} else {
-		sqlitePath = filepath.Join(appDataDir, dbName+".db")
+		// WAL + busy_timeout let readers run alongside a single writer and wait
+		// (rather than immediately failing) when the DB is briefly locked, which
+		// fixes the SQLITE_BUSY errors under concurrent access.
+		sqlitePath = filepath.Join(appDataDir, dbName+".db") +
+			"?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=synchronous(NORMAL)"
 	}
 
 	// Connect to the SQLite database
@@ -50,6 +54,13 @@ func NewDatabase(appDataDir, dbName string, logger *zerolog.Logger) (*Database, 
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	// SQLite allows only one writer at a time; serialize all access through a
+	// single connection so concurrent goroutines queue instead of fighting over
+	// the write lock (the root cause of SQLITE_BUSY here).
+	if sqlDB, derr := db.DB(); derr == nil {
+		sqlDB.SetMaxOpenConns(1)
 	}
 
 	// Migrate tables
