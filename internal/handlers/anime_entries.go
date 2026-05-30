@@ -749,8 +749,32 @@ func (h *Handler) HandleValidateAnimeEntryLocalFiles(c echo.Context) error {
 			if err != nil {
 				h.App.Logger.Warn().Err(err).Str("dir", mediaDir).Msg("anime-entry: Failed to scan directory")
 			} else {
+				// Skip files that belong to an in-progress download. qBittorrent
+				// writes to the final filename while downloading, so without this a
+				// partial file would be mapped here and wrongly appear playable. The
+				// download monitor maps these on completion instead.
+				var downloadingPaths []string
+				if torrents, terr := h.App.TorrentClientRepository.GetList(); terr == nil {
+					for _, t := range torrents {
+						if t.Progress < 1.0 && t.ContentPath != "" {
+							downloadingPaths = append(downloadingPaths, filepath.Clean(t.ContentPath))
+						}
+					}
+				}
+
 				// Find new files that aren't in the database
 				for _, filePath := range allFilePaths {
+					cleanPath := filepath.Clean(filePath)
+					stillDownloading := false
+					for _, dp := range downloadingPaths {
+						if cleanPath == dp || strings.HasPrefix(cleanPath, dp+string(os.PathSeparator)) {
+							stillDownloading = true
+							break
+						}
+					}
+					if stillDownloading {
+						continue
+					}
 					if !existingPathsMap[filePath] {
 						// Create new LocalFile to extract metadata
 						newLf := anime.NewLocalFile(filePath, libraryPaths[0])
