@@ -5,7 +5,7 @@ import (
 	"seanime/internal/extension_repo"
 	manga_providers "seanime/internal/manga/providers"
 	"seanime/internal/torrents/nyaa"
-	"seanime/internal/torrents/seadex"
+	"seanime/internal/torrents/subsplease"
 	"seanime/internal/util"
 
 	"github.com/rs/zerolog"
@@ -198,27 +198,16 @@ func LoadExtensions(extensionRepository *extension_repo.Repository, logger *zero
 	}, nyaa.NewSukebeiProvider(logger))
 
 	extensionRepository.ReloadBuiltInExtension(extension.Extension{
-		ID:          "seadex",
-		Name:        "SeaDex",
+		ID:          "subsplease",
+		Name:        "SubsPlease",
 		Version:     "",
 		ManifestURI: "builtin",
 		Language:    extension.LanguageGo,
 		Type:        extension.TypeAnimeTorrentProvider,
 		Author:      "Seanime",
 		Lang:        "en",
-		Icon:        "https://raw.githubusercontent.com/5rahim/hibike/main/icons/seadex.png",
-		UserConfig: &extension.UserConfig{
-			Version: 1,
-			Fields: []extension.ConfigField{
-				{
-					Name:    "apiUrl",
-					Label:   "API URL",
-					Type:    extension.ConfigFieldTypeText,
-					Default: util.Decode("aHR0cHM6Ly9yZWxlYXNlcy5tb2UvYXBpL2NvbGxlY3Rpb25zL2VudHJpZXMvcmVjb3Jkcw=="),
-				},
-			},
-		},
-	}, seadex.NewProvider(logger))
+		Icon:        "",
+	}, subsplease.NewProvider(logger))
 
 	extensionRepository.ReloadExternalExtensions()
 }

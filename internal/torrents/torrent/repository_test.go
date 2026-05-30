@@ -4,7 +4,7 @@ import (
 	"seanime/internal/api/metadata"
 	"seanime/internal/extension"
 	"seanime/internal/torrents/nyaa"
-	"seanime/internal/torrents/seadex"
+	"seanime/internal/torrents/subsplease"
 	"seanime/internal/util"
 	"testing"
 )
@@ -33,14 +33,14 @@ func getTestRepo(t *testing.T) *Repository {
 		Author:   "Seanime",
 	}, nyaa.NewSukebeiProvider(logger)))
 
-	extensionBank.Set("seadex", extension.NewAnimeTorrentProviderExtension(&extension.Extension{
-		ID:       "seadex",
-		Name:     "SeaDex",
+	extensionBank.Set("subsplease", extension.NewAnimeTorrentProviderExtension(&extension.Extension{
+		ID:       "subsplease",
+		Name:     "SubsPlease",
 		Version:  "1.0.0",
 		Language: extension.LanguageGo,
 		Type:     extension.TypeAnimeTorrentProvider,
 		Author:   "Seanime",
-	}, seadex.NewProvider(logger)))
+	}, subsplease.NewProvider(logger)))
 
 	repo := NewRepository(&NewRepositoryOptions{
 		Logger:           logger,
