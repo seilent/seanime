@@ -96,8 +96,9 @@ export function UndownloadedEpisodeList({ downloadInfo, media }: {
 }
 
 function CircularProgress({ progress }: { progress: number }) {
-    const pct = Math.round(progress * 100)
-    const r = 10, c = 2 * Math.PI * r, offset = c * (1 - progress)
+    const p = Math.min(1, Math.max(0, progress || 0))
+    const pct = Math.round(p * 100)
+    const r = 10, c = 2 * Math.PI * r, offset = c * (1 - p)
     return (
         <svg className="size-6" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r={r} fill="none" stroke="currentColor" opacity={0.25} strokeWidth="3" />
