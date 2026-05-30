@@ -48,7 +48,7 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
             destination: libraryPath,
             smartSelect: { enabled: false, missingEpisodeNumbers: [] },
             media: entry.media,
-            deleteExistingFiles: true,
+            deleteExistingFiles: false,
         })
     }
 
