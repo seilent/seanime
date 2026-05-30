@@ -6,7 +6,7 @@ type GettingStartedWithAdmin = GettingStarted_Variables & {
     adminAnilistToken?: string
 }
 
-export const DEFAULT_TORRENT_PROVIDER = "animetosho"
+export const DEFAULT_TORRENT_PROVIDER = "nyaa"
 
 export const DEFAULT_TORRENT_CLIENT = "qbittorrent"
 
@@ -21,7 +21,6 @@ export const enum TORRENT_CLIENT {
 }
 
 export const enum TORRENT_PROVIDER {
-    ANIMETOSHO = "animetosho",
     NYAA = "nyaa",
     NYAA_NON_ENG = "nyaa-non-eng",
     NONE = "none",

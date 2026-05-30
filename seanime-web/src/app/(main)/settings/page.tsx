@@ -536,7 +536,7 @@ export default function Page() {
                                                 <Field.Select
                                                     name="torrentProvider"
                                                     // label="Torrent Provider"
-                                                    help="Used by the search engine and auto downloader. AnimeTosho is recommended for better results. Select 'None' if you don't need torrent support."
+                                                    help="Used by the search engine and auto downloader. Nyaa is recommended for most users. Select 'None' if you don't need torrent support."
                                                     leftIcon={<RiFolderDownloadFill className="text-orange-500" />}
                                                     options={[
                                                         ...(torrentProviderExtensions?.filter(ext => ext?.settings?.type === "main")?.map(ext => ({

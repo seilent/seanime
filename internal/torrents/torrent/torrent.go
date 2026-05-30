@@ -1,7 +1,6 @@
 package torrent
 
 const (
-	ProviderNyaa       = "nyaa"
-	ProviderAnimeTosho = "animetosho"
-	ProviderNone       = "none"
+	ProviderNyaa = "nyaa"
+	ProviderNone = "none"
 )

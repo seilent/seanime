@@ -3,7 +3,6 @@ package torrent
 import (
 	"seanime/internal/api/metadata"
 	"seanime/internal/extension"
-	"seanime/internal/torrents/animetosho"
 	"seanime/internal/torrents/nyaa"
 	"seanime/internal/torrents/seadex"
 	"seanime/internal/util"
@@ -34,15 +33,6 @@ func getTestRepo(t *testing.T) *Repository {
 		Author:   "Seanime",
 	}, nyaa.NewSukebeiProvider(logger)))
 
-	extensionBank.Set("animetosho", extension.NewAnimeTorrentProviderExtension(&extension.Extension{
-		ID:       "animetosho",
-		Name:     "AnimeTosho",
-		Version:  "1.0.0",
-		Language: extension.LanguageGo,
-		Type:     extension.TypeAnimeTorrentProvider,
-		Author:   "Seanime",
-	}, animetosho.NewProvider(logger)))
-
 	extensionBank.Set("seadex", extension.NewAnimeTorrentProviderExtension(&extension.Extension{
 		ID:       "seadex",
 		Name:     "SeaDex",
@@ -60,7 +50,7 @@ func getTestRepo(t *testing.T) *Repository {
 	repo.InitExtensionBank(extensionBank)
 
 	repo.SetSettings(&RepositorySettings{
-		DefaultAnimeProvider: ProviderAnimeTosho,
+		DefaultAnimeProvider: ProviderNyaa,
 	})
 
 	return repo

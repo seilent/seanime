@@ -4,7 +4,6 @@ import (
 	"seanime/internal/extension"
 	"seanime/internal/extension_repo"
 	manga_providers "seanime/internal/manga/providers"
-	"seanime/internal/torrents/animetosho"
 	"seanime/internal/torrents/nyaa"
 	"seanime/internal/torrents/seadex"
 	"seanime/internal/util"
@@ -197,18 +196,6 @@ func LoadExtensions(extensionRepository *extension_repo.Repository, logger *zero
 			},
 		},
 	}, nyaa.NewSukebeiProvider(logger))
-
-	extensionRepository.ReloadBuiltInExtension(extension.Extension{
-		ID:          "animetosho",
-		Name:        "AnimeTosho",
-		Version:     "",
-		ManifestURI: "builtin",
-		Language:    extension.LanguageGo,
-		Type:        extension.TypeAnimeTorrentProvider,
-		Author:      "Seanime",
-		Lang:        "en",
-		Icon:        "https://raw.githubusercontent.com/5rahim/hibike/main/icons/animetosho.png",
-	}, animetosho.NewProvider(logger))
 
 	extensionRepository.ReloadBuiltInExtension(extension.Extension{
 		ID:          "seadex",

@@ -358,11 +358,10 @@ function TorrentStep({ form }: { form: any }) {
                         required
                         leftIcon={<BiDownload className="text-orange-500" />}
                         options={[
-                            { label: "AnimeTosho (Recommended)", value: TORRENT_PROVIDER.ANIMETOSHO },
-                            { label: "Nyaa", value: TORRENT_PROVIDER.NYAA },
+                            { label: "Nyaa (Recommended)", value: TORRENT_PROVIDER.NYAA },
                             { label: "Nyaa (Non-English)", value: TORRENT_PROVIDER.NYAA_NON_ENG },
                         ]}
-                        help="AnimeTosho search results are more precise in most cases."
+                        help="Nyaa is the recommended provider for anime torrents."
                     />
 
                     <Field.Select

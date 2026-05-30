@@ -36,7 +36,7 @@ func TestSmartSearch(t *testing.T) {
 			mediaId:        162670, // Dr. Stone S3
 			absoluteOffset: 48,
 			resolution:     "1080",
-			provider:       "animetosho",
+			provider:       "nyaa",
 		},
 		{
 			smartSearch:    true,
@@ -46,7 +46,7 @@ func TestSmartSearch(t *testing.T) {
 			mediaId:        77, // Mahou Shoujo Lyrical Nanoha A's
 			absoluteOffset: 0,
 			resolution:     "1080",
-			provider:       "animetosho",
+			provider:       "nyaa",
 		},
 		{
 			smartSearch:    true,
@@ -56,7 +56,7 @@ func TestSmartSearch(t *testing.T) {
 			mediaId:        109731, // Hibike Season 3
 			absoluteOffset: 0,
 			resolution:     "1080",
-			provider:       "animetosho",
+			provider:       "nyaa",
 		},
 		{
 			smartSearch:    true,
@@ -66,7 +66,7 @@ func TestSmartSearch(t *testing.T) {
 			mediaId:        1915, // Magical Girl Lyrical Nanoha StrikerS
 			absoluteOffset: 0,
 			resolution:     "",
-			provider:       "animetosho",
+			provider:       "nyaa",
 		},
 	}
 

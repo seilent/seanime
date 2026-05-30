@@ -76,7 +76,6 @@
   - `transmission`
 - `torrents`
   - `analyzer`: Scan and identify torrent files
-  - `animetosho`
   - `nyaa`
   - `seadex`
   - `torrent`: Torrent structs and methods

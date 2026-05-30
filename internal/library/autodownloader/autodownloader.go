@@ -74,7 +74,7 @@ func New(opts *NewAutoDownloaderOptions) *AutoDownloader {
 		animeCollection:         mo.None[*anilist.AnimeCollection](),
 		metadataProvider:        opts.MetadataProvider,
 		settings: &models.AutoDownloaderSettings{
-			Provider:              torrent.ProviderAnimeTosho, // Default provider, will be updated after the settings are fetched
+			Provider:              torrent.ProviderNyaa, // Default provider, will be updated after the settings are fetched
 			Interval:              20,
 			Enabled:               false,
 			DownloadAutomatically: false,

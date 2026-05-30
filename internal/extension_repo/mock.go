@@ -4,7 +4,6 @@ import (
 	"seanime/internal/events"
 	"seanime/internal/extension"
 	"seanime/internal/manga/providers"
-	"seanime/internal/torrents/animetosho"
 	"seanime/internal/torrents/nyaa"
 	"seanime/internal/torrents/seadex"
 	"seanime/internal/util"
@@ -112,18 +111,6 @@ func GetMockExtensionRepository(t *testing.T) *Repository {
 		Lang:        "en",
 		Icon:        "https://raw.githubusercontent.com/5rahim/hibike/main/icons/nyaa.png",
 	}, nyaa.NewSukebeiProvider(logger))
-
-	extensionRepository.ReloadBuiltInExtension(extension.Extension{
-		ID:          "animetosho",
-		Name:        "AnimeTosho",
-		Version:     "",
-		ManifestURI: "builtin",
-		Language:    extension.LanguageGo,
-		Type:        extension.TypeAnimeTorrentProvider,
-		Author:      "Seanime",
-		Lang:        "en",
-		Icon:        "https://raw.githubusercontent.com/5rahim/hibike/main/icons/animetosho.png",
-	}, animetosho.NewProvider(logger))
 
 	extensionRepository.ReloadBuiltInExtension(extension.Extension{
 		ID:          "seadex",

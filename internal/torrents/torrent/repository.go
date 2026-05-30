@@ -119,6 +119,10 @@ func (r *Repository) SetSettings(s *RepositorySettings) {
 		}
 	}
 
+	if r.settings.DefaultAnimeProvider == "animetosho" {
+		r.settings.DefaultAnimeProvider = ProviderNyaa
+	}
+
 	if r.settings.DefaultAnimeProvider == "none" {
 		r.settings.DefaultAnimeProvider = ""
 	}
