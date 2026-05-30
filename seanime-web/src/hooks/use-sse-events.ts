@@ -35,10 +35,15 @@ function ensureEventSource() {
                     })
                 }
             } else {
-                // Global event - send to all global subscribers
+                // Global event - this deployment has only registered (whitelisted)
+                // users, so "global" means every connected user: notify the global
+                // subscribers AND all per-user subscribers.
                 __global_subscribers.forEach(cb => {
                     try { cb(data) } catch (e) { /* no-op */ }
                 })
+                __sse_subscribers.forEach(set => set.forEach(cb => {
+                    try { cb(data) } catch (e) { /* no-op */ }
+                }))
             }
         } catch (error) {
             console.error("Failed to parse SSE event:", error)
