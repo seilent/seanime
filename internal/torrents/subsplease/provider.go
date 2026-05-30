@@ -1,6 +1,7 @@
 package subsplease
 
 import (
+	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -120,7 +121,14 @@ func (p *Provider) GetTorrentInfoHash(torrent *hibiketorrent.AnimeTorrent) (stri
 	}
 	matches := infoHashRegex.FindStringSubmatch(torrent.MagnetLink)
 	if len(matches) > 1 {
-		return strings.ToLower(matches[1]), nil
+		hash := matches[1]
+		if len(hash) == 32 {
+			decoded, err := base32.StdEncoding.DecodeString(strings.ToUpper(hash))
+			if err == nil {
+				return strings.ToLower(fmt.Sprintf("%x", decoded)), nil
+			}
+		}
+		return strings.ToLower(hash), nil
 	}
 	return "", fmt.Errorf("no info hash found")
 }
@@ -183,7 +191,16 @@ func (p *Provider) fetchShowEpisodes(slug string, episodeNumber int, batch bool,
 
 			infoHash := ""
 			if matches := infoHashRegex.FindStringSubmatch(dl.Magnet); len(matches) > 1 {
-				infoHash = strings.ToLower(matches[1])
+				hash := matches[1]
+				if len(hash) == 32 {
+					// Base32 encoded — decode to hex
+					decoded, err := base32.StdEncoding.DecodeString(strings.ToUpper(hash))
+					if err == nil {
+						infoHash = strings.ToLower(fmt.Sprintf("%x", decoded))
+					}
+				} else {
+					infoHash = strings.ToLower(hash)
+				}
 			}
 
 			date := ""

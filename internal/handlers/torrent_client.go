@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"encoding/base32"
 	"errors"
+	"fmt"
 	"net/url"
 	"path/filepath"
 	"seanime/internal/api/anilist"
@@ -305,16 +307,29 @@ func (h *Handler) HandleTorrentClientAddMagnetFromRule(c echo.Context) error {
 }
 
 // parseHashFromMagnet extracts the info hash from a magnet URI (xt=urn:btih:<hash>).
+// Handles both hex (40 chars) and base32 (32 chars) encoded hashes, always returns lowercase hex.
 func parseHashFromMagnet(magnet string) string {
 	u, err := url.Parse(magnet)
 	if err != nil {
 		return ""
 	}
 	xt := u.Query().Get("xt")
-	if strings.HasPrefix(xt, "urn:btih:") {
-		return strings.ToLower(strings.TrimPrefix(xt, "urn:btih:"))
+	if !strings.HasPrefix(xt, "urn:btih:") {
+		return ""
 	}
-	return ""
+	hash := strings.TrimPrefix(xt, "urn:btih:")
+	// If 40 chars, it's already hex
+	if len(hash) == 40 {
+		return strings.ToLower(hash)
+	}
+	// If 32 chars, it's base32 — decode to hex
+	if len(hash) == 32 {
+		decoded, err := base32.StdEncoding.DecodeString(strings.ToUpper(hash))
+		if err == nil {
+			return strings.ToLower(fmt.Sprintf("%x", decoded))
+		}
+	}
+	return strings.ToLower(hash)
 }
 
 // ActiveDownloadItem represents an in-progress download mapped to an episode.
