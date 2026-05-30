@@ -29,6 +29,11 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		return h.RespondWithError(c, err)
 	}
 
+	// Quick check: if this anime isn't known to be on SubsPlease, skip
+	if !h.App.Database.HasSubsPleaseSid(b.Media.ID) {
+		return h.RespondWithData(c, []*hibiketorrent.AnimeTorrent{})
+	}
+
 	// Get SubsPlease provider
 	providerExt, ok := extension.GetExtension[extension.AnimeTorrentProviderExtension](
 		h.App.ExtensionRepository.GetExtensionBank(), "subsplease",

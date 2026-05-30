@@ -98,6 +98,22 @@ func (db *Database) GetReleasingAnimeIDsInLibrary() ([]int, error) {
 	return ids, err
 }
 
+// SetSubsPleaseSid stores the SubsPlease sid for a cached media entry.
+func (db *Database) SetSubsPleaseSid(anilistID int, sid string) error {
+	return db.gormdb.Model(&models.CachedMedia{}).
+		Where("anilist_id = ?", anilistID).
+		Update("subsplease_sid", sid).Error
+}
+
+// HasSubsPleaseSid checks if an anime has a cached SubsPlease sid.
+func (db *Database) HasSubsPleaseSid(anilistID int) bool {
+	var sid string
+	db.gormdb.Model(&models.CachedMedia{}).
+		Where("anilist_id = ?", anilistID).
+		Pluck("subsplease_sid", &sid)
+	return sid != ""
+}
+
 // UpsertCachedMediaDetail upserts only the detail-page blob columns on a CachedMedia row.
 // The column set is disjoint from UpsertCachedMediaBatch to avoid clobbering collection data.
 func (db *Database) UpsertCachedMediaDetail(id int, mediaType string, detail []byte) error {
