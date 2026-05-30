@@ -26,12 +26,15 @@ const (
 
 var sidRegex = regexp.MustCompile(`sid="(\d+)"`)
 var infoHashRegex = regexp.MustCompile(`btih:([0-9a-zA-Z]+)`)
+var showLinkRegex = regexp.MustCompile(`/shows/([^"]+)"\s+title="([^"]+)"`)
 
 type Provider struct {
 	logger *zerolog.Logger
 	// slug -> sid cache
 	mu       sync.RWMutex
 	sidCache map[string]string
+	// shows index: normalized title -> slug
+	showsIndex map[string]string
 }
 
 func NewProvider(logger *zerolog.Logger) hibiketorrent.AnimeProvider {
@@ -102,6 +105,14 @@ func (p *Provider) SmartSearch(opts hibiketorrent.AnimeSmartSearchOptions) ([]*h
 
 	// Try each slug until one works
 	for _, slug := range unique {
+		results, err := p.fetchShowEpisodes(slug, opts.EpisodeNumber, opts.Batch, opts.Media.EpisodeCount)
+		if err == nil && len(results) > 0 {
+			return results, nil
+		}
+	}
+
+	// Fallback: fuzzy-match against the SubsPlease shows index
+	if slug := p.findSlugFromShowsIndex(opts.Media); slug != "" {
 		results, err := p.fetchShowEpisodes(slug, opts.EpisodeNumber, opts.Batch, opts.Media.EpisodeCount)
 		if err == nil && len(results) > 0 {
 			return results, nil
@@ -240,6 +251,79 @@ func (p *Provider) fetchShowEpisodes(slug string, episodeNumber int, batch bool,
 	}
 
 	return results, nil
+}
+
+// normalizeTitle strips non-alphanumeric chars and lowercases for fuzzy matching.
+func normalizeTitle(s string) string {
+	s = strings.ToLower(s)
+	var b strings.Builder
+	for _, r := range s {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
+// loadShowsIndex fetches and caches the SubsPlease shows index (normalized title -> slug).
+func (p *Provider) loadShowsIndex() map[string]string {
+	p.mu.RLock()
+	if p.showsIndex != nil {
+		idx := p.showsIndex
+		p.mu.RUnlock()
+		return idx
+	}
+	p.mu.RUnlock()
+
+	resp, err := http.Get(showsURL)
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil
+	}
+
+	idx := make(map[string]string)
+	for _, m := range showLinkRegex.FindAllStringSubmatch(string(body), -1) {
+		slug := strings.TrimSuffix(m[1], "/")
+		title := m[2]
+		idx[normalizeTitle(title)] = slug
+	}
+
+	p.mu.Lock()
+	p.showsIndex = idx
+	p.mu.Unlock()
+	return idx
+}
+
+// findSlugFromShowsIndex fuzzy-matches the media's titles against the shows index.
+func (p *Provider) findSlugFromShowsIndex(media hibiketorrent.Media) string {
+	idx := p.loadShowsIndex()
+	if idx == nil {
+		return ""
+	}
+
+	candidates := []string{media.RomajiTitle}
+	if media.EnglishTitle != nil {
+		candidates = append(candidates, *media.EnglishTitle)
+	}
+	candidates = append(candidates, media.Synonyms...)
+
+	for _, c := range candidates {
+		if !isLatin(c) {
+			continue
+		}
+		norm := normalizeTitle(c)
+		if norm == "" {
+			continue
+		}
+		if slug, ok := idx[norm]; ok {
+			return slug
+		}
+	}
+	return ""
 }
 
 // getSid resolves a slug to a numeric sid, using cache
