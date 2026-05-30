@@ -457,27 +457,14 @@ func buildPartString(part int) string {
 }
 
 func buildBatchString(m *hibiketorrent.Media) string {
-
-	buff := bytes.NewBufferString("")
-	buff.WriteString("(")
-	// e.g. 01-12
-	s1 := fmt.Sprintf(`"%s%s%s"`, zeropad("1"), " - ", zeropad(m.EpisodeCount))
-	buff.WriteString(s1)
-	buff.WriteString("|")
-	// e.g. 01~12
-	s2 := fmt.Sprintf(`"%s%s%s"`, zeropad("1"), " ~ ", zeropad(m.EpisodeCount))
-	buff.WriteString(s2)
-	buff.WriteString("|")
-	// e.g. 01~12
-	buff.WriteString(`"Batch"|`)
-	buff.WriteString(`"Complete"|`)
-	buff.WriteString(`"+ OVA"|`)
-	buff.WriteString(`"+ Specials"|`)
-	buff.WriteString(`"+ Special"|`)
-	buff.WriteString(`"Seasons"|`)
-	buff.WriteString(`"Parts"`)
-	buff.WriteString(")")
-	return buff.String()
+	// nyaa.si: unquoted, '|'-separated OR group. Ranges use NO surrounding
+	// spaces ("01-12", not "01 - 12") because a space before '-' is parsed by
+	// nyaa as the exclusion operator, which would wrongly drop results.
+	// Multi-word alternatives are listed before single-word ones (nyaa quirk).
+	r1 := fmt.Sprintf("%s-%s", zeropad("1"), zeropad(m.EpisodeCount)) // e.g. 01-12
+	r2 := fmt.Sprintf("%s~%s", zeropad("1"), zeropad(m.EpisodeCount)) // e.g. 01~12
+	alts := []string{r1, r2, "batch", "complete", "ova", "specials", "seasons", "parts"}
+	return fmt.Sprintf("(%s)", strings.Join(alts, "|"))
 }
 
 func zeropad(v interface{}) string {
