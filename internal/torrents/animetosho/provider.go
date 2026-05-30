@@ -110,7 +110,7 @@ func (at *Provider) smartSearchSingleEpisode(opts *hibiketorrent.AnimeSmartSearc
 			return nil, err
 		}
 
-		foundByID = true
+		foundByID = len(atTorrents) > 0
 	}
 
 	if foundByID {

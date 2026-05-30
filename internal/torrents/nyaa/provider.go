@@ -8,6 +8,7 @@ import (
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
 	"seanime/internal/util"
 	"seanime/internal/util/comparison"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -316,19 +317,34 @@ func buildSmartSearchQueries(opts *hibiketorrent.AnimeSmartSearchOptions) ([]str
 			batchBuff.WriteString(buildSeasonString(season))
 		}
 		if part != 0 {
+			if batchBuff.Len() > 0 {
+				batchBuff.WriteString(" ")
+			}
 			batchBuff.WriteString(buildPartString(part))
+		}
+		if batchBuff.Len() > 0 {
+			batchBuff.WriteString(" ")
 		}
 		batchBuff.WriteString(buildBatchString(&opts.Media))
 
 	} else {
 
-		normalBuff.WriteString(buildSeasonString(season))
+		seasonStr := buildSeasonString(season)
+		if seasonStr != "" {
+			normalBuff.WriteString(seasonStr)
+		}
 		if part != 0 {
+			if normalBuff.Len() > 0 {
+				normalBuff.WriteString(" ")
+			}
 			normalBuff.WriteString(buildPartString(part))
 		}
 
 		if !(opts.Media.Format == string(anilist.MediaFormatMovie) && opts.Media.EpisodeCount == 1) {
-			normalBuff.WriteString(buildEpisodeString(opts.EpisodeNumber))
+			if normalBuff.Len() > 0 {
+				normalBuff.WriteString(" ")
+			}
+			normalBuff.WriteString(buildEpisodeString(opts.EpisodeNumber, season))
 		}
 
 	}
@@ -344,11 +360,19 @@ func buildSmartSearchQueries(opts *hibiketorrent.AnimeSmartSearchOptions) ([]str
 
 	//println(spew.Sdump(titleStr, batchStr, normalStr))
 
-	query := fmt.Sprintf("%s%s%s", titleStr, batchStr, normalStr)
+	// Join groups with spaces (nyaa requires space-separated groups)
+	parts := []string{titleStr}
+	if batchStr != "" {
+		parts = append(parts, batchStr)
+	}
+	if normalStr != "" {
+		parts = append(parts, normalStr)
+	}
+	query := strings.Join(parts, " ")
 	if opts.Resolution != "" {
-		query = fmt.Sprintf("%s(%s)", query, opts.Resolution)
+		query = fmt.Sprintf("%s (%s)", query, opts.Resolution)
 	} else {
-		query = fmt.Sprintf("%s(%s)", query, strings.Join([]string{"360", "480", "720", "1080"}, "|"))
+		query = fmt.Sprintf("%s (%s)", query, strings.Join([]string{"360", "480", "720", "1080"}, "|"))
 	}
 	query2 := ""
 
@@ -372,20 +396,27 @@ func buildSmartSearchQueries(opts *hibiketorrent.AnimeSmartSearchOptions) ([]str
 //}
 
 // (title)
-// ("jjk"|"jujutsu kaisen")
+// (jujutsu kaisen|jjk)
 func buildTitleString(titles []string) string {
 	// Single titles are not wrapped in quotes
 	if len(titles) == 1 {
 		return fmt.Sprintf(`(%s)`, titles[0])
 	}
 
-	return fmt.Sprintf("(%s)", strings.Join(lo.Map(titles, func(item string, _ int) string {
-		return fmt.Sprintf(`"%s"`, item)
-	}), "|"))
+	// Sort multi-word (space-containing) titles before single-word titles (stable)
+	sorted := make([]string, len(titles))
+	copy(sorted, titles)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		iHasSpace := strings.Contains(sorted[i], " ")
+		jHasSpace := strings.Contains(sorted[j], " ")
+		return iHasSpace && !jHasSpace
+	})
+
+	return fmt.Sprintf("(%s)", strings.Join(sorted, "|"))
 }
 
 func buildAbsoluteGroupString(title, resolution string, opts *hibiketorrent.AnimeSmartSearchOptions) string {
-	return fmt.Sprintf("%s(%d)(%s)", title, opts.EpisodeNumber+opts.Media.AbsoluteSeasonOffset, resolution)
+	return fmt.Sprintf("%s (%d) (%s)", title, opts.EpisodeNumber+opts.Media.AbsoluteSeasonOffset, resolution)
 }
 
 // (s01e01)
@@ -396,10 +427,13 @@ func buildSeasonAndEpisodeGroup(season int, ep int) string {
 	return fmt.Sprintf(`"s%se%s"`, zeropad(season), zeropad(ep))
 }
 
-// (01|e01|e01v|ep01|ep1)
-func buildEpisodeString(ep int) string {
+// (01|e01|e01v|ep01|ep1|s02e06|s2e6)
+func buildEpisodeString(ep int, season int) string {
 	pEp := zeropad(ep)
 	//return fmt.Sprintf(`("%s"|"e%s"|"e%sv"|"%sv"|"ep%s"|"ep%d")`, pEp, pEp, pEp, pEp, pEp, ep)
+	if season > 0 {
+		return fmt.Sprintf(`(%s|e%s|e%sv|%sv|ep%s|ep%d|s%se%s|s%de%d)`, pEp, pEp, pEp, pEp, pEp, ep, zeropad(season), pEp, season, ep)
+	}
 	return fmt.Sprintf(`(%s|e%s|e%sv|%sv|ep%s|ep%d)`, pEp, pEp, pEp, pEp, pEp, ep)
 }
 
@@ -409,10 +443,7 @@ func buildSeasonString(season int) string {
 	seasonBuff := bytes.NewBufferString("")
 	// e.g. S1, season 1, season 01
 	if season != 0 {
-		seasonBuff.WriteString(fmt.Sprintf(`("%s%d"|`, "season ", season))
-		seasonBuff.WriteString(fmt.Sprintf(`"%s%s"|`, "season ", zeropad(season)))
-		seasonBuff.WriteString(fmt.Sprintf(`"%s%d"|`, "s", season))
-		seasonBuff.WriteString(fmt.Sprintf(`"%s%s")`, "s", zeropad(season)))
+		seasonBuff.WriteString(fmt.Sprintf(`(season %d|season %s|s%d|s%s)`, season, zeropad(season), season, zeropad(season)))
 	}
 	return seasonBuff.String()
 }
@@ -420,7 +451,7 @@ func buildSeasonString(season int) string {
 func buildPartString(part int) string {
 	partBuff := bytes.NewBufferString("")
 	if part != 0 {
-		partBuff.WriteString(fmt.Sprintf(`("%s%d")`, "part ", part))
+		partBuff.WriteString(fmt.Sprintf(`(part %d)`, part))
 	}
 	return partBuff.String()
 }
