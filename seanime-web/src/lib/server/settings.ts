@@ -6,7 +6,7 @@ type GettingStartedWithAdmin = GettingStarted_Variables & {
     adminAnilistToken?: string
 }
 
-export const DEFAULT_TORRENT_PROVIDER = "nyaa"
+export const DEFAULT_TORRENT_PROVIDER = "subsplease"
 
 export const DEFAULT_TORRENT_CLIENT = "qbittorrent"
 
