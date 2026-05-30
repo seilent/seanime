@@ -93,7 +93,13 @@ export default function Page() {
                     label: sub.title || sub.language || undefined,
                     lang: sub.language ?? undefined,
                     type: (sub.extension?.replace(".", "") || "ass") as CaptionsFileFormat,
-                    kind: "subtitles",
+                    // Use "captions" (not "subtitles"): vidstack's TextTrackList stores the
+                    // default track under the normalized "captions" key on add() but removes it
+                    // by the raw kind on remove(). With "subtitles" the stale default never
+                    // clears, so across episode switches the auto-selection breaks and the
+                    // track gets disabled by itself (~every 3rd episode). "captions" keeps
+                    // add/remove symmetric. Functionally identical for rendering + CC button.
+                    kind: "captions",
                     default: sub.isDefault || (!hasDefault && sub.language?.startsWith("en") === true),
                 }
             })
