@@ -38,6 +38,7 @@ const (
 	FetchAnimeEntrySuggestionsEndpoint                 = "ANIME-ENTRIES-fetch-anime-entry-suggestions"
 	FetchExternalExtensionDataEndpoint                 = "EXTENSIONS-fetch-external-extension-data"
 	ForceGCEndpoint                                    = "STATUS-force-g-c"
+	GetActiveDownloadsEndpoint                         = "TORRENT-CLIENT-get-active-downloads"
 	GetActiveTorrentListEndpoint                       = "TORRENT-CLIENT-get-active-torrent-list"
 	GetAllExtensionsEndpoint                           = "EXTENSIONS-get-all-extensions"
 	GetAllUsersEndpoint                                = "USERS-get-all-users"

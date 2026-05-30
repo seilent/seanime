@@ -1,112 +1,5 @@
 [
   {
-    "name": "HandleStartSystemScan",
-    "trimmedName": "StartSystemScan",
-    "comments": [
-      "\t@summary Start system-wide library scan",
-      "\t@desc Initiates a system-wide scan of all library paths using multi-token strategy",
-      "\t@desc Requires admin privileges",
-      "\t@route /api/v1/admin/system-scan/start [POST]",
-      "\t@returns scanner.SystemScanResult",
-      ""
-    ],
-    "filepath": "internal/handlers/admin_system_scan.go",
-    "filename": "admin_system_scan.go",
-    "api": {
-      "summary": "Start system-wide library scan",
-      "descriptions": [
-        "Initiates a system-wide scan of all library paths using multi-token strategy",
-        "Requires admin privileges"
-      ],
-      "endpoint": "/api/v1/admin/system-scan/start",
-      "methods": [
-        "POST"
-      ],
-      "params": [],
-      "bodyFields": [
-        {
-          "name": "LibraryPaths",
-          "jsonName": "libraryPaths",
-          "goType": "[]string",
-          "usedStructType": "",
-          "typescriptType": "Array\u003cstring\u003e",
-          "required": true,
-          "descriptions": []
-        },
-        {
-          "name": "SkipExistingFiles",
-          "jsonName": "skipExistingFiles",
-          "goType": "bool",
-          "usedStructType": "",
-          "typescriptType": "boolean",
-          "required": true,
-          "descriptions": []
-        },
-        {
-          "name": "ForceRescan",
-          "jsonName": "forceRescan",
-          "goType": "bool",
-          "usedStructType": "",
-          "typescriptType": "boolean",
-          "required": true,
-          "descriptions": []
-        }
-      ],
-      "returns": "scanner.SystemScanResult",
-      "returnGoType": "scanner.SystemScanResult",
-      "returnTypescriptType": "Scanner_SystemScanResult"
-    }
-  },
-  {
-    "name": "HandleGetSystemScanStatus",
-    "trimmedName": "GetSystemScanStatus",
-    "comments": [
-      "\t@summary Get system scan status",
-      "\t@desc Returns the current status of system scanning operations",
-      "\t@route /api/v1/admin/system-scan/status [GET]",
-      "\t@returns map[string]interface{}",
-      ""
-    ],
-    "filepath": "internal/handlers/admin_system_scan.go",
-    "filename": "admin_system_scan.go",
-    "api": {
-      "summary": "Get system scan status",
-      "descriptions": [
-        "Returns the current status of system scanning operations"
-      ],
-      "endpoint": "/api/v1/admin/system-scan/status",
-      "methods": [
-        "GET"
-      ],
-      "params": [],
-      "bodyFields": [],
-      "returns": "map[string]interface{}",
-      "returnGoType": "interface{}",
-      "returnTypescriptType": "Record\u003cstring, interface{}\u003e"
-    }
-  },
-  {
-    "name": "getAllLibraryPaths",
-    "trimmedName": "getAllLibraryPaths",
-    "comments": [
-      "getAllLibraryPaths gets all library paths from all users in the system",
-      ""
-    ],
-    "filepath": "internal/handlers/admin_system_scan.go",
-    "filename": "admin_system_scan.go",
-    "api": {
-      "summary": "",
-      "descriptions": [],
-      "endpoint": "",
-      "methods": null,
-      "params": [],
-      "bodyFields": [],
-      "returns": "bool",
-      "returnGoType": "bool",
-      "returnTypescriptType": "boolean"
-    }
-  },
-  {
     "name": "HandleGetAnimeCollection",
     "trimmedName": "GetAnimeCollection",
     "comments": [
@@ -1119,7 +1012,7 @@
       "",
       "\t@summary matches un-matched local files in the given directory to the given media.",
       "\t@desc It is used by the \"Resolve unmatched media\" feature to manually match local files to a specific media entry.",
-      "\t@desc Matching involves the use of scanner.FileHydrator. It will also lock the files.",
+      "\t@desc Matching involves the use of filehydrator.FileHydrator. It will also lock the files.",
       "\t@desc The response is not used in the frontend. The client should just refetch the entire library collection.",
       "\t@route /api/v1/library/anime-entry/manual-match [POST]",
       "\t@returns []anime.LocalFile",
@@ -1131,7 +1024,7 @@
       "summary": "matches un-matched local files in the given directory to the given media.",
       "descriptions": [
         "It is used by the \"Resolve unmatched media\" feature to manually match local files to a specific media entry.",
-        "Matching involves the use of scanner.FileHydrator. It will also lock the files.",
+        "Matching involves the use of filehydrator.FileHydrator. It will also lock the files.",
         "The response is not used in the frontend. The client should just refetch the entire library collection."
       ],
       "endpoint": "/api/v1/library/anime-entry/manual-match",
@@ -5623,32 +5516,6 @@
     }
   },
   {
-    "name": "HandleTestDump",
-    "trimmedName": "TestDump",
-    "comments": [
-      "HandleTestDump",
-      "",
-      "\t@summary this is a dummy handler for testing purposes.",
-      "\t@route /api/v1/test-dump [POST]",
-      ""
-    ],
-    "filepath": "internal/handlers/manual_dump.go",
-    "filename": "manual_dump.go",
-    "api": {
-      "summary": "this is a dummy handler for testing purposes.",
-      "descriptions": [],
-      "endpoint": "/api/v1/test-dump",
-      "methods": [
-        "POST"
-      ],
-      "params": [],
-      "bodyFields": [],
-      "returns": "bool",
-      "returnGoType": "bool",
-      "returnTypescriptType": "boolean"
-    }
-  },
-  {
     "name": "HandleGetClientMediaSettings",
     "trimmedName": "GetClientMediaSettings",
     "comments": [
@@ -6322,75 +6189,6 @@
     }
   },
   {
-    "name": "HandleScanLocalFiles",
-    "trimmedName": "ScanLocalFiles",
-    "comments": [
-      "HandleScanLocalFiles",
-      "",
-      "\t@summary scans the user's library.",
-      "\t@desc This will scan the user's library.",
-      "\t@desc The response is ignored, the client should re-fetch the library after this.",
-      "\t@route /api/v1/library/scan [POST]",
-      "\t@returns []anime.LocalFile",
-      ""
-    ],
-    "filepath": "internal/handlers/scan.go",
-    "filename": "scan.go",
-    "api": {
-      "summary": "scans the user's library.",
-      "descriptions": [
-        "This will scan the user's library.",
-        "The response is ignored, the client should re-fetch the library after this."
-      ],
-      "endpoint": "/api/v1/library/scan",
-      "methods": [
-        "POST"
-      ],
-      "params": [],
-      "bodyFields": [
-        {
-          "name": "SkipIgnoredFiles",
-          "jsonName": "skipIgnoredFiles",
-          "goType": "bool",
-          "usedStructType": "",
-          "typescriptType": "boolean",
-          "required": true,
-          "descriptions": []
-        }
-      ],
-      "returns": "[]anime.LocalFile",
-      "returnGoType": "anime.LocalFile",
-      "returnTypescriptType": "Array\u003cAnime_LocalFile\u003e"
-    }
-  },
-  {
-    "name": "HandleGetScanSummaries",
-    "trimmedName": "GetScanSummaries",
-    "comments": [
-      "HandleGetScanSummaries",
-      "",
-      "\t@summary returns the latest scan summaries.",
-      "\t@route /api/v1/library/scan-summaries [GET]",
-      "\t@returns []summary.ScanSummaryItem",
-      ""
-    ],
-    "filepath": "internal/handlers/scan_summary.go",
-    "filename": "scan_summary.go",
-    "api": {
-      "summary": "returns the latest scan summaries.",
-      "descriptions": [],
-      "endpoint": "/api/v1/library/scan-summaries",
-      "methods": [
-        "GET"
-      ],
-      "params": [],
-      "bodyFields": [],
-      "returns": "[]summary.ScanSummaryItem",
-      "returnGoType": "summary.ScanSummaryItem",
-      "returnTypescriptType": "Array\u003cSummary_ScanSummaryItem\u003e"
-    }
-  },
-  {
     "name": "HandleGetSettings",
     "trimmedName": "GetSettings",
     "comments": [
@@ -6731,40 +6529,6 @@
       "returns": "handlers.Status",
       "returnGoType": "handlers.Status",
       "returnTypescriptType": "Status"
-    }
-  },
-  {
-    "name": "HandleTriggerLibraryScan",
-    "trimmedName": "TriggerLibraryScan",
-    "comments": [
-      "HandleTriggerLibraryScan",
-      "",
-      "\t@summary triggers a manual library scan.",
-      "\t@desc This endpoint triggers a manual library scan to discover new files and update the library.",
-      "\t@desc It uses the same scan logic as the automatic file watcher but can be triggered on-demand.",
-      "\t@desc Admin-only operation as it affects system-wide file scanning for all users.",
-      "\t@route /api/v1/admin/system-scan/trigger [POST]",
-      "\t@returns bool",
-      ""
-    ],
-    "filepath": "internal/handlers/settings.go",
-    "filename": "settings.go",
-    "api": {
-      "summary": "triggers a manual library scan.",
-      "descriptions": [
-        "This endpoint triggers a manual library scan to discover new files and update the library.",
-        "It uses the same scan logic as the automatic file watcher but can be triggered on-demand.",
-        "Admin-only operation as it affects system-wide file scanning for all users."
-      ],
-      "endpoint": "/api/v1/admin/system-scan/trigger",
-      "methods": [
-        "POST"
-      ],
-      "params": [],
-      "bodyFields": [],
-      "returns": "bool",
-      "returnGoType": "bool",
-      "returnTypescriptType": "boolean"
     }
   },
   {
@@ -7963,6 +7727,37 @@
       "returns": "bool",
       "returnGoType": "bool",
       "returnTypescriptType": "boolean"
+    }
+  },
+  {
+    "name": "HandleGetActiveDownloads",
+    "trimmedName": "GetActiveDownloads",
+    "comments": [
+      "HandleGetActiveDownloads",
+      "",
+      "\t@summary returns currently downloading episodes with progress.",
+      "\t@desc This handler is used by the client to show download spinners on episodes.",
+      "",
+      "\t@route /api/v1/torrent-client/active-downloads [GET]",
+      "\t@returns []handlers.ActiveDownloadItem",
+      ""
+    ],
+    "filepath": "internal/handlers/torrent_client.go",
+    "filename": "torrent_client.go",
+    "api": {
+      "summary": "returns currently downloading episodes with progress.",
+      "descriptions": [
+        "This handler is used by the client to show download spinners on episodes."
+      ],
+      "endpoint": "/api/v1/torrent-client/active-downloads",
+      "methods": [
+        "GET"
+      ],
+      "params": [],
+      "bodyFields": [],
+      "returns": "[]handlers.ActiveDownloadItem",
+      "returnGoType": "handlers.ActiveDownloadItem",
+      "returnTypescriptType": "Array\u003cActiveDownloadItem\u003e"
     }
   },
   {

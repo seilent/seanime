@@ -27194,17 +27194,6 @@
         "comments": []
       },
       {
-        "name": "Watcher",
-        "jsonName": "Watcher",
-        "goType": "scanner.Watcher",
-        "typescriptType": "Scanner_Watcher",
-        "usedTypescriptType": "Scanner_Watcher",
-        "usedStructName": "scanner.Watcher",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "AnilistClient",
         "jsonName": "AnilistClient",
         "goType": "anilist.AnilistClient",
@@ -27330,17 +27319,6 @@
         "typescriptType": "Updater_Updater",
         "usedTypescriptType": "Updater_Updater",
         "usedStructName": "updater.Updater",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AutoScanner",
-        "jsonName": "AutoScanner",
-        "goType": "autoscanner.AutoScanner",
-        "typescriptType": "AutoScanner_AutoScanner",
-        "usedTypescriptType": "AutoScanner_AutoScanner",
-        "usedStructName": "autoscanner.AutoScanner",
         "required": false,
         "public": true,
         "comments": []
@@ -27644,17 +27622,6 @@
         "typescriptType": "FileWatcherService",
         "usedTypescriptType": "FileWatcherService",
         "usedStructName": "global_mapping.FileWatcherService",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SystemScanService",
-        "jsonName": "SystemScanService",
-        "goType": "SystemScanService",
-        "typescriptType": "INTERNAL_SystemScanService",
-        "usedTypescriptType": "INTERNAL_SystemScanService",
-        "usedStructName": "core.SystemScanService",
         "required": false,
         "public": true,
         "comments": []
@@ -28179,306 +28146,6 @@
         "required": true,
         "public": true,
         "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/core/system_scan_service.go",
-    "filename": "system_scan_service.go",
-    "name": "SystemScanService",
-    "formattedName": "INTERNAL_SystemScanService",
-    "package": "core",
-    "fields": [
-      {
-        "name": "logger",
-        "jsonName": "logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "database",
-        "jsonName": "database",
-        "goType": "db.Database",
-        "typescriptType": "DB_Database",
-        "usedTypescriptType": "DB_Database",
-        "usedStructName": "db.Database",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "platform",
-        "jsonName": "platform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": false,
-        "comments": [
-          " For AniList API access"
-        ]
-      },
-      {
-        "name": "metadataProvider",
-        "jsonName": "metadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": false,
-        "comments": [
-          " For metadata operations"
-        ]
-      },
-      {
-        "name": "wsEventManager",
-        "jsonName": "wsEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "sseManager",
-        "jsonName": "sseManager",
-        "goType": "events.SSEManager",
-        "typescriptType": "Events_SSEManager",
-        "usedTypescriptType": "Events_SSEManager",
-        "usedStructName": "events.SSEManager",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "rateLimiter",
-        "jsonName": "rateLimiter",
-        "goType": "limiter.Limiter",
-        "typescriptType": "Limiter",
-        "usedTypescriptType": "Limiter",
-        "usedStructName": "limiter.Limiter",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "animeCache",
-        "jsonName": "animeCache",
-        "goType": "anilist.CompleteAnimeCache",
-        "typescriptType": "AL_CompleteAnimeCache",
-        "usedTypescriptType": "AL_CompleteAnimeCache",
-        "usedStructName": "anilist.CompleteAnimeCache",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "fileChangeCh",
-        "jsonName": "fileChangeCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "mu",
-        "jsonName": "mu",
-        "goType": "sync.Mutex",
-        "typescriptType": "Mutex",
-        "usedTypescriptType": "Mutex",
-        "usedStructName": "sync.Mutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "debouncing",
-        "jsonName": "debouncing",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "enabled",
-        "jsonName": "enabled",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "debounceDelay",
-        "jsonName": "debounceDelay",
-        "goType": "time.Duration",
-        "typescriptType": "Duration",
-        "usedTypescriptType": "Duration",
-        "usedStructName": "time.Duration",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "cooldownDuration",
-        "jsonName": "cooldownDuration",
-        "goType": "time.Duration",
-        "typescriptType": "Duration",
-        "usedTypescriptType": "Duration",
-        "usedStructName": "time.Duration",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "lastScanCompleted",
-        "jsonName": "lastScanCompleted",
-        "goType": "time.Time",
-        "typescriptType": "string",
-        "usedStructName": "time.Time",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/core/system_scan_service.go",
-    "filename": "system_scan_service.go",
-    "name": "SystemScanServiceOptions",
-    "formattedName": "INTERNAL_SystemScanServiceOptions",
-    "package": "core",
-    "fields": [
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Database",
-        "jsonName": "Database",
-        "goType": "db.Database",
-        "typescriptType": "DB_Database",
-        "usedTypescriptType": "DB_Database",
-        "usedStructName": "db.Database",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Platform",
-        "jsonName": "Platform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": true,
-        "comments": [
-          " For AniList API access"
-        ]
-      },
-      {
-        "name": "MetadataProvider",
-        "jsonName": "MetadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": true,
-        "comments": [
-          " For metadata operations"
-        ]
-      },
-      {
-        "name": "WSEventManager",
-        "jsonName": "WSEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SSEManager",
-        "jsonName": "SSEManager",
-        "goType": "events.SSEManager",
-        "typescriptType": "Events_SSEManager",
-        "usedTypescriptType": "Events_SSEManager",
-        "usedStructName": "events.SSEManager",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "RateLimiter",
-        "jsonName": "RateLimiter",
-        "goType": "limiter.Limiter",
-        "typescriptType": "Limiter",
-        "usedTypescriptType": "Limiter",
-        "usedStructName": "limiter.Limiter",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AnimeCache",
-        "jsonName": "AnimeCache",
-        "goType": "anilist.CompleteAnimeCache",
-        "typescriptType": "AL_CompleteAnimeCache",
-        "usedTypescriptType": "AL_CompleteAnimeCache",
-        "usedStructName": "anilist.CompleteAnimeCache",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DebounceDelay",
-        "jsonName": "DebounceDelay",
-        "goType": "time.Duration",
-        "typescriptType": "Duration",
-        "usedTypescriptType": "Duration",
-        "usedStructName": "time.Duration",
-        "required": false,
-        "public": true,
-        "comments": [
-          " Optional, defaults to 5 seconds"
-        ]
-      },
-      {
-        "name": "CooldownDuration",
-        "jsonName": "CooldownDuration",
-        "goType": "time.Duration",
-        "typescriptType": "Duration",
-        "usedTypescriptType": "Duration",
-        "usedStructName": "time.Duration",
-        "required": false,
-        "public": true,
-        "comments": [
-          " Optional, defaults to 1 minute"
-        ]
       }
     ],
     "comments": []
@@ -31514,6 +31181,35 @@
         "jsonName": "completed",
         "goType": "bool",
         "typescriptType": "boolean",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "FlattenState",
+        "jsonName": "flattenState",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": [
+          " \"\"=pending, \"linked\""
+        ]
+      },
+      {
+        "name": "ContentPath",
+        "jsonName": "contentPath",
+        "goType": "string",
+        "typescriptType": "string",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Destination",
+        "jsonName": "destination",
+        "goType": "string",
+        "typescriptType": "string",
         "required": true,
         "public": true,
         "comments": []
@@ -39241,34 +38937,6 @@
     "comments": []
   },
   {
-    "filepath": "../internal/handlers/manual_dump.go",
-    "filename": "manual_dump.go",
-    "name": "RequestBody",
-    "formattedName": "RequestBody",
-    "package": "handlers",
-    "fields": [
-      {
-        "name": "Dir",
-        "jsonName": "dir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Username",
-        "jsonName": "userName",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
     "filepath": "../internal/handlers/response.go",
     "filename": "response.go",
     "name": "SeaResponse",
@@ -40087,6 +39755,47 @@
     ],
     "comments": [
       " ProgressUpdateRequest represents a progress update request"
+    ]
+  },
+  {
+    "filepath": "../internal/handlers/torrent_client.go",
+    "filename": "torrent_client.go",
+    "name": "ActiveDownloadItem",
+    "formattedName": "ActiveDownloadItem",
+    "package": "handlers",
+    "fields": [
+      {
+        "name": "MediaId",
+        "jsonName": "mediaId",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Episode",
+        "jsonName": "episode",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " 0 = whole batch / unknown"
+        ]
+      },
+      {
+        "name": "Progress",
+        "jsonName": "progress",
+        "goType": "float64",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " ActiveDownloadItem represents an in-progress download mapped to an episode."
     ]
   },
   {
@@ -44976,286 +44685,6 @@
     ]
   },
   {
-    "filepath": "../internal/library/autoscanner/autoscanner.go",
-    "filename": "autoscanner.go",
-    "name": "AutoScanner",
-    "formattedName": "AutoScanner_AutoScanner",
-    "package": "autoscanner",
-    "fields": [
-      {
-        "name": "fileActionCh",
-        "jsonName": "fileActionCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": [
-          " Used to notify the scanner that a file action has occurred."
-        ]
-      },
-      {
-        "name": "waiting",
-        "jsonName": "waiting",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": [
-          " Used to prevent multiple scans from occurring at the same time."
-        ]
-      },
-      {
-        "name": "missedAction",
-        "jsonName": "missedAction",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": [
-          " Used to indicate that a file action was missed while scanning."
-        ]
-      },
-      {
-        "name": "mu",
-        "jsonName": "mu",
-        "goType": "sync.Mutex",
-        "typescriptType": "Mutex",
-        "usedTypescriptType": "Mutex",
-        "usedStructName": "sync.Mutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "scannedCh",
-        "jsonName": "scannedCh",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "waitTime",
-        "jsonName": "waitTime",
-        "goType": "time.Duration",
-        "typescriptType": "Duration",
-        "usedTypescriptType": "Duration",
-        "usedStructName": "time.Duration",
-        "required": false,
-        "public": false,
-        "comments": [
-          " Wait time to listen to additional changes before triggering a scan."
-        ]
-      },
-      {
-        "name": "enabled",
-        "jsonName": "enabled",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "settings",
-        "jsonName": "settings",
-        "goType": "models.LibrarySettings",
-        "typescriptType": "Models_LibrarySettings",
-        "usedTypescriptType": "Models_LibrarySettings",
-        "usedStructName": "models.LibrarySettings",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "platform",
-        "jsonName": "platform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "logger",
-        "jsonName": "logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "wsEventManager",
-        "jsonName": "wsEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "db",
-        "jsonName": "db",
-        "goType": "db.Database",
-        "typescriptType": "DB_Database",
-        "usedTypescriptType": "DB_Database",
-        "usedStructName": "db.Database",
-        "required": false,
-        "public": false,
-        "comments": [
-          " Database instance is required to update the local files."
-        ]
-      },
-      {
-        "name": "autoDownloader",
-        "jsonName": "autoDownloader",
-        "goType": "autodownloader.AutoDownloader",
-        "typescriptType": "AutoDownloader_AutoDownloader",
-        "usedTypescriptType": "AutoDownloader_AutoDownloader",
-        "usedStructName": "autodownloader.AutoDownloader",
-        "required": false,
-        "public": false,
-        "comments": [
-          " AutoDownloader instance is required to refresh queue."
-        ]
-      },
-      {
-        "name": "metadataProvider",
-        "jsonName": "metadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "logsDir",
-        "jsonName": "logsDir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/autoscanner/autoscanner.go",
-    "filename": "autoscanner.go",
-    "name": "NewAutoScannerOptions",
-    "formattedName": "AutoScanner_NewAutoScannerOptions",
-    "package": "autoscanner",
-    "fields": [
-      {
-        "name": "Database",
-        "jsonName": "Database",
-        "goType": "db.Database",
-        "typescriptType": "DB_Database",
-        "usedTypescriptType": "DB_Database",
-        "usedStructName": "db.Database",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Platform",
-        "jsonName": "Platform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "WSEventManager",
-        "jsonName": "WSEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Enabled",
-        "jsonName": "Enabled",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AutoDownloader",
-        "jsonName": "AutoDownloader",
-        "goType": "autodownloader.AutoDownloader",
-        "typescriptType": "AutoDownloader_AutoDownloader",
-        "usedTypescriptType": "AutoDownloader_AutoDownloader",
-        "usedStructName": "autodownloader.AutoDownloader",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "WaitTime",
-        "jsonName": "WaitTime",
-        "goType": "time.Duration",
-        "typescriptType": "Duration",
-        "usedTypescriptType": "Duration",
-        "usedStructName": "time.Duration",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MetadataProvider",
-        "jsonName": "MetadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LogsDir",
-        "jsonName": "LogsDir",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
     "filepath": "../internal/library/downloadmonitor/monitor.go",
     "filename": "monitor.go",
     "name": "Monitor",
@@ -45446,6 +44875,452 @@
       }
     ],
     "comments": []
+  },
+  {
+    "filepath": "../internal/library/filehydrator/hook_events.go",
+    "filename": "hook_events.go",
+    "name": "ScanHydrationStartedEvent",
+    "formattedName": "ScanHydrationStartedEvent",
+    "package": "filehydrator",
+    "fields": [
+      {
+        "name": "LocalFiles",
+        "jsonName": "localFiles",
+        "goType": "[]anime.LocalFile",
+        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
+        "usedTypescriptType": "Anime_LocalFile",
+        "usedStructName": "anime.LocalFile",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "AllMedia",
+        "jsonName": "allMedia",
+        "goType": "[]anime.NormalizedMedia",
+        "typescriptType": "Array\u003cAnime_NormalizedMedia\u003e",
+        "usedTypescriptType": "Anime_NormalizedMedia",
+        "usedStructName": "anime.NormalizedMedia",
+        "required": false,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " ScanHydrationStartedEvent is triggered when the file hydration process begins.",
+      " Prevent default to skip the rest of the hydration process, in which case the event's local files will be used."
+    ],
+    "embeddedStructNames": [
+      "hook_resolver.Event"
+    ]
+  },
+  {
+    "filepath": "../internal/library/filehydrator/hook_events.go",
+    "filename": "hook_events.go",
+    "name": "ScanLocalFileHydrationStartedEvent",
+    "formattedName": "ScanLocalFileHydrationStartedEvent",
+    "package": "filehydrator",
+    "fields": [
+      {
+        "name": "LocalFile",
+        "jsonName": "localFile",
+        "goType": "anime.LocalFile",
+        "typescriptType": "Anime_LocalFile",
+        "usedTypescriptType": "Anime_LocalFile",
+        "usedStructName": "anime.LocalFile",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Media",
+        "jsonName": "media",
+        "goType": "anime.NormalizedMedia",
+        "typescriptType": "Anime_NormalizedMedia",
+        "usedTypescriptType": "Anime_NormalizedMedia",
+        "usedStructName": "anime.NormalizedMedia",
+        "required": false,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " ScanLocalFileHydrationStartedEvent is triggered when a local file's metadata is about to be hydrated.",
+      " Prevent default to skip the default hydration and override the hydration."
+    ],
+    "embeddedStructNames": [
+      "hook_resolver.Event"
+    ]
+  },
+  {
+    "filepath": "../internal/library/filehydrator/hook_events.go",
+    "filename": "hook_events.go",
+    "name": "ScanLocalFileHydratedEvent",
+    "formattedName": "ScanLocalFileHydratedEvent",
+    "package": "filehydrator",
+    "fields": [
+      {
+        "name": "LocalFile",
+        "jsonName": "localFile",
+        "goType": "anime.LocalFile",
+        "typescriptType": "Anime_LocalFile",
+        "usedTypescriptType": "Anime_LocalFile",
+        "usedStructName": "anime.LocalFile",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "MediaId",
+        "jsonName": "mediaId",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Episode",
+        "jsonName": "episode",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " ScanLocalFileHydratedEvent is triggered when a local file's metadata is hydrated"
+    ],
+    "embeddedStructNames": [
+      "hook_resolver.Event"
+    ]
+  },
+  {
+    "filepath": "../internal/library/filehydrator/hydrator.go",
+    "filename": "hydrator.go",
+    "name": "FileHydrator",
+    "formattedName": "FileHydrator",
+    "package": "filehydrator",
+    "fields": [
+      {
+        "name": "LocalFiles",
+        "jsonName": "LocalFiles",
+        "goType": "[]anime.LocalFile",
+        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
+        "usedTypescriptType": "Anime_LocalFile",
+        "usedStructName": "anime.LocalFile",
+        "required": false,
+        "public": true,
+        "comments": [
+          " Local files to hydrate"
+        ]
+      },
+      {
+        "name": "AllMedia",
+        "jsonName": "AllMedia",
+        "goType": "[]anime.NormalizedMedia",
+        "typescriptType": "Array\u003cAnime_NormalizedMedia\u003e",
+        "usedTypescriptType": "Anime_NormalizedMedia",
+        "usedStructName": "anime.NormalizedMedia",
+        "required": false,
+        "public": true,
+        "comments": [
+          " All media used to hydrate local files"
+        ]
+      },
+      {
+        "name": "CompleteAnimeCache",
+        "jsonName": "CompleteAnimeCache",
+        "goType": "anilist.CompleteAnimeCache",
+        "typescriptType": "AL_CompleteAnimeCache",
+        "usedTypescriptType": "AL_CompleteAnimeCache",
+        "usedStructName": "anilist.CompleteAnimeCache",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Platform",
+        "jsonName": "Platform",
+        "goType": "platform.Platform",
+        "typescriptType": "Platform",
+        "usedTypescriptType": "Platform",
+        "usedStructName": "platform.Platform",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "MetadataProvider",
+        "jsonName": "MetadataProvider",
+        "goType": "metadata.Provider",
+        "typescriptType": "Metadata_Provider",
+        "usedTypescriptType": "Metadata_Provider",
+        "usedStructName": "metadata.Provider",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "AnilistRateLimiter",
+        "jsonName": "AnilistRateLimiter",
+        "goType": "limiter.Limiter",
+        "typescriptType": "Limiter",
+        "usedTypescriptType": "Limiter",
+        "usedStructName": "limiter.Limiter",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "Logger",
+        "jsonName": "Logger",
+        "goType": "zerolog.Logger",
+        "typescriptType": "Logger",
+        "usedTypescriptType": "Logger",
+        "usedStructName": "zerolog.Logger",
+        "required": false,
+        "public": true,
+        "comments": []
+      },
+      {
+        "name": "ScanLogger",
+        "jsonName": "ScanLogger",
+        "goType": "ScanLogger",
+        "typescriptType": "ScanLogger",
+        "usedTypescriptType": "ScanLogger",
+        "usedStructName": "filehydrator.ScanLogger",
+        "required": false,
+        "public": true,
+        "comments": [
+          " optional"
+        ]
+      },
+      {
+        "name": "ScanSummaryLogger",
+        "jsonName": "ScanSummaryLogger",
+        "goType": "summary.ScanSummaryLogger",
+        "typescriptType": "Summary_ScanSummaryLogger",
+        "usedTypescriptType": "Summary_ScanSummaryLogger",
+        "usedStructName": "summary.ScanSummaryLogger",
+        "required": false,
+        "public": true,
+        "comments": [
+          " optional"
+        ]
+      },
+      {
+        "name": "ForceMediaId",
+        "jsonName": "ForceMediaId",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": true,
+        "comments": [
+          " optional - force all local files to have this media ID"
+        ]
+      }
+    ],
+    "comments": [
+      " FileHydrator hydrates the metadata of all (matched) LocalFiles.",
+      " LocalFiles should already have their media ID hydrated."
+    ]
+  },
+  {
+    "filepath": "../internal/library/filehydrator/media_tree_analysis.go",
+    "filename": "media_tree_analysis.go",
+    "name": "MediaTreeAnalysisOptions",
+    "formattedName": "MediaTreeAnalysisOptions",
+    "package": "filehydrator",
+    "fields": [
+      {
+        "name": "tree",
+        "jsonName": "tree",
+        "goType": "anilist.CompleteAnimeRelationTree",
+        "typescriptType": "AL_CompleteAnimeRelationTree",
+        "usedTypescriptType": "AL_CompleteAnimeRelationTree",
+        "usedStructName": "anilist.CompleteAnimeRelationTree",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "metadataProvider",
+        "jsonName": "metadataProvider",
+        "goType": "metadata.Provider",
+        "typescriptType": "Metadata_Provider",
+        "usedTypescriptType": "Metadata_Provider",
+        "usedStructName": "metadata.Provider",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "rateLimiter",
+        "jsonName": "rateLimiter",
+        "goType": "limiter.Limiter",
+        "typescriptType": "Limiter",
+        "usedTypescriptType": "Limiter",
+        "usedStructName": "limiter.Limiter",
+        "required": false,
+        "public": false,
+        "comments": []
+      }
+    ],
+    "comments": []
+  },
+  {
+    "filepath": "../internal/library/filehydrator/media_tree_analysis.go",
+    "filename": "media_tree_analysis.go",
+    "name": "MediaTreeAnalysis",
+    "formattedName": "MediaTreeAnalysis",
+    "package": "filehydrator",
+    "fields": [
+      {
+        "name": "branches",
+        "jsonName": "branches",
+        "goType": "[]MediaTreeAnalysisBranch",
+        "typescriptType": "Array\u003cMediaTreeAnalysisBranch\u003e",
+        "usedTypescriptType": "MediaTreeAnalysisBranch",
+        "usedStructName": "filehydrator.MediaTreeAnalysisBranch",
+        "required": false,
+        "public": false,
+        "comments": []
+      }
+    ],
+    "comments": []
+  },
+  {
+    "filepath": "../internal/library/filehydrator/media_tree_analysis.go",
+    "filename": "media_tree_analysis.go",
+    "name": "MediaTreeAnalysisBranch",
+    "formattedName": "MediaTreeAnalysisBranch",
+    "package": "filehydrator",
+    "fields": [
+      {
+        "name": "media",
+        "jsonName": "media",
+        "goType": "anilist.CompleteAnime",
+        "typescriptType": "AL_CompleteAnime",
+        "usedTypescriptType": "AL_CompleteAnime",
+        "usedStructName": "anilist.CompleteAnime",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "animeMetadata",
+        "jsonName": "animeMetadata",
+        "goType": "metadata.AnimeMetadata",
+        "typescriptType": "Metadata_AnimeMetadata",
+        "usedTypescriptType": "Metadata_AnimeMetadata",
+        "usedStructName": "metadata.AnimeMetadata",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "minPartAbsoluteEpisodeNumber",
+        "jsonName": "minPartAbsoluteEpisodeNumber",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "maxPartAbsoluteEpisodeNumber",
+        "jsonName": "maxPartAbsoluteEpisodeNumber",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "minAbsoluteEpisode",
+        "jsonName": "minAbsoluteEpisode",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "maxAbsoluteEpisode",
+        "jsonName": "maxAbsoluteEpisode",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "totalEpisodeCount",
+        "jsonName": "totalEpisodeCount",
+        "goType": "int",
+        "typescriptType": "number",
+        "required": true,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "noAbsoluteEpisodesFound",
+        "jsonName": "noAbsoluteEpisodesFound",
+        "goType": "bool",
+        "typescriptType": "boolean",
+        "required": true,
+        "public": false,
+        "comments": []
+      }
+    ],
+    "comments": []
+  },
+  {
+    "filepath": "../internal/library/filehydrator/scan_logger.go",
+    "filename": "scan_logger.go",
+    "name": "ScanLogger",
+    "formattedName": "ScanLogger",
+    "package": "filehydrator",
+    "fields": [
+      {
+        "name": "logger",
+        "jsonName": "logger",
+        "goType": "zerolog.Logger",
+        "typescriptType": "Logger",
+        "usedTypescriptType": "Logger",
+        "usedStructName": "zerolog.Logger",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "logFile",
+        "jsonName": "logFile",
+        "goType": "os.File",
+        "typescriptType": "File",
+        "usedTypescriptType": "File",
+        "usedStructName": "os.File",
+        "required": false,
+        "public": false,
+        "comments": []
+      },
+      {
+        "name": "buffer",
+        "jsonName": "buffer",
+        "goType": "bytes.Buffer",
+        "typescriptType": "Buffer",
+        "usedTypescriptType": "Buffer",
+        "usedStructName": "bytes.Buffer",
+        "required": false,
+        "public": false,
+        "comments": []
+      }
+    ],
+    "comments": [
+      " ScanLogger is a custom logger struct for scanning operations."
+    ]
   },
   {
     "filepath": "../internal/library/filesystem/mediapath.go",
@@ -46887,2218 +46762,6 @@
     "comments": []
   },
   {
-    "filepath": "../internal/library/scanner/enhanced_watcher.go",
-    "filename": "enhanced_watcher.go",
-    "name": "EnhancedWatcher",
-    "formattedName": "Scanner_EnhancedWatcher",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "watcher",
-        "jsonName": "watcher",
-        "goType": "fsnotify.Watcher",
-        "typescriptType": "Watcher",
-        "usedTypescriptType": "Watcher",
-        "usedStructName": "fsnotify.Watcher",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "logger",
-        "jsonName": "logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "enhancedWS",
-        "jsonName": "enhancedWS",
-        "goType": "events.EnhancedWSEventManager",
-        "typescriptType": "Events_EnhancedWSEventManager",
-        "usedTypescriptType": "Events_EnhancedWSEventManager",
-        "usedStructName": "events.EnhancedWSEventManager",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "localFileProcessor",
-        "jsonName": "localFileProcessor",
-        "goType": "library.LocalFileProcessor",
-        "typescriptType": "LocalFileProcessor",
-        "usedTypescriptType": "LocalFileProcessor",
-        "usedStructName": "library.LocalFileProcessor",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "database",
-        "jsonName": "database",
-        "goType": "db.Database",
-        "typescriptType": "DB_Database",
-        "usedTypescriptType": "DB_Database",
-        "usedStructName": "db.Database",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "libraryPaths",
-        "jsonName": "libraryPaths",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "fileQueue",
-        "jsonName": "fileQueue",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "processingWorkers",
-        "jsonName": "processingWorkers",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "debounceMap",
-        "jsonName": "debounceMap",
-        "goType": "map[string]time.Timer",
-        "typescriptType": "Record\u003cstring, Timer\u003e",
-        "usedTypescriptType": "Timer",
-        "usedStructName": "time.Timer",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "debounceMu",
-        "jsonName": "debounceMu",
-        "goType": "sync.Mutex",
-        "typescriptType": "Mutex",
-        "usedTypescriptType": "Mutex",
-        "usedStructName": "sync.Mutex",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "debounceInterval",
-        "jsonName": "debounceInterval",
-        "goType": "time.Duration",
-        "typescriptType": "Duration",
-        "usedTypescriptType": "Duration",
-        "usedStructName": "time.Duration",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "ctx",
-        "jsonName": "ctx",
-        "goType": "context.Context",
-        "typescriptType": "Context",
-        "usedTypescriptType": "Context",
-        "usedStructName": "context.Context",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "cancel",
-        "jsonName": "cancel",
-        "goType": "context.CancelFunc",
-        "typescriptType": "CancelFunc",
-        "usedTypescriptType": "CancelFunc",
-        "usedStructName": "context.CancelFunc",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " EnhancedWatcher extends the basic file watcher with real-time LocalFile processing"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/enhanced_watcher.go",
-    "filename": "enhanced_watcher.go",
-    "name": "FileEvent",
-    "formattedName": "Scanner_FileEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "Path",
-        "jsonName": "Path",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Operation",
-        "jsonName": "Operation",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": [
-          " \"created\", \"removed\", \"modified\""
-        ]
-      },
-      {
-        "name": "Timestamp",
-        "jsonName": "Timestamp",
-        "goType": "time.Time",
-        "typescriptType": "string",
-        "usedStructName": "time.Time",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " FileEvent represents a file system event to be processed"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/enhanced_watcher.go",
-    "filename": "enhanced_watcher.go",
-    "name": "EnhancedWatcherOptions",
-    "formattedName": "Scanner_EnhancedWatcherOptions",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "EnhancedWS",
-        "jsonName": "EnhancedWS",
-        "goType": "events.EnhancedWSEventManager",
-        "typescriptType": "Events_EnhancedWSEventManager",
-        "usedTypescriptType": "Events_EnhancedWSEventManager",
-        "usedStructName": "events.EnhancedWSEventManager",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LocalFileProcessor",
-        "jsonName": "LocalFileProcessor",
-        "goType": "library.LocalFileProcessor",
-        "typescriptType": "LocalFileProcessor",
-        "usedTypescriptType": "LocalFileProcessor",
-        "usedStructName": "library.LocalFileProcessor",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Database",
-        "jsonName": "Database",
-        "goType": "db.Database",
-        "typescriptType": "DB_Database",
-        "usedTypescriptType": "DB_Database",
-        "usedStructName": "db.Database",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LibraryPaths",
-        "jsonName": "LibraryPaths",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ProcessingWorkers",
-        "jsonName": "ProcessingWorkers",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " Number of workers to process file events"
-        ]
-      }
-    ],
-    "comments": [
-      " EnhancedWatcherOptions contains options for creating an enhanced watcher"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanStartedEvent",
-    "formattedName": "Scanner_ScanStartedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LibraryPath",
-        "jsonName": "libraryPath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "OtherLibraryPaths",
-        "jsonName": "otherLibraryPaths",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SkipIgnored",
-        "jsonName": "skipIgnored",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LocalFiles",
-        "jsonName": "localFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanStartedEvent is triggered when the scanning process begins.",
-      " Prevent default to skip the rest of the scanning process and return the local files."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanFilePathsRetrievedEvent",
-    "formattedName": "Scanner_ScanFilePathsRetrievedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "FilePaths",
-        "jsonName": "filePaths",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanFilePathsRetrievedEvent is triggered when the file paths to scan are retrieved.",
-      " The event includes file paths from all directories to scan.",
-      " The event includes file paths of local files that will be skipped."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanLocalFilesParsedEvent",
-    "formattedName": "Scanner_ScanLocalFilesParsedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LocalFiles",
-        "jsonName": "localFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanLocalFilesParsedEvent is triggered right after the file paths are parsed into local file objects.",
-      " The event does not include local files that are skipped."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanCompletedEvent",
-    "formattedName": "Scanner_ScanCompletedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LocalFiles",
-        "jsonName": "localFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Duration",
-        "jsonName": "duration",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " in milliseconds"
-        ]
-      }
-    ],
-    "comments": [
-      " ScanCompletedEvent is triggered when the scanning process finishes.",
-      " The event includes all the local files (skipped and scanned) to be inserted as a new entry.",
-      " Right after this event, the local files will be inserted as a new entry."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanMediaFetcherStartedEvent",
-    "formattedName": "Scanner_ScanMediaFetcherStartedEvent",
-    "package": "scanner",
-    "fields": [],
-    "comments": [
-      " ScanMediaFetcherStartedEvent is triggered right before Seanime starts fetching media to be matched against the local files."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanMediaFetcherCompletedEvent",
-    "formattedName": "Scanner_ScanMediaFetcherCompletedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "AllMedia",
-        "jsonName": "allMedia",
-        "goType": "[]anilist.CompleteAnime",
-        "typescriptType": "Array\u003cAL_CompleteAnime\u003e",
-        "usedTypescriptType": "AL_CompleteAnime",
-        "usedStructName": "anilist.CompleteAnime",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UnknownMediaIds",
-        "jsonName": "unknownMediaIds",
-        "goType": "[]int",
-        "typescriptType": "Array\u003cnumber\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanMediaFetcherCompletedEvent is triggered when the media fetcher completes.",
-      " The event includes all the media fetched from AniList.",
-      " The event includes the media IDs that are not in the user's collection."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanMatchingStartedEvent",
-    "formattedName": "Scanner_ScanMatchingStartedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LocalFiles",
-        "jsonName": "localFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "NormalizedMedia",
-        "jsonName": "normalizedMedia",
-        "goType": "[]anime.NormalizedMedia",
-        "typescriptType": "Array\u003cAnime_NormalizedMedia\u003e",
-        "usedTypescriptType": "Anime_NormalizedMedia",
-        "usedStructName": "anime.NormalizedMedia",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Algorithm",
-        "jsonName": "algorithm",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Threshold",
-        "jsonName": "threshold",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanMatchingStartedEvent is triggered when the matching process begins.",
-      " Prevent default to skip the default matching, in which case modified local files will be used."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanLocalFileMatchedEvent",
-    "formattedName": "Scanner_ScanLocalFileMatchedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "Match",
-        "jsonName": "match",
-        "goType": "anime.NormalizedMedia",
-        "typescriptType": "Anime_NormalizedMedia",
-        "usedTypescriptType": "Anime_NormalizedMedia",
-        "usedStructName": "anime.NormalizedMedia",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Found",
-        "jsonName": "found",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LocalFile",
-        "jsonName": "localFile",
-        "goType": "anime.LocalFile",
-        "typescriptType": "Anime_LocalFile",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Score",
-        "jsonName": "score",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanLocalFileMatchedEvent is triggered when a local file is matched with media and before the match is analyzed.",
-      " Prevent default to skip the default analysis and override the match."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanMatchingCompletedEvent",
-    "formattedName": "Scanner_ScanMatchingCompletedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LocalFiles",
-        "jsonName": "localFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanMatchingCompletedEvent is triggered when the matching process completes."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanHydrationStartedEvent",
-    "formattedName": "Scanner_ScanHydrationStartedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LocalFiles",
-        "jsonName": "localFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AllMedia",
-        "jsonName": "allMedia",
-        "goType": "[]anime.NormalizedMedia",
-        "typescriptType": "Array\u003cAnime_NormalizedMedia\u003e",
-        "usedTypescriptType": "Anime_NormalizedMedia",
-        "usedStructName": "anime.NormalizedMedia",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanHydrationStartedEvent is triggered when the file hydration process begins.",
-      " Prevent default to skip the rest of the hydration process, in which case the event's local files will be used."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanLocalFileHydrationStartedEvent",
-    "formattedName": "Scanner_ScanLocalFileHydrationStartedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LocalFile",
-        "jsonName": "localFile",
-        "goType": "anime.LocalFile",
-        "typescriptType": "Anime_LocalFile",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Media",
-        "jsonName": "media",
-        "goType": "anime.NormalizedMedia",
-        "typescriptType": "Anime_NormalizedMedia",
-        "usedTypescriptType": "Anime_NormalizedMedia",
-        "usedStructName": "anime.NormalizedMedia",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanLocalFileHydrationStartedEvent is triggered when a local file's metadata is about to be hydrated.",
-      " Prevent default to skip the default hydration and override the hydration."
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hook_events.go",
-    "filename": "hook_events.go",
-    "name": "ScanLocalFileHydratedEvent",
-    "formattedName": "Scanner_ScanLocalFileHydratedEvent",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LocalFile",
-        "jsonName": "localFile",
-        "goType": "anime.LocalFile",
-        "typescriptType": "Anime_LocalFile",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MediaId",
-        "jsonName": "mediaId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Episode",
-        "jsonName": "episode",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanLocalFileHydratedEvent is triggered when a local file's metadata is hydrated"
-    ],
-    "embeddedStructNames": [
-      "hook_resolver.Event"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/hydrator.go",
-    "filename": "hydrator.go",
-    "name": "FileHydrator",
-    "formattedName": "Scanner_FileHydrator",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LocalFiles",
-        "jsonName": "LocalFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": [
-          " Local files to hydrate"
-        ]
-      },
-      {
-        "name": "AllMedia",
-        "jsonName": "AllMedia",
-        "goType": "[]anime.NormalizedMedia",
-        "typescriptType": "Array\u003cAnime_NormalizedMedia\u003e",
-        "usedTypescriptType": "Anime_NormalizedMedia",
-        "usedStructName": "anime.NormalizedMedia",
-        "required": false,
-        "public": true,
-        "comments": [
-          " All media used to hydrate local files"
-        ]
-      },
-      {
-        "name": "CompleteAnimeCache",
-        "jsonName": "CompleteAnimeCache",
-        "goType": "anilist.CompleteAnimeCache",
-        "typescriptType": "AL_CompleteAnimeCache",
-        "usedTypescriptType": "AL_CompleteAnimeCache",
-        "usedStructName": "anilist.CompleteAnimeCache",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Platform",
-        "jsonName": "Platform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MetadataProvider",
-        "jsonName": "MetadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AnilistRateLimiter",
-        "jsonName": "AnilistRateLimiter",
-        "goType": "limiter.Limiter",
-        "typescriptType": "Limiter",
-        "usedTypescriptType": "Limiter",
-        "usedStructName": "limiter.Limiter",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ScanLogger",
-        "jsonName": "ScanLogger",
-        "goType": "ScanLogger",
-        "typescriptType": "Scanner_ScanLogger",
-        "usedTypescriptType": "Scanner_ScanLogger",
-        "usedStructName": "scanner.ScanLogger",
-        "required": false,
-        "public": true,
-        "comments": [
-          " optional"
-        ]
-      },
-      {
-        "name": "ScanSummaryLogger",
-        "jsonName": "ScanSummaryLogger",
-        "goType": "summary.ScanSummaryLogger",
-        "typescriptType": "Summary_ScanSummaryLogger",
-        "usedTypescriptType": "Summary_ScanSummaryLogger",
-        "usedStructName": "summary.ScanSummaryLogger",
-        "required": false,
-        "public": true,
-        "comments": [
-          " optional"
-        ]
-      },
-      {
-        "name": "ForceMediaId",
-        "jsonName": "ForceMediaId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " optional - force all local files to have this media ID"
-        ]
-      }
-    ],
-    "comments": [
-      " FileHydrator hydrates the metadata of all (matched) LocalFiles.",
-      " LocalFiles should already have their media ID hydrated."
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/matcher.go",
-    "filename": "matcher.go",
-    "name": "Matcher",
-    "formattedName": "Scanner_Matcher",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LocalFiles",
-        "jsonName": "LocalFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MediaContainer",
-        "jsonName": "MediaContainer",
-        "goType": "MediaContainer",
-        "typescriptType": "Scanner_MediaContainer",
-        "usedTypescriptType": "Scanner_MediaContainer",
-        "usedStructName": "scanner.MediaContainer",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CompleteAnimeCache",
-        "jsonName": "CompleteAnimeCache",
-        "goType": "anilist.CompleteAnimeCache",
-        "typescriptType": "AL_CompleteAnimeCache",
-        "usedTypescriptType": "AL_CompleteAnimeCache",
-        "usedStructName": "anilist.CompleteAnimeCache",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ScanLogger",
-        "jsonName": "ScanLogger",
-        "goType": "ScanLogger",
-        "typescriptType": "Scanner_ScanLogger",
-        "usedTypescriptType": "Scanner_ScanLogger",
-        "usedStructName": "scanner.ScanLogger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ScanSummaryLogger",
-        "jsonName": "ScanSummaryLogger",
-        "goType": "summary.ScanSummaryLogger",
-        "typescriptType": "Summary_ScanSummaryLogger",
-        "usedTypescriptType": "Summary_ScanSummaryLogger",
-        "usedStructName": "summary.ScanSummaryLogger",
-        "required": false,
-        "public": true,
-        "comments": [
-          " optional"
-        ]
-      },
-      {
-        "name": "Algorithm",
-        "jsonName": "Algorithm",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Threshold",
-        "jsonName": "Threshold",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/scanner/media_container.go",
-    "filename": "media_container.go",
-    "name": "MediaContainerOptions",
-    "formattedName": "Scanner_MediaContainerOptions",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "AllMedia",
-        "jsonName": "AllMedia",
-        "goType": "[]anilist.CompleteAnime",
-        "typescriptType": "Array\u003cAL_CompleteAnime\u003e",
-        "usedTypescriptType": "AL_CompleteAnime",
-        "usedStructName": "anilist.CompleteAnime",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ScanLogger",
-        "jsonName": "ScanLogger",
-        "goType": "ScanLogger",
-        "typescriptType": "Scanner_ScanLogger",
-        "usedTypescriptType": "Scanner_ScanLogger",
-        "usedStructName": "scanner.ScanLogger",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/scanner/media_container.go",
-    "filename": "media_container.go",
-    "name": "MediaContainer",
-    "formattedName": "Scanner_MediaContainer",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "NormalizedMedia",
-        "jsonName": "NormalizedMedia",
-        "goType": "[]anime.NormalizedMedia",
-        "typescriptType": "Array\u003cAnime_NormalizedMedia\u003e",
-        "usedTypescriptType": "Anime_NormalizedMedia",
-        "usedStructName": "anime.NormalizedMedia",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ScanLogger",
-        "jsonName": "ScanLogger",
-        "goType": "ScanLogger",
-        "typescriptType": "Scanner_ScanLogger",
-        "usedTypescriptType": "Scanner_ScanLogger",
-        "usedStructName": "scanner.ScanLogger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "engTitles",
-        "jsonName": "engTitles",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "romTitles",
-        "jsonName": "romTitles",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "synonyms",
-        "jsonName": "synonyms",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "allMedia",
-        "jsonName": "allMedia",
-        "goType": "[]anilist.CompleteAnime",
-        "typescriptType": "Array\u003cAL_CompleteAnime\u003e",
-        "usedTypescriptType": "AL_CompleteAnime",
-        "usedStructName": "anilist.CompleteAnime",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/scanner/media_fetcher.go",
-    "filename": "media_fetcher.go",
-    "name": "MediaFetcher",
-    "formattedName": "Scanner_MediaFetcher",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "AllMedia",
-        "jsonName": "AllMedia",
-        "goType": "[]anilist.CompleteAnime",
-        "typescriptType": "Array\u003cAL_CompleteAnime\u003e",
-        "usedTypescriptType": "AL_CompleteAnime",
-        "usedStructName": "anilist.CompleteAnime",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CollectionMediaIds",
-        "jsonName": "CollectionMediaIds",
-        "goType": "[]int",
-        "typescriptType": "Array\u003cnumber\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UnknownMediaIds",
-        "jsonName": "UnknownMediaIds",
-        "goType": "[]int",
-        "typescriptType": "Array\u003cnumber\u003e",
-        "required": false,
-        "public": true,
-        "comments": [
-          " Media IDs that are not in the user's collection"
-        ]
-      },
-      {
-        "name": "AnimeCollectionWithRelations",
-        "jsonName": "AnimeCollectionWithRelations",
-        "goType": "anilist.AnimeCollectionWithRelations",
-        "typescriptType": "AL_AnimeCollectionWithRelations",
-        "usedTypescriptType": "AL_AnimeCollectionWithRelations",
-        "usedStructName": "anilist.AnimeCollectionWithRelations",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ScanLogger",
-        "jsonName": "ScanLogger",
-        "goType": "ScanLogger",
-        "typescriptType": "Scanner_ScanLogger",
-        "usedTypescriptType": "Scanner_ScanLogger",
-        "usedStructName": "scanner.ScanLogger",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " MediaFetcher holds all anilist.BaseAnime that will be used for the comparison process"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/media_fetcher.go",
-    "filename": "media_fetcher.go",
-    "name": "MediaFetcherOptions",
-    "formattedName": "Scanner_MediaFetcherOptions",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "Platform",
-        "jsonName": "Platform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MetadataProvider",
-        "jsonName": "MetadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "LocalFiles",
-        "jsonName": "LocalFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CompleteAnimeCache",
-        "jsonName": "CompleteAnimeCache",
-        "goType": "anilist.CompleteAnimeCache",
-        "typescriptType": "AL_CompleteAnimeCache",
-        "usedTypescriptType": "AL_CompleteAnimeCache",
-        "usedStructName": "anilist.CompleteAnimeCache",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AnilistRateLimiter",
-        "jsonName": "AnilistRateLimiter",
-        "goType": "limiter.Limiter",
-        "typescriptType": "Limiter",
-        "usedTypescriptType": "Limiter",
-        "usedStructName": "limiter.Limiter",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "DisableAnimeCollection",
-        "jsonName": "DisableAnimeCollection",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ScanLogger",
-        "jsonName": "ScanLogger",
-        "goType": "ScanLogger",
-        "typescriptType": "Scanner_ScanLogger",
-        "usedTypescriptType": "Scanner_ScanLogger",
-        "usedStructName": "scanner.ScanLogger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Database",
-        "jsonName": "Database",
-        "goType": "DatabaseInterface",
-        "typescriptType": "Scanner_DatabaseInterface",
-        "usedTypescriptType": "Scanner_DatabaseInterface",
-        "usedStructName": "scanner.DatabaseInterface",
-        "required": true,
-        "public": true,
-        "comments": [
-          " For global media pool access"
-        ]
-      },
-      {
-        "name": "UserID",
-        "jsonName": "UserID",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " For user subscription tracking"
-        ]
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/scanner/media_fetcher.go",
-    "filename": "media_fetcher.go",
-    "name": "GlobalAnimeMapping",
-    "formattedName": "Scanner_GlobalAnimeMapping",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "AniListID",
-        "jsonName": "AniListID",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " GlobalAnimeMapping represents a mapping from the database"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/media_fetcher.go",
-    "filename": "media_fetcher.go",
-    "name": "DatabaseAdapter",
-    "formattedName": "Scanner_DatabaseAdapter",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "db",
-        "jsonName": "db",
-        "goType": "DatabaseBackend",
-        "typescriptType": "Scanner_DatabaseBackend",
-        "usedTypescriptType": "Scanner_DatabaseBackend",
-        "usedStructName": "scanner.DatabaseBackend",
-        "required": true,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " DatabaseAdapter implements DatabaseInterface using the existing db.Database"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/media_tree_analysis.go",
-    "filename": "media_tree_analysis.go",
-    "name": "MediaTreeAnalysisOptions",
-    "formattedName": "Scanner_MediaTreeAnalysisOptions",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "tree",
-        "jsonName": "tree",
-        "goType": "anilist.CompleteAnimeRelationTree",
-        "typescriptType": "AL_CompleteAnimeRelationTree",
-        "usedTypescriptType": "AL_CompleteAnimeRelationTree",
-        "usedStructName": "anilist.CompleteAnimeRelationTree",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "metadataProvider",
-        "jsonName": "metadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "rateLimiter",
-        "jsonName": "rateLimiter",
-        "goType": "limiter.Limiter",
-        "typescriptType": "Limiter",
-        "usedTypescriptType": "Limiter",
-        "usedStructName": "limiter.Limiter",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/scanner/media_tree_analysis.go",
-    "filename": "media_tree_analysis.go",
-    "name": "MediaTreeAnalysis",
-    "formattedName": "Scanner_MediaTreeAnalysis",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "branches",
-        "jsonName": "branches",
-        "goType": "[]MediaTreeAnalysisBranch",
-        "typescriptType": "Array\u003cScanner_MediaTreeAnalysisBranch\u003e",
-        "usedTypescriptType": "Scanner_MediaTreeAnalysisBranch",
-        "usedStructName": "scanner.MediaTreeAnalysisBranch",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/scanner/media_tree_analysis.go",
-    "filename": "media_tree_analysis.go",
-    "name": "MediaTreeAnalysisBranch",
-    "formattedName": "Scanner_MediaTreeAnalysisBranch",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "media",
-        "jsonName": "media",
-        "goType": "anilist.CompleteAnime",
-        "typescriptType": "AL_CompleteAnime",
-        "usedTypescriptType": "AL_CompleteAnime",
-        "usedStructName": "anilist.CompleteAnime",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "animeMetadata",
-        "jsonName": "animeMetadata",
-        "goType": "metadata.AnimeMetadata",
-        "typescriptType": "Metadata_AnimeMetadata",
-        "usedTypescriptType": "Metadata_AnimeMetadata",
-        "usedStructName": "metadata.AnimeMetadata",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "minPartAbsoluteEpisodeNumber",
-        "jsonName": "minPartAbsoluteEpisodeNumber",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "maxPartAbsoluteEpisodeNumber",
-        "jsonName": "maxPartAbsoluteEpisodeNumber",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "minAbsoluteEpisode",
-        "jsonName": "minAbsoluteEpisode",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "maxAbsoluteEpisode",
-        "jsonName": "maxAbsoluteEpisode",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "totalEpisodeCount",
-        "jsonName": "totalEpisodeCount",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "noAbsoluteEpisodesFound",
-        "jsonName": "noAbsoluteEpisodesFound",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/scanner/multi_token_api.go",
-    "filename": "multi_token_api.go",
-    "name": "MultiTokenAPI",
-    "formattedName": "Scanner_MultiTokenAPI",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "Database",
-        "jsonName": "Database",
-        "goType": "DatabaseInterface",
-        "typescriptType": "Scanner_DatabaseInterface",
-        "usedTypescriptType": "Scanner_DatabaseInterface",
-        "usedStructName": "scanner.DatabaseInterface",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AnilistRateLimiter",
-        "jsonName": "AnilistRateLimiter",
-        "goType": "limiter.Limiter",
-        "typescriptType": "Limiter",
-        "usedTypescriptType": "Limiter",
-        "usedStructName": "limiter.Limiter",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CompleteAnimeCache",
-        "jsonName": "CompleteAnimeCache",
-        "goType": "anilist.CompleteAnimeCache",
-        "typescriptType": "AL_CompleteAnimeCache",
-        "usedTypescriptType": "AL_CompleteAnimeCache",
-        "usedStructName": "anilist.CompleteAnimeCache",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " MultiTokenAPI handles API calls with automatic token rotation"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/multi_token_api.go",
-    "filename": "multi_token_api.go",
-    "name": "AggregatedCollectionResult",
-    "formattedName": "Scanner_AggregatedCollectionResult",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "AllAnime",
-        "jsonName": "AllAnime",
-        "goType": "[]anilist.CompleteAnime",
-        "typescriptType": "Array\u003cAL_CompleteAnime\u003e",
-        "usedTypescriptType": "AL_CompleteAnime",
-        "usedStructName": "anilist.CompleteAnime",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UserCollections",
-        "jsonName": "UserCollections",
-        "goType": "map[uint]anilist.AnimeCollectionWithRelations",
-        "typescriptType": "Record\u003cnumber, AL_AnimeCollectionWithRelations\u003e",
-        "usedTypescriptType": "AL_AnimeCollectionWithRelations",
-        "usedStructName": "anilist.AnimeCollectionWithRelations",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "TotalUsersAccessed",
-        "jsonName": "TotalUsersAccessed",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SuccessfulFetches",
-        "jsonName": "SuccessfulFetches",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "FailedFetches",
-        "jsonName": "FailedFetches",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " AggregatedCollectionResult contains collections from multiple users"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/multi_token_api.go",
-    "filename": "multi_token_api.go",
-    "name": "MatchFileResult",
-    "formattedName": "Scanner_MatchFileResult",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "Success",
-        "jsonName": "Success",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AniListID",
-        "jsonName": "AniListID",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Title",
-        "jsonName": "Title",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Year",
-        "jsonName": "Year",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "EpisodeNumber",
-        "jsonName": "EpisodeNumber",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Confidence",
-        "jsonName": "Confidence",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Error",
-        "jsonName": "Error",
-        "goType": "error",
-        "typescriptType": "Scanner_error",
-        "usedTypescriptType": "Scanner_error",
-        "usedStructName": "scanner.error",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " MatchFileResult contains the result of a file matching attempt"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/scan.go",
-    "filename": "scan.go",
-    "name": "Scanner",
-    "formattedName": "Scanner_Scanner",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "DirPath",
-        "jsonName": "DirPath",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "OtherDirPaths",
-        "jsonName": "OtherDirPaths",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Platform",
-        "jsonName": "Platform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "WSEventManager",
-        "jsonName": "WSEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ExistingLocalFiles",
-        "jsonName": "ExistingLocalFiles",
-        "goType": "[]anime.LocalFile",
-        "typescriptType": "Array\u003cAnime_LocalFile\u003e",
-        "usedTypescriptType": "Anime_LocalFile",
-        "usedStructName": "anime.LocalFile",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "SkipIgnoredFiles",
-        "jsonName": "SkipIgnoredFiles",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ScanSummaryLogger",
-        "jsonName": "ScanSummaryLogger",
-        "goType": "summary.ScanSummaryLogger",
-        "typescriptType": "Summary_ScanSummaryLogger",
-        "usedTypescriptType": "Summary_ScanSummaryLogger",
-        "usedStructName": "summary.ScanSummaryLogger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "ScanLogger",
-        "jsonName": "ScanLogger",
-        "goType": "ScanLogger",
-        "typescriptType": "Scanner_ScanLogger",
-        "usedTypescriptType": "Scanner_ScanLogger",
-        "usedStructName": "scanner.ScanLogger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MetadataProvider",
-        "jsonName": "MetadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MatchingThreshold",
-        "jsonName": "MatchingThreshold",
-        "goType": "float64",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MatchingAlgorithm",
-        "jsonName": "MatchingAlgorithm",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Database",
-        "jsonName": "Database",
-        "goType": "DatabaseInterface",
-        "typescriptType": "Scanner_DatabaseInterface",
-        "usedTypescriptType": "Scanner_DatabaseInterface",
-        "usedStructName": "scanner.DatabaseInterface",
-        "required": true,
-        "public": true,
-        "comments": [
-          " For global media pool"
-        ]
-      },
-      {
-        "name": "UserID",
-        "jsonName": "UserID",
-        "goType": "uint",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": [
-          " For user subscription tracking"
-        ]
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/scanner/scan_logger.go",
-    "filename": "scan_logger.go",
-    "name": "ScanLogger",
-    "formattedName": "Scanner_ScanLogger",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "logger",
-        "jsonName": "logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "logFile",
-        "jsonName": "logFile",
-        "goType": "os.File",
-        "typescriptType": "File",
-        "usedTypescriptType": "File",
-        "usedStructName": "os.File",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "buffer",
-        "jsonName": "buffer",
-        "goType": "bytes.Buffer",
-        "typescriptType": "Buffer",
-        "usedTypescriptType": "Buffer",
-        "usedStructName": "bytes.Buffer",
-        "required": false,
-        "public": false,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " ScanLogger is a custom logger struct for scanning operations."
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/system_scanner.go",
-    "filename": "system_scanner.go",
-    "name": "SystemScanner",
-    "formattedName": "Scanner_SystemScanner",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "Database",
-        "jsonName": "Database",
-        "goType": "DatabaseBackend",
-        "typescriptType": "Scanner_DatabaseBackend",
-        "usedTypescriptType": "Scanner_DatabaseBackend",
-        "usedStructName": "scanner.DatabaseBackend",
-        "required": true,
-        "public": true,
-        "comments": [
-          " Changed from DatabaseInterface to DatabaseBackend"
-        ]
-      },
-      {
-        "name": "Platform",
-        "jsonName": "Platform",
-        "goType": "platform.Platform",
-        "typescriptType": "Platform",
-        "usedTypescriptType": "Platform",
-        "usedStructName": "platform.Platform",
-        "required": false,
-        "public": true,
-        "comments": [
-          " For AniList API access"
-        ]
-      },
-      {
-        "name": "MetadataProvider",
-        "jsonName": "MetadataProvider",
-        "goType": "metadata.Provider",
-        "typescriptType": "Metadata_Provider",
-        "usedTypescriptType": "Metadata_Provider",
-        "usedStructName": "metadata.Provider",
-        "required": false,
-        "public": true,
-        "comments": [
-          " For metadata operations"
-        ]
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "WSEventManager",
-        "jsonName": "WSEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "AnilistRateLimiter",
-        "jsonName": "AnilistRateLimiter",
-        "goType": "limiter.Limiter",
-        "typescriptType": "Limiter",
-        "usedTypescriptType": "Limiter",
-        "usedStructName": "limiter.Limiter",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "CompleteAnimeCache",
-        "jsonName": "CompleteAnimeCache",
-        "goType": "anilist.CompleteAnimeCache",
-        "typescriptType": "AL_CompleteAnimeCache",
-        "usedTypescriptType": "AL_CompleteAnimeCache",
-        "usedStructName": "anilist.CompleteAnimeCache",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "MultiTokenAPI",
-        "jsonName": "MultiTokenAPI",
-        "goType": "MultiTokenAPI",
-        "typescriptType": "Scanner_MultiTokenAPI",
-        "usedTypescriptType": "Scanner_MultiTokenAPI",
-        "usedStructName": "scanner.MultiTokenAPI",
-        "required": false,
-        "public": true,
-        "comments": [
-          " For token rotation strategy"
-        ]
-      }
-    ],
-    "comments": [
-      " SystemScanner handles system-wide library scanning using multi-token strategy"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/system_scanner.go",
-    "filename": "system_scanner.go",
-    "name": "SystemScanOptions",
-    "formattedName": "Scanner_SystemScanOptions",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LibraryPaths",
-        "jsonName": "LibraryPaths",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": [
-          " All library paths from all users"
-        ]
-      },
-      {
-        "name": "SkipExistingFiles",
-        "jsonName": "SkipExistingFiles",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": [
-          " Skip files already in global mappings"
-        ]
-      },
-      {
-        "name": "ForceRescan",
-        "jsonName": "ForceRescan",
-        "goType": "bool",
-        "typescriptType": "boolean",
-        "required": true,
-        "public": true,
-        "comments": [
-          " Force rescan all files"
-        ]
-      }
-    ],
-    "comments": [
-      " SystemScanOptions contains options for system-level scanning"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/system_scanner.go",
-    "filename": "system_scanner.go",
-    "name": "MappedAnimeInfo",
-    "formattedName": "Scanner_MappedAnimeInfo",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "AniListID",
-        "jsonName": "anilistId",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Title",
-        "jsonName": "title",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "EpisodeCount",
-        "jsonName": "episodeCount",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Episodes",
-        "jsonName": "episodes",
-        "goType": "[]int",
-        "typescriptType": "Array\u003cnumber\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " MappedAnimeInfo contains information about a newly mapped anime"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/system_scanner.go",
-    "filename": "system_scanner.go",
-    "name": "SystemScanResult",
-    "formattedName": "Scanner_SystemScanResult",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "FilesProcessed",
-        "jsonName": "filesProcessed",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "NewMappings",
-        "jsonName": "newMappings",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UpdatedMappings",
-        "jsonName": "updatedMappings",
-        "goType": "int",
-        "typescriptType": "number",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Errors",
-        "jsonName": "errors",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Duration",
-        "jsonName": "duration",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "UnmappedFilePaths",
-        "jsonName": "unmappedFilePaths",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": [
-          " For admin queue"
-        ]
-      },
-      {
-        "name": "MappedAnime",
-        "jsonName": "mappedAnime",
-        "goType": "[]MappedAnimeInfo",
-        "typescriptType": "Array\u003cScanner_MappedAnimeInfo\u003e",
-        "usedTypescriptType": "Scanner_MappedAnimeInfo",
-        "usedStructName": "scanner.MappedAnimeInfo",
-        "required": false,
-        "public": true,
-        "comments": [
-          " Detailed info about newly mapped anime"
-        ]
-      }
-    ],
-    "comments": [
-      " SystemScanResult contains the results of a system scan"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/watcher.go",
-    "filename": "watcher.go",
-    "name": "Watcher",
-    "formattedName": "Scanner_Watcher",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "Watcher",
-        "jsonName": "Watcher",
-        "goType": "fsnotify.Watcher",
-        "typescriptType": "Watcher",
-        "usedTypescriptType": "Watcher",
-        "usedStructName": "fsnotify.Watcher",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "WSEventManager",
-        "jsonName": "WSEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "TotalSize",
-        "jsonName": "TotalSize",
-        "goType": "string",
-        "typescriptType": "string",
-        "required": true,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": [
-      " Watcher is a custom file system event watcher"
-    ]
-  },
-  {
-    "filepath": "../internal/library/scanner/watcher.go",
-    "filename": "watcher.go",
-    "name": "NewWatcherOptions",
-    "formattedName": "Scanner_NewWatcherOptions",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "Logger",
-        "jsonName": "Logger",
-        "goType": "zerolog.Logger",
-        "typescriptType": "Logger",
-        "usedTypescriptType": "Logger",
-        "usedStructName": "zerolog.Logger",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
-        "name": "WSEventManager",
-        "jsonName": "WSEventManager",
-        "goType": "events.WSEventManagerInterface",
-        "typescriptType": "Events_WSEventManagerInterface",
-        "usedTypescriptType": "Events_WSEventManagerInterface",
-        "usedStructName": "events.WSEventManagerInterface",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
-    "filepath": "../internal/library/scanner/watcher.go",
-    "filename": "watcher.go",
-    "name": "WatchLibraryFilesOptions",
-    "formattedName": "Scanner_WatchLibraryFilesOptions",
-    "package": "scanner",
-    "fields": [
-      {
-        "name": "LibraryPaths",
-        "jsonName": "LibraryPaths",
-        "goType": "[]string",
-        "typescriptType": "Array\u003cstring\u003e",
-        "required": false,
-        "public": true,
-        "comments": []
-      }
-    ],
-    "comments": []
-  },
-  {
     "filepath": "../internal/library/summary/scan_summary.go",
     "filename": "scan_summary.go",
     "name": "LogType",
@@ -50056,17 +47719,6 @@
         "typescriptType": "ProgressManager",
         "usedTypescriptType": "ProgressManager",
         "usedStructName": "sync.ProgressManager",
-        "required": false,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "enhancedWatcher",
-        "jsonName": "enhancedWatcher",
-        "goType": "scanner.EnhancedWatcher",
-        "typescriptType": "Scanner_EnhancedWatcher",
-        "usedTypescriptType": "Scanner_EnhancedWatcher",
-        "usedStructName": "scanner.EnhancedWatcher",
         "required": false,
         "public": false,
         "comments": []
@@ -57948,17 +55600,6 @@
         "comments": []
       },
       {
-        "name": "AutoScanner",
-        "jsonName": "AutoScanner",
-        "goType": "autoscanner.AutoScanner",
-        "typescriptType": "AutoScanner_AutoScanner",
-        "usedTypescriptType": "AutoScanner_AutoScanner",
-        "usedStructName": "autoscanner.AutoScanner",
-        "required": false,
-        "public": true,
-        "comments": []
-      },
-      {
         "name": "AutoDownloader",
         "jsonName": "AutoDownloader",
         "goType": "autodownloader.AutoDownloader",
@@ -58123,15 +55764,6 @@
       {
         "name": "continuityManager",
         "jsonName": "continuityManager",
-        "goType": "",
-        "typescriptType": "any",
-        "required": true,
-        "public": false,
-        "comments": []
-      },
-      {
-        "name": "autoScanner",
-        "jsonName": "autoScanner",
         "goType": "",
         "typescriptType": "any",
         "required": true,

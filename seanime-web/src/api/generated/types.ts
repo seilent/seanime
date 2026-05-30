@@ -2104,6 +2104,22 @@ export type ExtensionRepo_UpdateData = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
+ * - Filepath: internal/handlers/torrent_client.go
+ * - Filename: torrent_client.go
+ * - Package: handlers
+ * @description
+ *  ActiveDownloadItem represents an in-progress download mapped to an episode.
+ */
+export type ActiveDownloadItem = {
+    mediaId: number
+    /**
+     * 0 = whole batch / unknown
+     */
+    episode: number
+    progress: number
+}
+
+/**
  * - Filepath: internal/handlers/docs.go
  * - Filename: docs.go
  * - Package: handlers

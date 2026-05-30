@@ -1692,6 +1692,16 @@ export const API_ENDPOINTS = {
             methods: ["POST"],
             endpoint: "/api/v1/torrent-client/rule-magnet",
         },
+        /**
+         *  @description
+         *  Route returns currently downloading episodes with progress.
+         *  This handler is used by the client to show download spinners on episodes.
+         */
+        GetActiveDownloads: {
+            key: "TORRENT-CLIENT-get-active-downloads",
+            methods: ["GET"],
+            endpoint: "/api/v1/torrent-client/active-downloads",
+        },
     },
     TORRENT_SEARCH: {
         /**
