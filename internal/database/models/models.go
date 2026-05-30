@@ -592,3 +592,28 @@ type PendingDownloadIntent struct {
 	MediaID   int    `gorm:"column:media_id" json:"mediaId"`
 	Completed bool   `gorm:"column:completed" json:"completed"`
 }
+
+// +---------------------+
+// |   Collection Cache  |
+// +---------------------+
+
+// CachedMedia stores individual media objects from AniList collections for SWR cache rehydration.
+type CachedMedia struct {
+	AnilistID   int       `gorm:"column:anilist_id;primaryKey" json:"anilistId"`
+	Type        string    `gorm:"column:type;index" json:"type"`                // "anime" or "manga"
+	Format      string    `gorm:"column:format" json:"format"`
+	Status      string    `gorm:"column:status" json:"status"`
+	Season      string    `gorm:"column:season" json:"season"`
+	SeasonYear  int       `gorm:"column:season_year" json:"seasonYear"`
+	TitleRomaji string    `gorm:"column:title_romaji" json:"titleRomaji"`
+	Data        []byte    `gorm:"column:data" json:"data"`
+	UpdatedAt   time.Time `gorm:"column:updated_at" json:"updatedAt"`
+}
+
+// CachedUserMediaList stores a user's collection skeleton (entries with media stripped to id-only) for SWR cache.
+type CachedUserMediaList struct {
+	BaseModel
+	UserID  uint   `gorm:"column:user_id;index:idx_user_variant,unique" json:"userId"`
+	Variant string `gorm:"column:variant;index:idx_user_variant,unique" json:"variant"` // "anime", "anime_raw", "manga", "manga_raw"
+	Data    []byte `gorm:"column:data" json:"data"`
+}
