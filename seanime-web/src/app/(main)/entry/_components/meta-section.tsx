@@ -48,11 +48,10 @@ export function MetaSection(props: { entry: Anime_Entry, details: AL_AnimeDetail
     const serverStatus = useServerStatus()
     const { entry, details } = props
     const ts = useThemeSettings()
-
-    if (!entry.media) return null
-
     const { hasTorrentProvider } = useHasTorrentProvider()
     const { currentView, isLibraryView } = useAnimeEntryPageView()
+
+    if (!entry.media) return null
 
     const ActionButtons = () => (
         <div
