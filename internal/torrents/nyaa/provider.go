@@ -291,6 +291,12 @@ func buildSmartSearchQueries(opts *hibiketorrent.AnimeSmartSearchOptions) ([]str
 			if season != 0 {
 				titles[i] = strings.ReplaceAll(titles[i], " iii", "")
 				titles[i] = strings.ReplaceAll(titles[i], " ii", "")
+				// Strip trailing season number from titles (e.g. "lastame 2" -> "lastame")
+				// since the season string already covers it
+				seasonSuffix := " " + strconv.Itoa(season)
+				if strings.HasSuffix(titles[i], seasonSuffix) {
+					titles[i] = strings.TrimSuffix(titles[i], seasonSuffix)
+				}
 			}
 		}
 		titles = lo.Uniq(titles)
