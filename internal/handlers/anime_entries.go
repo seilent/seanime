@@ -805,7 +805,10 @@ func (h *Handler) HandleValidateAnimeEntryLocalFiles(c echo.Context) error {
 										EpisodeNumber: episodeNumber,
 									}
 
-									err = h.App.Database.CreateGlobalMapping(newMapping)
+									// Upsert (not Create): the file may already have a mapping under a
+									// different or zero anilist_id (ignored, or matched to another media),
+									// which would violate the local_file_path UNIQUE constraint on INSERT.
+									err = h.App.Database.UpsertGlobalMapping(newMapping)
 									if err != nil {
 										h.App.Logger.Error().Err(err).Str("path", filePath).Msg("anime-entry: Failed to create global mapping")
 									} else {
