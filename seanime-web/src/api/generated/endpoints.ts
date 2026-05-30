@@ -7,29 +7,6 @@ export type ApiEndpoints = Record<string, Record<string, {
 }>>
 
 export const API_ENDPOINTS = {
-    ADMIN_SYSTEM_SCAN: {
-        /**
-         *  @description
-         *  Route Start system-wide library scan
-         *  Initiates a system-wide scan of all library paths using multi-token strategy
-         *  Requires admin privileges
-         */
-        StartSystemScan: {
-            key: "ADMIN-SYSTEM-SCAN-start-system-scan",
-            methods: ["POST"],
-            endpoint: "/api/v1/admin/system-scan/start",
-        },
-        /**
-         *  @description
-         *  Route Get system scan status
-         *  Returns the current status of system scanning operations
-         */
-        GetSystemScanStatus: {
-            key: "ADMIN-SYSTEM-SCAN-get-system-scan-status",
-            methods: ["GET"],
-            endpoint: "/api/v1/admin/system-scan/status",
-        },
-    },
     ANILIST: {
         /**
          *  @description
@@ -259,7 +236,7 @@ export const API_ENDPOINTS = {
          *  @description
          *  Route matches un-matched local files in the given directory to the given media.
          *  It is used by the "Resolve unmatched media" feature to manually match local files to a specific media entry.
-         *  Matching involves the use of scanner.FileHydrator. It will also lock the files.
+         *  Matching involves the use of filehydrator.FileHydrator. It will also lock the files.
          *  The response is not used in the frontend. The client should just refetch the entire library collection.
          */
         AnimeEntryManualMatch: {
@@ -1188,13 +1165,6 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/manga/downloads",
         },
     },
-    MANUAL_DUMP: {
-        TestDump: {
-            key: "MANUAL-DUMP-test-dump",
-            methods: ["POST"],
-            endpoint: "/api/v1/test-dump",
-        },
-    },
     MEDIASTREAM: {
         /**
          *  @description
@@ -1344,26 +1314,6 @@ export const API_ENDPOINTS = {
             endpoint: "/api/v1/report/issue/download",
         },
     },
-    SCAN: {
-        /**
-         *  @description
-         *  Route scans the user's library.
-         *  This will scan the user's library.
-         *  The response is ignored, the client should re-fetch the library after this.
-         */
-        ScanLocalFiles: {
-            key: "SCAN-scan-local-files",
-            methods: ["POST"],
-            endpoint: "/api/v1/library/scan",
-        },
-    },
-    SCAN_SUMMARY: {
-        GetScanSummaries: {
-            key: "SCAN-SUMMARY-get-scan-summaries",
-            methods: ["GET"],
-            endpoint: "/api/v1/library/scan-summaries",
-        },
-    },
     SETTINGS: {
         GetSettings: {
             key: "SETTINGS-get-settings",
@@ -1431,18 +1381,6 @@ export const API_ENDPOINTS = {
             key: "SETTINGS-save-settings",
             methods: ["PATCH"],
             endpoint: "/api/v1/settings",
-        },
-        /**
-         *  @description
-         *  Route triggers a manual library scan.
-         *  This endpoint triggers a manual library scan to discover new files and update the library.
-         *  It uses the same scan logic as the automatic file watcher but can be triggered on-demand.
-         *  Admin-only operation as it affects system-wide file scanning for all users.
-         */
-        TriggerLibraryScan: {
-            key: "SETTINGS-trigger-library-scan",
-            methods: ["POST"],
-            endpoint: "/api/v1/admin/system-scan/trigger",
         },
         SaveAutoDownloaderSettings: {
             key: "SETTINGS-save-auto-downloader-settings",
