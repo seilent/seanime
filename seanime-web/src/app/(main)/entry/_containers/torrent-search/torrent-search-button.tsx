@@ -19,6 +19,7 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
 
     // SubsPlease sync state
     const [spEpisodes, setSpEpisodes] = useState<HibikeTorrent_AnimeTorrent[]>([])
+    const [spChecked, setSpChecked] = useState(false)
     const syncStarted = useRef(false)
     const syncCount = useRef(0)
 
@@ -30,6 +31,7 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
         onSuccess: (data) => {
             if (!syncStarted.current) {
                 setSpEpisodes(data || [])
+                setSpChecked(true)
             }
         },
     })
@@ -72,6 +74,11 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
                 </AnimeMetaActionButton>
             </div>
         )
+    }
+
+    // Fully synced with SubsPlease — hide button
+    if (spChecked && spEpisodes.length === 0) {
+        return null
     }
 
     // If SubsPlease has episodes to sync, show sync button
