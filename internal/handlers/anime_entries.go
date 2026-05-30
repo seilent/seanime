@@ -10,7 +10,6 @@ import (
 	"seanime/internal/database/models"
 	"seanime/internal/hook"
 	"seanime/internal/library/anime"
-	"seanime/internal/library/filesystem"
 	"seanime/internal/library/filehydrator"
 	"seanime/internal/library/summary"
 	"seanime/internal/platforms/platform"
@@ -630,9 +629,9 @@ func (h *Handler) HandleUpdateAnimeEntryRepeat(c echo.Context) error {
 
 // HandleValidateAnimeEntryLocalFiles
 //
-//	@summary validates and removes non-existent local files, and scans for new files for a specific media.
+//	@summary validates existing file mappings and removes entries whose files no longer exist on disk.
 //	@desc This checks if the local files associated with the given media ID actually exist on disk.
-//	@desc It also scans the media's directory to find any new files that aren't in the database yet.
+//	@desc If a mapped file path is missing, the mapping is deleted. No new mappings are added.
 //	@desc This is called automatically when opening an anime entry page to ensure data consistency.
 //	@route /api/v1/library/anime-entry/validate-local-files [POST]
 //	returns bool
@@ -664,10 +663,8 @@ func (h *Handler) HandleValidateAnimeEntryLocalFiles(c echo.Context) error {
 
 	// Step 1: Validate existing mappings and remove non-existent files
 	removedCount := 0
-	existingPathsMap := make(map[string]bool)
 
 	for _, mapping := range existingMappings {
-		existingPathsMap[mapping.LocalFilePath] = true
 		if _, err := os.Stat(mapping.LocalFilePath); err != nil {
 			// File doesn't exist, remove from database
 			h.App.Logger.Debug().
@@ -688,177 +685,10 @@ func (h *Handler) HandleValidateAnimeEntryLocalFiles(c echo.Context) error {
 		Int("removedCount", removedCount).
 		Msg("anime-entry: File validation summary")
 
-	// Step 2: Scan directories to find new files
-	libraryPaths, err := h.App.Database.GetAllLibraryPathsFromSettings()
-	if err != nil {
-		h.App.Logger.Warn().Err(err).Msg("anime-entry: Failed to get library paths for scanning")
-	}
-
-	addedCount := 0
-	if len(libraryPaths) > 0 {
-		// Find the directory containing the media files
-		mediaDir := ""
-
-		// First, try to find directory from existing valid mappings
-		for _, mapping := range existingMappings {
-			if _, err := os.Stat(mapping.LocalFilePath); err == nil {
-				mediaDir = filepath.Dir(mapping.LocalFilePath)
-				h.App.Logger.Debug().Str("dir", mediaDir).Msg("anime-entry: Found directory from existing files")
-				break
-			}
-		}
-
-		// If no valid files, construct expected directory path from media title
-		if mediaDir == "" {
-			if userPlatform, err := h.GetUserPlatform(c); err == nil {
-				media, err := userPlatform.GetAnime(c.Request().Context(), b.MediaId)
-				if err == nil && media != nil {
-					title := media.GetTitleSafe()
-					if title == "" {
-						title = media.GetPreferredTitle()
-					}
-
-					if title != "" {
-						sanitizedTitle := strings.ReplaceAll(title, ":", " ")
-						sanitizedTitle = strings.TrimSpace(sanitizedTitle)
-
-						for _, libPath := range libraryPaths {
-							expectedDir := filepath.Join(libPath, sanitizedTitle)
-							if info, err := os.Stat(expectedDir); err == nil && info.IsDir() {
-								mediaDir = expectedDir
-								h.App.Logger.Debug().
-									Str("dir", mediaDir).
-									Str("title", title).
-									Msg("anime-entry: Found directory from media title")
-								break
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if mediaDir != "" {
-			h.App.Logger.Debug().
-				Int("mediaId", b.MediaId).
-				Str("scanDir", mediaDir).
-				Msg("anime-entry: Scanning directory for new files")
-
-			// Scan this directory for new files
-			allFilePaths, err := filesystem.GetMediaFilePathsFromDir(mediaDir)
-			if err != nil {
-				h.App.Logger.Warn().Err(err).Str("dir", mediaDir).Msg("anime-entry: Failed to scan directory")
-			} else {
-				// Skip files that belong to an in-progress download. qBittorrent
-				// writes to the final filename while downloading, so without this a
-				// partial file would be mapped here and wrongly appear playable. The
-				// download monitor maps these on completion instead.
-				var downloadingPaths []string
-				if torrents, terr := h.App.TorrentClientRepository.GetList(); terr == nil {
-					for _, t := range torrents {
-						if t.Progress < 1.0 && t.ContentPath != "" {
-							downloadingPaths = append(downloadingPaths, filepath.Clean(t.ContentPath))
-						}
-					}
-				}
-
-				// Find new files that aren't in the database
-				for _, filePath := range allFilePaths {
-					cleanPath := filepath.Clean(filePath)
-					stillDownloading := false
-					for _, dp := range downloadingPaths {
-						if cleanPath == dp || strings.HasPrefix(cleanPath, dp+string(os.PathSeparator)) {
-							stillDownloading = true
-							break
-						}
-					}
-					if stillDownloading {
-						continue
-					}
-					if !existingPathsMap[filePath] {
-						// Create new LocalFile to extract metadata
-						newLf := anime.NewLocalFile(filePath, libraryPaths[0])
-						if newLf != nil {
-							newLf.MediaId = b.MediaId
-
-							// Extract metadata using FileHydrator
-							if userPlatform, err := h.GetUserPlatform(c); err == nil {
-								media, err := userPlatform.GetAnime(c.Request().Context(), b.MediaId)
-								if err == nil && media != nil {
-									normalizedMedia := []*anime.NormalizedMedia{
-										anime.NewNormalizedMedia(media),
-									}
-
-									fh := &filehydrator.FileHydrator{
-										LocalFiles:         []*anime.LocalFile{newLf},
-										CompleteAnimeCache: anilist.NewCompleteAnimeCache(),
-										Platform:           userPlatform,
-										MetadataProvider:   h.App.MetadataProvider,
-										Logger:             h.App.Logger,
-										AllMedia:           normalizedMedia,
-										ForceMediaId:       b.MediaId,
-									}
-									fh.HydrateMetadata()
-
-									// Create global mapping from LocalFile
-									episodeNumber := 0
-									if newLf.Metadata != nil && newLf.Metadata.Episode > 0 {
-										episodeNumber = newLf.Metadata.Episode
-									} else if newLf.ParsedData != nil && newLf.ParsedData.Episode != "" {
-										if ep, err := strconv.Atoi(newLf.ParsedData.Episode); err == nil {
-											episodeNumber = ep
-										}
-									}
-
-									// Create global mapping
-									romajiTitle := ""
-									if v := media.GetTitle().GetRomaji(); v != nil {
-										romajiTitle = *v
-									}
-									englishTitle := ""
-									if v := media.GetTitle().GetEnglish(); v != nil {
-										englishTitle = *v
-									}
-
-									newMapping := &models.GlobalAnimeFileMapping{
-										AniListID:     b.MediaId,
-										LocalFilePath: filePath,
-										Title:         media.GetTitleSafe(),
-										RomajiTitle:   romajiTitle,
-										EnglishTitle:  englishTitle,
-										EpisodeNumber: episodeNumber,
-									}
-
-									// Upsert (not Create): the file may already have a mapping under a
-									// different or zero anilist_id (ignored, or matched to another media),
-									// which would violate the local_file_path UNIQUE constraint on INSERT.
-									err = h.App.Database.UpsertGlobalMapping(newMapping)
-									if err != nil {
-										h.App.Logger.Error().Err(err).Str("path", filePath).Msg("anime-entry: Failed to create global mapping")
-									} else {
-										addedCount++
-										existingPathsMap[filePath] = true
-
-										h.App.Logger.Debug().
-											Str("path", filePath).
-											Int("mediaId", b.MediaId).
-											Int("episode", episodeNumber).
-											Msg("anime-entry: Added new local file")
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
 	h.App.Logger.Info().
 		Int("mediaId", b.MediaId).
 		Int("removedCount", removedCount).
-		Int("addedCount", addedCount).
-		Msg("anime-entry: Validated local files and updated database")
+		Msg("anime-entry: Validated local files")
 
 	return h.RespondWithData(c, true)
 }
