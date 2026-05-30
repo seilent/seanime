@@ -6,7 +6,7 @@ import { __torrentSearch_selectionAtom } from "@/app/(main)/entry/_containers/to
 import { useServerMutation } from "@/api/client/requests"
 import { useSetAtom } from "jotai/react"
 import React, { useEffect, useMemo, useState } from "react"
-import { BiDownload } from "react-icons/bi"
+import { BiCheck, BiDownload } from "react-icons/bi"
 import { FiSearch } from "react-icons/fi"
 
 export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
@@ -17,8 +17,9 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
     const count = entry.downloadInfo?.episodesToDownload?.length
     const isMovie = useMemo(() => entry.media?.format === "MOVIE", [entry.media?.format])
 
-    // SubsPlease direct download state
+    // SubsPlease sync state
     const [spEpisodes, setSpEpisodes] = useState<HibikeTorrent_AnimeTorrent[]>([])
+    const [synced, setSynced] = useState(false)
 
     // Check SubsPlease for available episodes
     const { mutate: fetchSpEpisodes } = useServerMutation<HibikeTorrent_AnimeTorrent[], { media: any }>({
@@ -38,7 +39,7 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
 
     // Download mutation
     const { mutate: download, isPending } = useTorrentClientDownload(() => {
-        setSpEpisodes([])
+        setSynced(true)
     })
 
     const handleDirectDownload = () => {
@@ -52,7 +53,25 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
         })
     }
 
-    // If SubsPlease has missing episodes, show direct download button
+    // Show synced state after download started
+    if (synced) {
+        return (
+            <div className="contents" data-torrent-search-button-container>
+                <AnimeMetaActionButton
+                    intent="gray-subtle"
+                    size="md"
+                    leftIcon={<BiCheck />}
+                    iconClass="text-2xl"
+                    disabled
+                    data-torrent-search-button
+                >
+                    Downloading {spEpisodes.length} episode{spEpisodes.length > 1 ? "s" : ""}
+                </AnimeMetaActionButton>
+            </div>
+        )
+    }
+
+    // If SubsPlease has episodes to sync, show sync button
     if (spEpisodes.length > 0) {
         return (
             <div className="contents" data-torrent-search-button-container>
