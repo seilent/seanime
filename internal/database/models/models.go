@@ -583,9 +583,11 @@ type UserProgressSyncItem struct {
 // PendingDownloadIntent tracks torrents started by seanime so completion can be detected
 type PendingDownloadIntent struct {
 	BaseModel
-	Hash      string `gorm:"column:hash;uniqueIndex" json:"hash"`
-	MediaID   int    `gorm:"column:media_id" json:"mediaId"`
-	Completed bool   `gorm:"column:completed" json:"completed"`
+	Hash         string `gorm:"column:hash;uniqueIndex" json:"hash"`
+	MediaID      int    `gorm:"column:media_id" json:"mediaId"`
+	Completed    bool   `gorm:"column:completed" json:"completed"`
+	FlattenState string `gorm:"column:flatten_state" json:"flattenState"` // ""=pending, "linked"
+	ContentPath  string `gorm:"column:content_path" json:"contentPath"`
 }
 
 // +---------------------+

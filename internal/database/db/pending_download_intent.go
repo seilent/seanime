@@ -36,3 +36,8 @@ func (db *Database) GetIncompleteIntentHashes() (map[string]struct{}, error) {
 	}
 	return m, nil
 }
+
+func (db *Database) SetPendingDownloadIntentLinked(hash, contentPath string) error {
+	return db.gormdb.Model(&models.PendingDownloadIntent{}).Where("hash = ?", hash).
+		Updates(map[string]interface{}{"flatten_state": "linked", "content_path": contentPath}).Error
+}

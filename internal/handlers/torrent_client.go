@@ -157,11 +157,8 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 	// Check if downloading a batch torrent
 	isBatchDownload := len(b.Torrents) == 1 && b.Torrents[0].IsBatch
 
-	// For batch downloads or explicit request, delete existing files.
-	// Skip when smart-select is enabled: smart-select only downloads the MISSING
-	// episodes, so deleting existing files here would destroy episodes the user
-	// already has without ever re-downloading them.
-	if (isBatchDownload && !b.SmartSelect.Enabled) || b.DeleteExistingFiles {
+	// For batch downloads or explicit request, delete existing files
+	if isBatchDownload || b.DeleteExistingFiles {
 		if b.Media != nil {
 			// Get all local files for this media
 			localFiles, err := db_bridge.GetLocalFilesByMediaId(h.App.Database, b.Media.ID)
@@ -177,6 +174,8 @@ func (h *Handler) HandleTorrentClientDownload(c echo.Context) error {
 						Msg("Some files could not be deleted immediately, added to cleanup queue")
 				}
 			}
+			// Purge all existing mappings for this media so new download starts fresh
+			_ = h.App.Database.DeleteGlobalMappingsByAniListID(b.Media.ID)
 		}
 	}
 

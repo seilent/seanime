@@ -68,6 +68,11 @@ func (db *Database) UpdateGlobalMappingMediaId(filePath string, mediaId int) err
 		Update("anilist_id", mediaId).Error
 }
 
+// DeleteGlobalMappingsByAniListID deletes all mappings for a given AniList media ID
+func (db *Database) DeleteGlobalMappingsByAniListID(aniListID int) error {
+	return db.gormdb.Where("anilist_id = ?", aniListID).Delete(&models.GlobalAnimeFileMapping{}).Error
+}
+
 // DeleteGlobalMappingsByPaths deletes mappings for the given paths
 func (db *Database) DeleteGlobalMappingsByPaths(paths []string) error {
 	if len(paths) == 0 {

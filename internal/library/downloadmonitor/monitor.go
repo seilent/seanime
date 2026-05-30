@@ -6,6 +6,7 @@ import (
 	"seanime/internal/database/db"
 	"seanime/internal/database/models"
 	"seanime/internal/torrent_clients/torrent_client"
+	"seanime/internal/util"
 	"strconv"
 	"strings"
 	"sync"
@@ -82,29 +83,63 @@ func (m *Monitor) tick() {
 	}
 
 	for _, intent := range intents {
-		t, ok := byHash[intent.Hash]
-		if !ok {
-			continue
-		}
-		if t.Progress < 1.0 && t.Status != torrent_client.TorrentStatusSeeding && t.Status != torrent_client.TorrentStatusStopped {
+		t, found := byHash[intent.Hash]
+
+		// PHASE 1 — flatten + map (when files fully downloaded, once)
+		if intent.FlattenState != "linked" {
+			if !found || t.Progress < 1.0 {
+				continue // wait for full download
+			}
+
+			contentPath := t.ContentPath
+			info, statErr := os.Stat(contentPath)
+			isFolder := statErr == nil && info.IsDir()
+			videos := collectVideos(contentPath)
+			destDir := filepath.Dir(contentPath) // anime/<Title>/
+			storedContentPath := ""
+
+			for _, v := range videos {
+				target := v
+				if isFolder {
+					target = filepath.Join(destDir, filepath.Base(v))
+					if e := util.HardlinkOrCopy(v, target); e != nil {
+						m.logger.Warn().Err(e).Str("src", v).Str("dst", target).Msg("downloadmonitor: hardlink failed, mapping original")
+						target = v // fall back to mapping original path
+					}
+				}
+				ep := parseEpisode(filepath.Base(target), len(videos))
+				m.db.UpsertGlobalMapping(&models.GlobalAnimeFileMapping{
+					AniListID:     intent.MediaID,
+					LocalFilePath: target,
+					EpisodeNumber: ep,
+					FileType:      "main",
+					LastScanned:   time.Now(),
+				})
+			}
+
+			if isFolder {
+				storedContentPath = contentPath
+			}
+			m.db.SetPendingDownloadIntentLinked(intent.Hash, storedContentPath)
+			m.logger.Info().Str("hash", intent.Hash).Int("files", len(videos)).Msg("downloadmonitor: Linked intent")
 			continue
 		}
 
-		// Torrent is complete — walk for video files
-		videos := collectVideos(t.ContentPath)
-		for _, path := range videos {
-			ep := parseEpisode(filepath.Base(path), len(videos))
-			m.db.UpsertGlobalMapping(&models.GlobalAnimeFileMapping{
-				AniListID:     intent.MediaID,
-				LocalFilePath: path,
-				EpisodeNumber: ep,
-				FileType:      "main",
-				LastScanned:   time.Now(),
-			})
+		// PHASE 2 — cleanup torrent subfolder after seeding stops (or torrent gone)
+		if found && t.Status != torrent_client.TorrentStatusStopped {
+			continue // still seeding
+		}
+
+		if intent.ContentPath != "" {
+			parent := filepath.Dir(intent.ContentPath)
+			// SAFETY: only remove a proper subfolder, never the parent anime/<Title>/ or above
+			if intent.ContentPath != parent && filepath.Base(intent.ContentPath) != "" {
+				os.RemoveAll(intent.ContentPath)
+			}
 		}
 
 		m.db.MarkPendingDownloadIntentCompleted(intent.Hash)
-		m.logger.Info().Str("hash", intent.Hash).Int("files", len(videos)).Msg("downloadmonitor: Completed intent")
+		m.logger.Info().Str("hash", intent.Hash).Msg("downloadmonitor: Completed intent")
 	}
 }
 

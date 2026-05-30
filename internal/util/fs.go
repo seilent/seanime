@@ -417,3 +417,37 @@ func GetDeepestFile(src string) (fp string) {
 
 	return ""
 }
+
+// HardlinkOrCopy creates a hardlink from src to dst. Falls back to byte-copy on cross-device or other link errors.
+func HardlinkOrCopy(src, dst string) error {
+	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+		return err
+	}
+	// If dst already exists and is the same file (same inode), nothing to do
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if dstInfo, err := os.Stat(dst); err == nil {
+		if os.SameFile(srcInfo, dstInfo) {
+			return nil
+		}
+	}
+	// Try hardlink first
+	if err := os.Link(src, dst); err == nil {
+		return nil
+	}
+	// Fallback: copy bytes
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, srcInfo.Mode())
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	return err
+}
