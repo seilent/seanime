@@ -6,8 +6,10 @@ import (
 	"seanime/internal/database/db"
 	"seanime/internal/database/models"
 	"seanime/internal/events"
+	"seanime/internal/mediastream/videofile"
 	"seanime/internal/torrent_clients/torrent_client"
 	"seanime/internal/util"
+	"seanime/internal/util/filecache"
 	"strconv"
 	"strings"
 	"sync"
@@ -28,14 +30,21 @@ type downloadProgressItem struct {
 }
 
 type Monitor struct {
-	db             *db.Database
-	repo           *torrent_client.Repository
-	logger         *zerolog.Logger
-	wsEventManager events.WSEventManagerInterface
+	db                 *db.Database
+	repo               *torrent_client.Repository
+	logger             *zerolog.Logger
+	wsEventManager     events.WSEventManagerInterface
+	mediaInfoExtractor *videofile.MediaInfoExtractor
 }
 
-func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logger, wsEventManager events.WSEventManagerInterface) *Monitor {
-	return &Monitor{db: db, repo: repo, logger: logger, wsEventManager: wsEventManager}
+func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logger, wsEventManager events.WSEventManagerInterface, fileCacher *filecache.Cacher) *Monitor {
+	return &Monitor{
+		db:                 db,
+		repo:               repo,
+		logger:             logger,
+		wsEventManager:     wsEventManager,
+		mediaInfoExtractor: videofile.NewMediaInfoExtractor(fileCacher, logger),
+	}
 }
 
 var (
@@ -190,6 +199,11 @@ func (m *Monitor) tick() {
 					FileType:      "main",
 					LastScanned:   time.Now(),
 				})
+
+				// Pre-extract media info so it's cached before first playback
+				if _, err := m.mediaInfoExtractor.GetInfo("ffprobe", target); err != nil {
+					m.logger.Warn().Err(err).Str("path", target).Msg("downloadmonitor: failed to extract media info")
+				}
 			}
 
 			if isFolder {
