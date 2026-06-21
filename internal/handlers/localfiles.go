@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/sourcegraph/conc/pool"
 )
 
 // HandleGetLocalFiles
@@ -211,11 +210,15 @@ func (h *Handler) HandleDeleteLocalFiles(c echo.Context) error {
 	if err != nil {
 		return h.RespondWithError(c, err)
 	}
+	for i, lp := range libraryPaths {
+		libraryPaths[i] = filepath.Clean(lp)
+	}
 	for _, p := range b.Paths {
 		abs, err := filepath.Abs(p)
 		if err != nil {
 			return h.RespondWithError(c, errors.New("invalid path"))
 		}
+		abs = filepath.Clean(abs)
 		inside := false
 		for _, lp := range libraryPaths {
 			if strings.HasPrefix(abs, lp+string(filepath.Separator)) || abs == lp {
@@ -228,16 +231,11 @@ func (h *Handler) HandleDeleteLocalFiles(c echo.Context) error {
 		}
 	}
 
-	// Delete the files from disk
-	p := pool.New().WithErrors()
+	// Delete the files from disk (tolerate already-missing files)
 	for _, path := range b.Paths {
-		path := path
-		p.Go(func() error {
-			return os.Remove(path)
-		})
-	}
-	if err := p.Wait(); err != nil {
-		return h.RespondWithError(c, err)
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return h.RespondWithError(c, err)
+		}
 	}
 
 	// Remove from global mappings
