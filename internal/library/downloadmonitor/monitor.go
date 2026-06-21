@@ -226,7 +226,17 @@ func (m *Monitor) tick() {
 			cp := filepath.Clean(intent.ContentPath)
 			dest := filepath.Clean(intent.Destination)
 			if cp != dest && filepath.Dir(cp) == dest {
-				os.RemoveAll(cp)
+				libraryPaths, _ := m.db.GetAllLibraryPathsFromSettings()
+				inside := false
+				for _, lp := range libraryPaths {
+					if strings.HasPrefix(cp, lp+string(filepath.Separator)) || cp == lp {
+						inside = true
+						break
+					}
+				}
+				if inside {
+					os.RemoveAll(cp)
+				}
 			}
 		}
 

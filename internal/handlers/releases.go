@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"net/http"
 	"seanime/internal/updater"
@@ -27,6 +28,11 @@ func (h *Handler) HandleInstallLatestUpdate(c echo.Context) error {
 	var b body
 	if err := c.Bind(&b); err != nil {
 		return h.RespondWithError(c, err)
+	}
+
+	user := h.getCurrentUser(c)
+	if user == nil || !user.IsAdmin() {
+		return h.RespondWithError(c, errors.New("admin access required"))
 	}
 
 	go func() {

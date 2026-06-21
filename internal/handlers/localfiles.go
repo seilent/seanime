@@ -3,11 +3,13 @@ package handlers
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/database/models"
 	"seanime/internal/library/anime"
 	"seanime/internal/library/filesystem"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sourcegraph/conc/pool"
@@ -203,6 +205,27 @@ func (h *Handler) HandleDeleteLocalFiles(c echo.Context) error {
 	b := new(body)
 	if err := c.Bind(b); err != nil {
 		return h.RespondWithError(c, err)
+	}
+
+	libraryPaths, err := h.App.Database.GetAllLibraryPathsFromSettings()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+	for _, p := range b.Paths {
+		abs, err := filepath.Abs(p)
+		if err != nil {
+			return h.RespondWithError(c, errors.New("invalid path"))
+		}
+		inside := false
+		for _, lp := range libraryPaths {
+			if strings.HasPrefix(abs, lp+string(filepath.Separator)) || abs == lp {
+				inside = true
+				break
+			}
+		}
+		if !inside {
+			return h.RespondWithError(c, errors.New("path is outside library directories"))
+		}
 	}
 
 	// Delete the files from disk
