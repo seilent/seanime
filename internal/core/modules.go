@@ -148,9 +148,10 @@ func (a *App) initModulesOnce() {
 	// +---------------------+
 
 	a.MediastreamRepository = mediastream.NewRepository(&mediastream.NewRepositoryOptions{
-		Logger:         a.Logger,
-		WSEventManager: sseAdapter, // Use SSE adapter
-		FileCacher:     a.FileCacher,
+		Logger:               a.Logger,
+		WSEventManager:       sseAdapter, // Use SSE adapter
+		FileCacher:           a.FileCacher,
+		GlobalMappingService: a.GlobalMappingService,
 	})
 
 	a.AddCleanupFunction(func() {

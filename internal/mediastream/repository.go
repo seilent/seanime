@@ -6,6 +6,7 @@ import (
 	"github.com/samber/mo"
 	"seanime/internal/database/models"
 	"seanime/internal/events"
+	"seanime/internal/global_mapping"
 	"seanime/internal/mediastream/optimizer"
 	"seanime/internal/mediastream/videofile"
 	"seanime/internal/util/filecache"
@@ -14,21 +15,23 @@ import (
 
 type (
 	Repository struct {
-		optimizer          *optimizer.Optimizer
-		settings           mo.Option[*models.GlobalSettings]
-		playbackManager    *PlaybackManager
-		mediaInfoExtractor *videofile.MediaInfoExtractor
-		logger             *zerolog.Logger
-		wsEventManager     events.WSEventManagerInterface
-		fileCacher         *filecache.Cacher
-		reqMu              sync.Mutex
-		cacheDir           string // where attachments are stored
+		optimizer             *optimizer.Optimizer
+		settings              mo.Option[*models.GlobalSettings]
+		playbackManager       *PlaybackManager
+		mediaInfoExtractor    *videofile.MediaInfoExtractor
+		logger                *zerolog.Logger
+		wsEventManager        events.WSEventManagerInterface
+		fileCacher            *filecache.Cacher
+		reqMu                 sync.Mutex
+		cacheDir              string
+		globalMappingService  *global_mapping.GlobalMappingService
 	}
 
 	NewRepositoryOptions struct {
-		Logger         *zerolog.Logger
-		WSEventManager events.WSEventManagerInterface
-		FileCacher     *filecache.Cacher
+		Logger               *zerolog.Logger
+		WSEventManager       events.WSEventManagerInterface
+		FileCacher           *filecache.Cacher
+		GlobalMappingService *global_mapping.GlobalMappingService
 	}
 )
 
@@ -39,10 +42,11 @@ func NewRepository(opts *NewRepositoryOptions) *Repository {
 			Logger:         opts.Logger,
 			WSEventManager: opts.WSEventManager,
 		}),
-		settings:           mo.None[*models.GlobalSettings](),
-		wsEventManager:     opts.WSEventManager,
-		fileCacher:         opts.FileCacher,
-		mediaInfoExtractor: videofile.NewMediaInfoExtractor(opts.FileCacher, opts.Logger),
+		settings:             mo.None[*models.GlobalSettings](),
+		wsEventManager:       opts.WSEventManager,
+		fileCacher:           opts.FileCacher,
+		mediaInfoExtractor:   videofile.NewMediaInfoExtractor(opts.FileCacher, opts.Logger),
+		globalMappingService: opts.GlobalMappingService,
 	}
 	ret.playbackManager = NewPlaybackManager(ret)
 
@@ -63,25 +67,18 @@ func (r *Repository) InitializeModules(settings *models.GlobalSettings, cacheDir
 		return
 	}
 
-	// Set the settings
 	r.settings = mo.Some[*models.GlobalSettings](settings)
 
 	r.cacheDir = cacheDir
 
-	// Set the optimizer settings
 	r.optimizer.SetLibraryDir(settings.Library.LibraryPath)
 
 	r.logger.Info().Msg("mediastream: Module initialized")
 }
 
-// CacheWasCleared should be called when the cache directory is manually cleared.
 func (r *Repository) CacheWasCleared() {
 	r.playbackManager.mediaContainers.Clear()
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Direct Play
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (r *Repository) RequestDirectPlay(filepath string, clientId string) (ret *MediaContainer, err error) {
 	r.reqMu.Lock()

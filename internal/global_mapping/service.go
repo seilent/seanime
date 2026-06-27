@@ -356,7 +356,33 @@ func (gms *GlobalMappingService) notifySubscribedUsers(aniListID int, eventType 
 		Msg("global_mapping: Notified subscribed users")
 }
 
-// RemoveFromCache removes a file mapping from the cache
+func (gms *GlobalMappingService) RenameFileMapping(oldPath, newPath string, newFileSize int64) {
+	gms.cache.Lock()
+	aniListID, exists := gms.cache.FileToAniList[oldPath]
+	if exists {
+		delete(gms.cache.FileToAniList, oldPath)
+		gms.cache.FileToAniList[newPath] = aniListID
+		if files, ok := gms.cache.AniListToFiles[aniListID]; ok {
+			for i, f := range files {
+				if f == oldPath {
+					gms.cache.AniListToFiles[aniListID][i] = newPath
+					break
+				}
+			}
+		}
+	}
+	gms.cache.Unlock()
+
+	if exists {
+		gms.db.Gorm().Model(&models.GlobalAnimeFileMapping{}).
+			Where("local_file_path = ?", oldPath).
+			Updates(map[string]interface{}{
+				"local_file_path": newPath,
+				"file_size":       newFileSize,
+			})
+	}
+}
+
 func (gms *GlobalMappingService) RemoveFromCache(filePath string, aniListID int) {
 	gms.cache.Lock()
 	defer gms.cache.Unlock()
