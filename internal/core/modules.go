@@ -334,7 +334,7 @@ func (a *App) InitOrRefreshModules() {
 		a.TorrentClientRepository.InitActiveTorrentCount(globalSettings.Torrent.ShowActiveTorrentCount, events.NewSSEEventManagerAdapter(a.SSEManager))
 
 		// Start download completion monitor
-		downloadmonitor.New(a.Database, a.TorrentClientRepository, a.Logger, a.WSEventManager, a.FileCacher).Start()
+		downloadmonitor.New(a.Database, a.TorrentClientRepository, a.Logger, a.WSEventManager, a.FileCacher, a.MediastreamRepository).Start()
 
 		// Set AutoDownloader qBittorrent client
 		a.AutoDownloader.SetTorrentClientRepository(a.TorrentClientRepository)

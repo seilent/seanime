@@ -29,21 +29,27 @@ type downloadProgressItem struct {
 	Progress float64 `json:"progress"`
 }
 
+type Remuxer interface {
+	RemuxToMP4NoMapping(sourcePath string) (string, error)
+}
+
 type Monitor struct {
 	db                 *db.Database
 	repo               *torrent_client.Repository
 	logger             *zerolog.Logger
 	wsEventManager     events.WSEventManagerInterface
 	mediaInfoExtractor *videofile.MediaInfoExtractor
+	remuxer            Remuxer
 }
 
-func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logger, wsEventManager events.WSEventManagerInterface, fileCacher *filecache.Cacher) *Monitor {
+func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logger, wsEventManager events.WSEventManagerInterface, fileCacher *filecache.Cacher, remuxer Remuxer) *Monitor {
 	return &Monitor{
 		db:                 db,
 		repo:               repo,
 		logger:             logger,
 		wsEventManager:     wsEventManager,
 		mediaInfoExtractor: videofile.NewMediaInfoExtractor(fileCacher, logger),
+		remuxer:            remuxer,
 	}
 }
 
@@ -183,6 +189,15 @@ func (m *Monitor) tick() {
 						target = v // fall back to mapping original path
 					}
 				}
+
+				if m.remuxer != nil {
+					if newTarget, rerr := m.remuxer.RemuxToMP4NoMapping(target); rerr != nil {
+						m.logger.Warn().Err(rerr).Str("path", target).Msg("downloadmonitor: post-download remux failed, mapping original")
+					} else {
+						target = newTarget
+					}
+				}
+
 				ep := parseEpisode(filepath.Base(target), len(videos))
 
 				// Per-episode replace: remove old file(s) for this (media, episode) if different path
