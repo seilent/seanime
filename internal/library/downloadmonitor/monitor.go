@@ -157,6 +157,10 @@ func (m *Monitor) tick() {
 			info, statErr := os.Stat(contentPath)
 			isFolder := statErr == nil && info.IsDir()
 			videos := collectVideos(contentPath)
+			if len(videos) == 0 {
+				m.logger.Warn().Str("hash", intent.Hash).Str("contentPath", contentPath).Msg("downloadmonitor: torrent reports complete but no video files found, leaving intent pending for retry")
+				continue
+			}
 			destDir := intent.Destination // known anime/<Title>/ dir from download time
 			if destDir == "" {
 				destDir = filepath.Dir(contentPath)
