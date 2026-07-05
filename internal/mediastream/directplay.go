@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"seanime/internal/events"
+	"seanime/internal/mediastream/videofile"
 	"seanime/internal/util"
 	"strings"
 
@@ -73,6 +74,7 @@ func (r *Repository) ServeEchoDirectPlay(c echo.Context, clientId string) error 
 			if err := r.createRemuxedFile(filePath, mp4Path); err != nil {
 				r.logger.Error().Err(err).Msg("mediastream: Failed to remux, serving original")
 			} else {
+				r.preserveSubtitlesForRemux(filePath, mp4Path)
 				os.Remove(filePath)
 
 				if r.globalMappingService != nil {
@@ -157,4 +159,34 @@ func (r *Repository) createRemuxedFile(inputPath, outputPath string) error {
 
 	r.logger.Debug().Str("input", inputPath).Str("output", outputPath).Msg("mediastream: Successfully created remuxed file")
 	return nil
+}
+
+func (r *Repository) preserveSubtitlesForRemux(sourcePath, mp4Path string) {
+	srcInfo, err := r.mediaInfoExtractor.GetInfo("ffprobe", sourcePath)
+	if err != nil || len(srcInfo.Subtitles) == 0 {
+		return
+	}
+
+	mp4Hash, err := videofile.GetHashFromPath(mp4Path)
+	if err != nil {
+		r.logger.Error().Err(err).Msg("mediastream: Failed to hash remuxed file for subtitle preservation")
+		return
+	}
+
+	if err := videofile.ExtractAttachment("ffmpeg", sourcePath, mp4Hash, srcInfo, r.cacheDir, r.logger); err != nil {
+		r.logger.Error().Err(err).Msg("mediastream: Failed to preserve subtitles during remux")
+		return
+	}
+
+	mp4Info, err := videofile.FfprobeGetInfo("ffprobe", mp4Path, mp4Hash)
+	if err != nil {
+		r.logger.Error().Err(err).Msg("mediastream: Failed to probe remuxed file for subtitle preservation")
+		return
+	}
+	mp4Info.Subtitles = srcInfo.Subtitles
+	mp4Info.Fonts = srcInfo.Fonts
+
+	if err := r.mediaInfoExtractor.SetInfo(mp4Path, mp4Info); err != nil {
+		r.logger.Error().Err(err).Msg("mediastream: Failed to cache remuxed media info")
+	}
 }

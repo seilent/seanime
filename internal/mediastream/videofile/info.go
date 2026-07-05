@@ -163,6 +163,16 @@ func (e *MediaInfoExtractor) GetInfo(ffprobePath, path string) (mi *MediaInfo, e
 	return mi, nil
 }
 
+func (e *MediaInfoExtractor) SetInfo(path string, mi *MediaInfo) error {
+	hash, err := GetHashFromPath(path)
+	if err != nil {
+		return err
+	}
+	bucketName := fmt.Sprintf("mediastream_mediainfo_%s", hash)
+	bucket := filecache.NewBucket(bucketName, 24*7*52*time.Hour)
+	return e.fileCacher.Set(bucket, hash, mi)
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func FfprobeGetInfo(ffprobePath, path, hash string) (*MediaInfo, error) {
