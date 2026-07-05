@@ -373,13 +373,21 @@ func (gms *GlobalMappingService) RenameFileMapping(oldPath, newPath string, newF
 	}
 	gms.cache.Unlock()
 
-	if exists {
-		gms.db.Gorm().Model(&models.GlobalAnimeFileMapping{}).
-			Where("local_file_path = ?", oldPath).
-			Updates(map[string]interface{}{
-				"local_file_path": newPath,
-				"file_size":       newFileSize,
-			})
+	gms.db.Gorm().Model(&models.GlobalAnimeFileMapping{}).
+		Where("local_file_path = ?", oldPath).
+		Updates(map[string]interface{}{
+			"local_file_path": newPath,
+			"file_size":       newFileSize,
+		})
+
+	if !exists {
+		var m models.GlobalAnimeFileMapping
+		if err := gms.db.Gorm().Where("local_file_path = ?", newPath).First(&m).Error; err == nil {
+			gms.cache.Lock()
+			gms.cache.FileToAniList[newPath] = m.AniListID
+			gms.cache.AniListToFiles[m.AniListID] = append(gms.cache.AniListToFiles[m.AniListID], newPath)
+			gms.cache.Unlock()
+		}
 	}
 }
 
