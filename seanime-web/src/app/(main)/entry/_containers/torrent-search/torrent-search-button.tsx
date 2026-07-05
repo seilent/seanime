@@ -1,20 +1,13 @@
-import { Anime_Entry, HibikeTorrent_AnimeTorrent } from "@/api/generated/types"
+import { Anime_Entry } from "@/api/generated/types"
 import { useTorrentClientDownload } from "@/api/hooks/torrent_client.hooks"
+import { useGetSubspleaseStatus } from "@/api/hooks/subsplease.hooks"
 import { useServerStatus } from "@/app/(main)/_hooks/use-server-status"
 import { AnimeMetaActionButton } from "@/app/(main)/entry/_components/meta-section"
 import { __torrentSearch_selectionAtom } from "@/app/(main)/entry/_containers/torrent-search/torrent-search-drawer"
-import { useServerMutation } from "@/api/client/requests"
 import { useSetAtom } from "jotai/react"
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useMemo, useRef } from "react"
 import { BiCheck, BiDownload } from "react-icons/bi"
 import { FiSearch } from "react-icons/fi"
-
-type SubspleaseStatus = {
-    available: boolean
-    episodeCount: number
-    localCount: number
-    toSync: HibikeTorrent_AnimeTorrent[] | null
-}
 
 export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
 
@@ -24,26 +17,11 @@ export function TorrentSearchButton({ entry }: { entry: Anime_Entry }) {
     const count = entry.downloadInfo?.episodesToDownload?.length
     const isMovie = useMemo(() => entry.media?.format === "MOVIE", [entry.media?.format])
 
-    const [spStatus, setSpStatus] = useState<SubspleaseStatus | null>(null)
     const syncStarted = useRef(false)
     const syncCount = useRef(0)
 
-    const { mutate: fetchSpStatus } = useServerMutation<SubspleaseStatus, { media: any }>({
-        endpoint: "/api/v1/subsplease/episodes",
-        method: "POST",
-        mutationKey: ["subsplease-status", String(entry.mediaId)],
-        onSuccess: (data) => {
-            if (!syncStarted.current && data) {
-                setSpStatus(data)
-            }
-        },
-    })
-
-    useEffect(() => {
-        if (entry.media?.id && entry.media?.status && entry.media?.format && !syncStarted.current) {
-            fetchSpStatus({ media: entry.media })
-        }
-    }, [entry.media?.id])
+    const enabled = !!(entry.media?.id && entry.media?.status && entry.media?.format) && !syncStarted.current
+    const { data: spStatus } = useGetSubspleaseStatus(entry.media, enabled)
 
     const { mutate: download, isPending } = useTorrentClientDownload()
 

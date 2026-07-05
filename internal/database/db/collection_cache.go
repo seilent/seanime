@@ -129,6 +129,20 @@ func (db *Database) HasSubsPleaseSid(anilistID int) bool {
 	return sid != ""
 }
 
+func (db *Database) SetSubspleaseSlug(anilistID int, slug string) error {
+	return db.gormdb.Model(&models.CachedMedia{}).
+		Where("anilist_id = ?", anilistID).
+		Update("subsplease_slug", slug).Error
+}
+
+func (db *Database) GetSubspleaseSlug(anilistID int) string {
+	var slug string
+	db.gormdb.Model(&models.CachedMedia{}).
+		Where("anilist_id = ?", anilistID).
+		Pluck("subsplease_slug", &slug)
+	return slug
+}
+
 // UpsertCachedMediaDetail upserts only the detail-page blob columns on a CachedMedia row.
 // The column set is disjoint from UpsertCachedMediaBatch to avoid clobbering collection data.
 func (db *Database) UpsertCachedMediaDetail(id int, mediaType string, detail []byte) error {

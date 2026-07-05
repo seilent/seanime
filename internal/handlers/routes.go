@@ -315,6 +315,7 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.POST("/torrent-client/action", h.HandleTorrentClientAction)
 	v1.POST("/torrent-client/rule-magnet", h.HandleTorrentClientAddMagnetFromRule)
 	v1.POST("/subsplease/episodes", h.HandleGetSubspleaseEpisodes)
+	v1.POST("/subsplease/link", h.HandleLinkSubsplease)
 
 	//
 	// Download

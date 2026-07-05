@@ -610,6 +610,7 @@ type CachedMedia struct {
 	DetailUpdatedAt time.Time `gorm:"column:detail_updated_at" json:"detailUpdatedAt"` // Phase 2: SWR timestamp for detail cache
 	SubsPleaseSid          string    `gorm:"column:subsplease_sid" json:"subspleaseSid"`
 	SubspleaseEpisodeCount int       `gorm:"column:subsplease_episode_count" json:"subspleaseEpisodeCount"`
+	SubspleaseSlug         string    `gorm:"column:subsplease_slug" json:"subspleaseSlug"`
 }
 
 // CachedUserMediaList stores a user's collection skeleton (entries with media stripped to id-only) for SWR cache.

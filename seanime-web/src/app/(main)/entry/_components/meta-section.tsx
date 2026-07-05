@@ -20,6 +20,7 @@ import { useAnimeEntryPageView } from "@/app/(main)/entry/_containers/anime-entr
 import { AnimeEntryDropdownMenu } from "@/app/(main)/entry/_containers/entry-actions/anime-entry-dropdown-menu"
 import { AnimeEntrySilenceToggle } from "@/app/(main)/entry/_containers/entry-actions/anime-entry-silence-toggle"
 import { TorrentSearchButton } from "@/app/(main)/entry/_containers/torrent-search/torrent-search-button"
+import { SubspleaseLinkButton } from "@/app/(main)/entry/_containers/torrent-search/subsplease-link-button"
 import { SeaLink } from "@/components/shared/sea-link"
 import { Button, ButtonProps, IconButton } from "@/components/ui/button"
 import { cn } from "@/components/ui/core/styling"
@@ -161,9 +162,14 @@ export function MetaSection(props: { entry: Anime_Entry, details: AL_AnimeDetail
                         && hasTorrentProvider
                         && serverStatus?.settings?.torrent?.defaultTorrentClient !== TORRENT_CLIENT.NONE
                     ) && (
-                        <TorrentSearchButton
-                            entry={entry}
-                        />
+                        <>
+                            <TorrentSearchButton
+                                entry={entry}
+                            />
+                            <SubspleaseLinkButton
+                                entry={entry}
+                            />
+                        </>
                     )}
 
 

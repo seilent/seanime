@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/extension"
@@ -82,10 +83,8 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		Synonyms:     b.Media.GetSynonymsDeref(),
 	}
 
-	torrents, err := providerExt.GetProvider().SmartSearch(hibiketorrent.AnimeSmartSearchOptions{
-		Media:         queryMedia,
-		EpisodeNumber: 0,
-	})
+	slug := h.App.Database.GetSubspleaseSlug(b.Media.ID)
+	torrents, err := fetchSubspleaseTorrents(providerExt.GetProvider(), queryMedia, slug)
 	if err != nil || len(torrents) == 0 {
 		return h.RespondWithData(c, SubspleaseStatus{Available: false})
 	}
@@ -107,5 +106,77 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		EpisodeCount: len(torrents),
 		LocalCount:   localSpCount,
 		ToSync:       toSync,
+	})
+}
+
+func fetchSubspleaseTorrents(provider hibiketorrent.AnimeProvider, media hibiketorrent.Media, slug string) ([]*hibiketorrent.AnimeTorrent, error) {
+	if slug != "" {
+		return provider.Search(hibiketorrent.AnimeSearchOptions{Media: media, Query: slug})
+	}
+	return provider.SmartSearch(hibiketorrent.AnimeSmartSearchOptions{Media: media, EpisodeNumber: 0})
+}
+
+func parseSubspleaseSlug(raw string) string {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return ""
+	}
+	if i := strings.Index(s, "/shows/"); i >= 0 {
+		s = s[i+len("/shows/"):]
+	}
+	if i := strings.IndexAny(s, "?#"); i >= 0 {
+		s = s[:i]
+	}
+	s = strings.Trim(s, "/")
+	if i := strings.Index(s, "/"); i >= 0 {
+		s = s[:i]
+	}
+	return s
+}
+
+// HandleLinkSubsplease
+//
+//	@summary links an anime to a SubsPlease show by URL, bypassing title matching.
+//	@desc Extracts the show slug from a SubsPlease URL, validates it resolves episodes, and persists it for sync.
+//	@route /api/v1/subsplease/link [POST]
+//	@returns handlers.SubspleaseStatus
+func (h *Handler) HandleLinkSubsplease(c echo.Context) error {
+
+	type body struct {
+		MediaID int    `json:"mediaId"`
+		Url     string `json:"url"`
+	}
+
+	var b body
+	if err := c.Bind(&b); err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	slug := parseSubspleaseSlug(b.Url)
+	if b.MediaID == 0 || slug == "" {
+		return h.RespondWithError(c, fmt.Errorf("invalid SubsPlease URL"))
+	}
+
+	providerExt, ok := extension.GetExtension[extension.AnimeTorrentProviderExtension](
+		h.App.ExtensionRepository.GetExtensionBank(), "subsplease",
+	)
+	if !ok {
+		return h.RespondWithError(c, fmt.Errorf("SubsPlease provider not available"))
+	}
+
+	torrents, err := fetchSubspleaseTorrents(providerExt.GetProvider(), hibiketorrent.Media{ID: b.MediaID}, slug)
+	if err != nil || len(torrents) == 0 {
+		return h.RespondWithError(c, fmt.Errorf("no episodes found for SubsPlease show '%s'", slug))
+	}
+
+	if err := h.App.Database.SetSubspleaseSlug(b.MediaID, slug); err != nil {
+		return h.RespondWithError(c, err)
+	}
+	_ = h.App.Database.SetSubsPleaseSid(b.MediaID, "found")
+	_ = h.App.Database.SetSubspleaseEpisodeCount(b.MediaID, len(torrents))
+
+	return h.RespondWithData(c, SubspleaseStatus{
+		Available:    true,
+		EpisodeCount: len(torrents),
 	})
 }
