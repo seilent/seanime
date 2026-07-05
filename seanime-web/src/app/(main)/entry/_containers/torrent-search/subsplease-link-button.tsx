@@ -40,7 +40,7 @@ export function SubspleaseLinkButton({ entry }: { entry: Anime_Entry }) {
                     <TextInput
                         value={url}
                         onValueChange={setUrl}
-                        placeholder="https://subsplease.org/shows/hell-mode-s2/"
+                        placeholder="https://subsplease.org/shows/anime-title/"
                     />
                     <Button
                         intent="primary"
