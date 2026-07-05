@@ -139,7 +139,8 @@ func (db *Database) GetSubspleaseSlug(anilistID int) string {
 	var slug string
 	db.gormdb.Model(&models.CachedMedia{}).
 		Where("anilist_id = ?", anilistID).
-		Pluck("subsplease_slug", &slug)
+		Select("COALESCE(subsplease_slug, '')").
+		Scan(&slug)
 	return slug
 }
 
