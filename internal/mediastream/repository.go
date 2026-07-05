@@ -11,20 +11,23 @@ import (
 	"seanime/internal/mediastream/videofile"
 	"seanime/internal/util/filecache"
 	"sync"
+
+	"golang.org/x/sync/singleflight"
 )
 
 type (
 	Repository struct {
-		optimizer             *optimizer.Optimizer
-		settings              mo.Option[*models.GlobalSettings]
-		playbackManager       *PlaybackManager
-		mediaInfoExtractor    *videofile.MediaInfoExtractor
-		logger                *zerolog.Logger
-		wsEventManager        events.WSEventManagerInterface
-		fileCacher            *filecache.Cacher
-		reqMu                 sync.Mutex
-		cacheDir              string
-		globalMappingService  *global_mapping.GlobalMappingService
+		optimizer            *optimizer.Optimizer
+		settings             mo.Option[*models.GlobalSettings]
+		playbackManager      *PlaybackManager
+		mediaInfoExtractor   *videofile.MediaInfoExtractor
+		logger               *zerolog.Logger
+		wsEventManager       events.WSEventManagerInterface
+		fileCacher           *filecache.Cacher
+		reqMu                sync.Mutex
+		remuxGroup           singleflight.Group
+		cacheDir             string
+		globalMappingService *global_mapping.GlobalMappingService
 	}
 
 	NewRepositoryOptions struct {

@@ -69,11 +69,17 @@ func (r *Repository) ServeEchoDirectPlay(c echo.Context, clientId string) error 
 		mp4Path := strings.TrimSuffix(filePath, filepath.Ext(filePath)) + ".mp4"
 
 		if _, err := os.Stat(mp4Path); os.IsNotExist(err) {
-			r.logger.Info().Str("source", filePath).Str("target", mp4Path).Msg("mediastream: Remuxing MKV to MP4 in-place")
+			_, err, _ := r.remuxGroup.Do(mp4Path, func() (interface{}, error) {
+				if _, e := os.Stat(mp4Path); e == nil {
+					return nil, nil
+				}
 
-			if err := r.createRemuxedFile(filePath, mp4Path); err != nil {
-				r.logger.Error().Err(err).Msg("mediastream: Failed to remux, serving original")
-			} else {
+				r.logger.Info().Str("source", filePath).Str("target", mp4Path).Msg("mediastream: Remuxing MKV to MP4 in-place")
+
+				if err := r.createRemuxedFile(filePath, mp4Path); err != nil {
+					return nil, err
+				}
+
 				r.preserveSubtitlesForRemux(filePath, mp4Path)
 				os.Remove(filePath)
 
@@ -86,6 +92,12 @@ func (r *Repository) ServeEchoDirectPlay(c echo.Context, clientId string) error 
 					r.globalMappingService.RenameFileMapping(filePath, mp4Path, size)
 				}
 
+				return nil, nil
+			})
+
+			if err != nil {
+				r.logger.Error().Err(err).Msg("mediastream: Failed to remux, serving original")
+			} else {
 				filePath = mp4Path
 			}
 		} else {
