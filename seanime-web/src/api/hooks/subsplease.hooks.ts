@@ -8,6 +8,7 @@ export type SubspleaseStatus = {
     episodeCount: number
     localCount: number
     toSync: HibikeTorrent_AnimeTorrent[] | null
+    slug?: string
 }
 
 const SUBSPLEASE_STATUS_KEY = "subsplease-status"

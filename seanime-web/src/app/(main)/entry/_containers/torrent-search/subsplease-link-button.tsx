@@ -1,5 +1,5 @@
 import { Anime_Entry } from "@/api/generated/types"
-import { useLinkSubsplease } from "@/api/hooks/subsplease.hooks"
+import { useGetSubspleaseStatus, useLinkSubsplease } from "@/api/hooks/subsplease.hooks"
 import { AnimeMetaActionButton } from "@/app/(main)/entry/_components/meta-section"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
@@ -12,22 +12,31 @@ export function SubspleaseLinkButton({ entry }: { entry: Anime_Entry }) {
     const [open, setOpen] = useState(false)
     const [url, setUrl] = useState("")
 
+    const enabled = !!(entry.media?.id && entry.media?.status && entry.media?.format)
+    const { data: status } = useGetSubspleaseStatus(entry.media, enabled)
+    const linked = !!status?.slug
+
     const { mutate: link, isPending } = useLinkSubsplease(entry.mediaId, () => {
         setOpen(false)
         setUrl("")
     })
 
+    const handleOpen = () => {
+        setUrl(status?.slug ? `https://subsplease.org/shows/${status.slug}/` : "")
+        setOpen(true)
+    }
+
     return (
         <>
             <AnimeMetaActionButton
-                intent="gray-subtle"
+                intent={linked ? "white-subtle" : "gray-subtle"}
                 size="md"
                 leftIcon={<FiLink />}
                 iconClass="text-2xl"
-                onClick={() => setOpen(true)}
+                onClick={handleOpen}
                 data-subsplease-link-button
             >
-                Link SubsPlease
+                {linked ? "Linked to SubsPlease" : "Link SubsPlease"}
             </AnimeMetaActionButton>
 
             <Modal
@@ -48,7 +57,7 @@ export function SubspleaseLinkButton({ entry }: { entry: Anime_Entry }) {
                         disabled={!url.trim()}
                         onClick={() => link({ mediaId: entry.mediaId, url })}
                     >
-                        Link
+                        {linked ? "Update" : "Link"}
                     </Button>
                 </div>
             </Modal>
