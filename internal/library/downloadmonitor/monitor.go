@@ -30,7 +30,7 @@ type downloadProgressItem struct {
 }
 
 type Remuxer interface {
-	RemuxToMP4NoMapping(sourcePath string) (string, error)
+	PrewarmDirectPlay(sourcePath string) error
 }
 
 type Monitor struct {
@@ -164,6 +164,11 @@ func (m *Monitor) tick() {
 			isFolder := statErr == nil && info.IsDir()
 			videos := collectVideos(contentPath)
 			if len(videos) == 0 {
+				if statErr != nil {
+					m.logger.Warn().Str("hash", intent.Hash).Str("contentPath", contentPath).Msg("downloadmonitor: content path missing, abandoning intent")
+					m.db.MarkPendingDownloadIntentCompleted(intent.Hash)
+					continue
+				}
 				m.logger.Warn().Str("hash", intent.Hash).Str("contentPath", contentPath).Msg("downloadmonitor: torrent reports complete but no video files found, leaving intent pending for retry")
 				continue
 			}
@@ -191,11 +196,11 @@ func (m *Monitor) tick() {
 				}
 
 				if m.remuxer != nil {
-					if newTarget, rerr := m.remuxer.RemuxToMP4NoMapping(target); rerr != nil {
-						m.logger.Warn().Err(rerr).Str("path", target).Msg("downloadmonitor: post-download remux failed, mapping original")
-					} else {
-						target = newTarget
-					}
+					go func(p string) {
+						if err := m.remuxer.PrewarmDirectPlay(p); err != nil {
+							m.logger.Warn().Err(err).Str("path", p).Msg("downloadmonitor: direct play prewarm failed")
+						}
+					}(target)
 				}
 
 				ep := parseEpisode(filepath.Base(target), len(videos))

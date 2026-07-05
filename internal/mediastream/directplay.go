@@ -66,30 +66,18 @@ func (r *Repository) ServeEchoDirectPlay(c echo.Context, clientId string) error 
 	isMKV := filepath.Ext(filePath) == ".mkv"
 
 	if needsMP4 && isMKV {
-		mp4Path := strings.TrimSuffix(filePath, filepath.Ext(filePath)) + ".mp4"
+		mp4Path := r.directPlayMP4Path(mediaContainer.Hash)
 
 		if _, err := os.Stat(mp4Path); os.IsNotExist(err) {
 			_, err, _ := r.remuxGroup.Do(mp4Path, func() (interface{}, error) {
 				if _, e := os.Stat(mp4Path); e == nil {
 					return nil, nil
 				}
-
-				r.logger.Info().Str("source", filePath).Str("target", mp4Path).Msg("mediastream: Remuxing MKV to MP4 in-place")
-
-				if err := r.doRemux(filePath, mp4Path); err != nil {
-					return nil, err
+				if e := os.MkdirAll(filepath.Dir(mp4Path), 0755); e != nil {
+					return nil, e
 				}
-
-				if r.globalMappingService != nil {
-					fileInfo, _ := os.Stat(mp4Path)
-					var size int64
-					if fileInfo != nil {
-						size = fileInfo.Size()
-					}
-					r.globalMappingService.RenameFileMapping(filePath, mp4Path, size)
-				}
-
-				return nil, nil
+				r.logger.Info().Str("source", filePath).Str("target", mp4Path).Msg("mediastream: Remuxing MKV to MP4 (cache)")
+				return nil, r.createRemuxedFile(filePath, mp4Path)
 			})
 
 			if err != nil {
@@ -170,64 +158,47 @@ func (r *Repository) createRemuxedFile(inputPath, outputPath string) error {
 	return nil
 }
 
-func (r *Repository) preserveSubtitlesForRemux(sourcePath, mp4Path string) {
-	srcInfo, err := r.mediaInfoExtractor.GetInfo("ffprobe", sourcePath)
-	if err != nil || len(srcInfo.Subtitles) == 0 {
-		return
-	}
-
-	mp4Hash, err := videofile.GetHashFromPath(mp4Path)
-	if err != nil {
-		r.logger.Error().Err(err).Msg("mediastream: Failed to hash remuxed file for subtitle preservation")
-		return
-	}
-
-	if err := videofile.ExtractAttachment("ffmpeg", sourcePath, mp4Hash, srcInfo, r.cacheDir, r.logger); err != nil {
-		r.logger.Error().Err(err).Msg("mediastream: Failed to preserve subtitles during remux")
-		return
-	}
-
-	mp4Info, err := videofile.FfprobeGetInfo("ffprobe", mp4Path, mp4Hash)
-	if err != nil {
-		r.logger.Error().Err(err).Msg("mediastream: Failed to probe remuxed file for subtitle preservation")
-		return
-	}
-	mp4Info.Subtitles = srcInfo.Subtitles
-	mp4Info.Fonts = srcInfo.Fonts
-
-	if err := r.mediaInfoExtractor.SetInfo(mp4Path, mp4Info); err != nil {
-		r.logger.Error().Err(err).Msg("mediastream: Failed to cache remuxed media info")
-	}
+func (r *Repository) directPlayMP4Path(hash string) string {
+	return filepath.Join(r.cacheDir, "videofiles", hash, "direct.mp4")
 }
 
-func (r *Repository) doRemux(sourcePath, mp4Path string) error {
-	if err := r.createRemuxedFile(sourcePath, mp4Path); err != nil {
+func (r *Repository) PrewarmDirectPlay(sourcePath string) error {
+	if !r.IsInitialized() {
+		return nil
+	}
+
+	hash, err := videofile.GetHashFromPath(sourcePath)
+	if err != nil {
 		return err
 	}
-	r.preserveSubtitlesForRemux(sourcePath, mp4Path)
-	os.Remove(sourcePath)
-	return nil
-}
 
-func (r *Repository) RemuxToMP4NoMapping(sourcePath string) (string, error) {
-	if !r.IsInitialized() || strings.ToLower(filepath.Ext(sourcePath)) != ".mkv" {
-		return sourcePath, nil
+	info, err := r.mediaInfoExtractor.GetInfo("ffprobe", sourcePath)
+	if err != nil {
+		return err
 	}
 
-	mp4Path := strings.TrimSuffix(sourcePath, filepath.Ext(sourcePath)) + ".mp4"
-	if _, err := os.Stat(mp4Path); err == nil {
-		return mp4Path, nil
+	if err := videofile.ExtractAttachment("ffmpeg", sourcePath, hash, info, r.cacheDir, r.logger); err != nil {
+		r.logger.Warn().Err(err).Str("path", sourcePath).Msg("mediastream: Failed to pre-extract subtitles")
 	}
 
-	_, err, _ := r.remuxGroup.Do(mp4Path, func() (interface{}, error) {
+	if strings.ToLower(filepath.Ext(sourcePath)) != ".mkv" {
+		return nil
+	}
+
+	mp4Path := r.directPlayMP4Path(hash)
+	if _, e := os.Stat(mp4Path); e == nil {
+		return nil
+	}
+
+	_, err, _ = r.remuxGroup.Do(mp4Path, func() (interface{}, error) {
 		if _, e := os.Stat(mp4Path); e == nil {
 			return nil, nil
 		}
-		r.logger.Info().Str("source", sourcePath).Str("target", mp4Path).Msg("mediastream: Remuxing MKV to MP4 (post-download)")
-		return nil, r.doRemux(sourcePath, mp4Path)
+		if e := os.MkdirAll(filepath.Dir(mp4Path), 0755); e != nil {
+			return nil, e
+		}
+		r.logger.Info().Str("source", sourcePath).Str("target", mp4Path).Msg("mediastream: Remuxing MKV to MP4 (prewarm)")
+		return nil, r.createRemuxedFile(sourcePath, mp4Path)
 	})
-	if err != nil {
-		return sourcePath, err
-	}
-	return mp4Path, nil
+	return err
 }
