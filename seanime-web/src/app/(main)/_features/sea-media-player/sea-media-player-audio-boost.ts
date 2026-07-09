@@ -11,10 +11,10 @@ type BoostGraph = {
 
 const graphs = new WeakMap<HTMLMediaElement, BoostGraph>()
 
-function createGraph(element: HTMLMediaElement): BoostGraph | null {
+function createGraph(element: HTMLMediaElement): BoostGraph | undefined {
     const w = window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext }
     const Ctor = w.AudioContext ?? w.webkitAudioContext
-    if (!Ctor) return null
+    if (!Ctor) return undefined
 
     try {
         const ctx = new Ctor()
@@ -36,7 +36,7 @@ function createGraph(element: HTMLMediaElement): BoostGraph | null {
     }
     catch (e) {
         audioBoostLog.error("Failed to create audio boost graph", e)
-        return null
+        return undefined
     }
 }
 
