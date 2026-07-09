@@ -12,12 +12,14 @@ import { useSeaCommandInject } from "@/app/(main)/_features/sea-command/use-inje
 import { useSkipData } from "@/app/(main)/_features/sea-media-player/aniskip"
 import { useFullscreenHandler } from "@/app/(main)/_features/sea-media-player/macos-tauri-fullscreen"
 import { SeaMediaPlayerPlaybackSubmenu } from "@/app/(main)/_features/sea-media-player/sea-media-player-components"
+import { applyAudioBoost, resumeAudioBoost } from "@/app/(main)/_features/sea-media-player/sea-media-player-audio-boost"
 import {
     __seaMediaPlayer_scopedCurrentProgressAtom,
     __seaMediaPlayer_scopedProgressItemAtom,
     useSeaMediaPlayer,
 } from "@/app/(main)/_features/sea-media-player/sea-media-player-provider"
 import {
+    __seaMediaPlayer_audioBoostAtom,
     __seaMediaPlayer_autoNextAtom,
     __seaMediaPlayer_autoPlayAtom,
     __seaMediaPlayer_autoSkipIntroOutroAtom,
@@ -136,6 +138,19 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
     const autoSkipIntroOutro = useAtomValue(__seaMediaPlayer_autoSkipIntroOutroAtom)
     const [volume, setVolume] = useAtom(__seaMediaPlayer_volumeAtom)
     const [muted, setMuted] = useAtom(__seaMediaPlayer_mutedAtom)
+
+    const audioBoost = useAtomValue(__seaMediaPlayer_audioBoostAtom)
+    const [audioBoostMediaEl, setAudioBoostMediaEl] = React.useState<HTMLMediaElement | null>(null)
+
+    React.useEffect(() => {
+        if (!audioBoostMediaEl) return
+        applyAudioBoost(audioBoostMediaEl, audioBoost)
+        const onPlay = () => resumeAudioBoost(audioBoostMediaEl)
+        audioBoostMediaEl.addEventListener("play", onPlay)
+        return () => {
+            audioBoostMediaEl.removeEventListener("play", onPlay)
+        }
+    }, [audioBoostMediaEl, audioBoost])
   const [theaterMode, setTheaterMode] = useAtom(theaterModeAtom)
 
     // Store the updated progress
@@ -349,6 +364,7 @@ export function SeaMediaPlayer(props: SeaMediaPlayerProps) {
 
     const onProviderSetup = (provider: MediaProviderAdapter, e: MediaProviderSetupEvent) => {
         _onProviderSetup?.(provider, e)
+        setAudioBoostMediaEl((provider as unknown as { video?: HTMLMediaElement }).video ?? null)
     }
 
 

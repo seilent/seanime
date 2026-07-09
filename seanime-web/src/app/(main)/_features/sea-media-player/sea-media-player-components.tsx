@@ -27,11 +27,14 @@ import React from "react"
 import { AiFillPlayCircle } from "react-icons/ai"
 import { MdPlaylistPlay } from "react-icons/md"
 import { RxSlider } from "react-icons/rx"
+import { LuCheck, LuVolume2 } from "react-icons/lu"
 import {
+    __seaMediaPlayer_audioBoostAtom,
     __seaMediaPlayer_autoNextAtom,
     __seaMediaPlayer_autoPlayAtom,
     __seaMediaPlayer_autoSkipIntroOutroAtom,
     __seaMediaPlayer_discreteControlsAtom,
+    seaMediaPlayer_audioBoostOptions,
 } from "./sea-media-player.atoms"
 
 export function SeaMediaPlayerPlaybackSubmenu() {
@@ -41,8 +44,33 @@ export function SeaMediaPlayerPlaybackSubmenu() {
     const [autoSkipIntroOutro, setAutoSkipIntroOutro] = useAtom(__seaMediaPlayer_autoSkipIntroOutroAtom)
     const [discreteControls, setDiscreteControls] = useAtom(__seaMediaPlayer_discreteControlsAtom)
 
+    const [audioBoost, setAudioBoost] = useAtom(__seaMediaPlayer_audioBoostAtom)
+    const currentAudioBoostLabel = seaMediaPlayer_audioBoostOptions.find(o => o.value === audioBoost)?.label ?? "Off"
+
     return (
         <>
+            <Menu.Root>
+                <VdsSubmenuButton
+                    label={`Audio Boost`}
+                    hint={currentAudioBoostLabel}
+                    disabled={false}
+                    icon={LuVolume2}
+                />
+                <Menu.Content className={submenuClass}>
+                    {seaMediaPlayer_audioBoostOptions.map(option => (
+                        <button
+                            key={option.value}
+                            role="menuitemradio"
+                            aria-checked={audioBoost === option.value}
+                            className="vds-menu-item flex w-full cursor-pointer select-none items-center justify-between rounded-sm p-2.5 text-left text-sm font-medium outline-none data-[hocus]:bg-white/10 hover:bg-white/10"
+                            onClick={() => setAudioBoost(option.value)}
+                        >
+                            <span>{option.label}</span>
+                            {audioBoost === option.value && <LuCheck className="h-4 w-4" />}
+                        </button>
+                    ))}
+                </Menu.Content>
+            </Menu.Root>
             <Menu.Root>
                 <VdsSubmenuButton
                     label={`Auto Play`}
