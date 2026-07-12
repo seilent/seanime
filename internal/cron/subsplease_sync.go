@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"seanime/internal/api/anilist"
 	"seanime/internal/database/db_bridge"
+	"seanime/internal/torrents/subsplease"
 	"strconv"
 	"strings"
 
@@ -62,6 +63,7 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 		cached *anilist.BaseAnime
 	}
 	titleMap := make(map[string]*mediaRef) // lowercase show name → media
+	slugMap := make(map[string]*mediaRef)
 	for _, id := range releasingIDs {
 		cm, exists := cachedMedia[id]
 		if !exists {
@@ -73,6 +75,9 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 		}
 		ref := &mediaRef{id: id, cached: &media}
 
+		if cm.SubspleaseSlug != "" {
+			slugMap[strings.ToLower(cm.SubspleaseSlug)] = ref
+		}
 		// Add romaji title
 		if cm.TitleRomaji != "" {
 			titleMap[strings.ToLower(cm.TitleRomaji)] = ref
@@ -103,6 +108,9 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 
 		// Match against library
 		ref, found := titleMap[strings.ToLower(showName)]
+		if !found {
+			ref, found = slugMap[strings.ToLower(subsplease.TitleToSlug(showName))]
+		}
 		if !found {
 			continue
 		}

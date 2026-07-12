@@ -57,7 +57,7 @@ func (p *Provider) GetSettings() hibiketorrent.AnimeProviderSettings {
 
 func (p *Provider) Search(opts hibiketorrent.AnimeSearchOptions) ([]*hibiketorrent.AnimeTorrent, error) {
 	// Search by slug directly
-	slug := titleToSlug(opts.Query)
+	slug := TitleToSlug(opts.Query)
 	return p.fetchShowEpisodes(slug, 0, false, 0)
 }
 
@@ -67,20 +67,20 @@ func (p *Provider) SmartSearch(opts hibiketorrent.AnimeSmartSearchOptions) ([]*h
 
 	// Detect season from titles
 	season := 0
-	romSlug := titleToSlug(opts.Media.RomajiTitle)
+	romSlug := TitleToSlug(opts.Media.RomajiTitle)
 	slugs = append(slugs, romSlug)
 	if s := extractTrailingSeason(opts.Media.RomajiTitle); s > 0 {
 		season = s
 	}
 	if opts.Media.EnglishTitle != nil && *opts.Media.EnglishTitle != "" {
-		slugs = append(slugs, titleToSlug(*opts.Media.EnglishTitle))
+		slugs = append(slugs, TitleToSlug(*opts.Media.EnglishTitle))
 		if s := extractTrailingSeason(*opts.Media.EnglishTitle); s > 0 && season == 0 {
 			season = s
 		}
 	}
 	for _, syn := range opts.Media.Synonyms {
 		if isLatin(syn) {
-			slug := titleToSlug(syn)
+			slug := TitleToSlug(syn)
 			slugs = append(slugs, slug)
 			// Also try without trailing number + "-s{N}"
 			if season > 0 {
@@ -365,7 +365,7 @@ func (p *Provider) getSid(slug string) (string, error) {
 }
 
 // titleToSlug converts a title to a SubsPlease URL slug
-func titleToSlug(title string) string {
+func TitleToSlug(title string) string {
 	s := strings.ToLower(title)
 	// Remove common punctuation
 	s = strings.Map(func(r rune) rune {
