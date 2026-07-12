@@ -4,6 +4,7 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"regexp"
 	"seanime/internal/api/anilist"
@@ -19,6 +20,33 @@ const subspleaseRSS = "https://subsplease.org/rss/?t&r=1080"
 
 var spEpisodeRegex = regexp.MustCompile(`- (\d+) \(`)
 var spInfoHashRegex = regexp.MustCompile(`btih:([0-9a-zA-Z]+)`)
+
+var spTrackers = []string{
+	"udp://tracker.opentrackr.org:1337/announce",
+	"udp://open.stealth.si:80/announce",
+	"udp://tracker.torrent.eu.org:451/announce",
+	"udp://exodus.desync.com:6969/announce",
+	"http://nyaa.tracker.wf:7777/announce",
+}
+
+func buildMagnet(infoHash, title string) string {
+	infoHash = strings.TrimSpace(infoHash)
+	if len(infoHash) != 32 && len(infoHash) != 40 {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("magnet:?xt=urn:btih:")
+	b.WriteString(infoHash)
+	if title != "" {
+		b.WriteString("&dn=")
+		b.WriteString(url.QueryEscape(title))
+	}
+	for _, tr := range spTrackers {
+		b.WriteString("&tr=")
+		b.WriteString(url.QueryEscape(tr))
+	}
+	return b.String()
+}
 
 // SubsPleaseSyncJob polls the SubsPlease RSS feed for new episodes
 // and downloads any that match anime in the library.
@@ -143,8 +171,8 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 		}
 
 		// Extract magnet and add to torrent client
-		magnet := item.Link
-		if magnet == "" || !strings.HasPrefix(magnet, "magnet:") {
+		magnet := buildMagnet(item.GUID, item.Title)
+		if magnet == "" {
 			continue
 		}
 
