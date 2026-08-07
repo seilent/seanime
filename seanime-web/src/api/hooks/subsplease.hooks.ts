@@ -16,8 +16,17 @@ export type SubspleaseShow = {
     slug: string
 }
 
+export type SubspleaseScheduleShow = {
+    title: string
+    slug: string
+    imageUrl: string
+    day: string
+    time: string
+}
+
 const SUBSPLEASE_STATUS_KEY = "subsplease-status"
 const SUBSPLEASE_SHOWS_KEY = "subsplease-shows"
+const SUBSPLEASE_SCHEDULE_KEY = "subsplease-schedule"
 
 export function useGetSubspleaseStatus(media: any, enabled: boolean) {
     return useServerQuery<SubspleaseStatus, { media: any }>({
@@ -37,6 +46,16 @@ export function useGetSubspleaseShows(enabled: boolean) {
         queryKey: [SUBSPLEASE_SHOWS_KEY],
         enabled: enabled,
         staleTime: 1000 * 60 * 60,
+    })
+}
+
+export function useGetSubspleaseSchedule(enabled: boolean) {
+    return useServerQuery<SubspleaseScheduleShow[]>({
+        endpoint: "/api/v1/subsplease/schedule",
+        method: "GET",
+        queryKey: [SUBSPLEASE_SCHEDULE_KEY],
+        enabled: enabled,
+        staleTime: 1000 * 60 * 15,
     })
 }
 

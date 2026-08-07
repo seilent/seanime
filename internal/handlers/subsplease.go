@@ -204,3 +204,37 @@ func (h *Handler) HandleGetSubspleaseShows(c echo.Context) error {
 
 	return h.RespondWithData(c, result)
 }
+
+type SubspleaseScheduleShow struct {
+	Title    string `json:"title"`
+	Slug     string `json:"slug"`
+	ImageURL string `json:"imageUrl"`
+	Day      string `json:"day"`
+	Time     string `json:"time"`
+}
+
+// HandleGetSubspleaseSchedule
+//
+//	@summary returns the SubsPlease weekly airing schedule with cover images.
+//	@desc Fetches the SubsPlease schedule API and returns currently airing shows grouped by day.
+//	@route /api/v1/subsplease/schedule [GET]
+//	@returns []handlers.SubspleaseScheduleShow
+func (h *Handler) HandleGetSubspleaseSchedule(c echo.Context) error {
+	shows, err := subsplease.FetchSchedule()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	result := make([]SubspleaseScheduleShow, len(shows))
+	for i, s := range shows {
+		result[i] = SubspleaseScheduleShow{
+			Title:    s.Title,
+			Slug:     s.Slug,
+			ImageURL: s.ImageURL,
+			Day:      s.Day,
+			Time:     s.Time,
+		}
+	}
+
+	return h.RespondWithData(c, result)
+}

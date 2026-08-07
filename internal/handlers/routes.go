@@ -317,6 +317,7 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1.POST("/subsplease/episodes", h.HandleGetSubspleaseEpisodes)
 	v1.POST("/subsplease/link", h.HandleLinkSubsplease)
 	v1.GET("/subsplease/shows", h.HandleGetSubspleaseShows)
+	v1.GET("/subsplease/schedule", h.HandleGetSubspleaseSchedule)
 
 	//
 	// Download
