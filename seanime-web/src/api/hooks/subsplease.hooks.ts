@@ -11,7 +11,13 @@ export type SubspleaseStatus = {
     slug?: string
 }
 
+export type SubspleaseShow = {
+    title: string
+    slug: string
+}
+
 const SUBSPLEASE_STATUS_KEY = "subsplease-status"
+const SUBSPLEASE_SHOWS_KEY = "subsplease-shows"
 
 export function useGetSubspleaseStatus(media: any, enabled: boolean) {
     return useServerQuery<SubspleaseStatus, { media: any }>({
@@ -21,6 +27,16 @@ export function useGetSubspleaseStatus(media: any, enabled: boolean) {
         queryKey: [SUBSPLEASE_STATUS_KEY, String(media?.id)],
         enabled: enabled,
         gcTime: 0,
+    })
+}
+
+export function useGetSubspleaseShows(enabled: boolean) {
+    return useServerQuery<SubspleaseShow[]>({
+        endpoint: "/api/v1/subsplease/shows",
+        method: "GET",
+        queryKey: [SUBSPLEASE_SHOWS_KEY],
+        enabled: enabled,
+        staleTime: 1000 * 60 * 60,
     })
 }
 

@@ -6,10 +6,16 @@ import (
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/extension"
 	hibiketorrent "seanime/internal/extension/hibike/torrent"
+	"seanime/internal/torrents/subsplease"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 )
+
+type SubspleaseShow struct {
+	Title string `json:"title"`
+	Slug  string `json:"slug"`
+}
 
 type SubspleaseStatus struct {
 	Available    bool                          `json:"available"`
@@ -177,4 +183,24 @@ func (h *Handler) HandleLinkSubsplease(c echo.Context) error {
 		EpisodeCount: len(torrents),
 		Slug:         slug,
 	})
+}
+
+// HandleGetSubspleaseShows
+//
+//	@summary returns the full list of SubsPlease shows with display title and slug.
+//	@desc Fetches the SubsPlease shows index and returns all available shows sorted alphabetically.
+//	@route /api/v1/subsplease/shows [GET]
+//	@returns []handlers.SubspleaseShow
+func (h *Handler) HandleGetSubspleaseShows(c echo.Context) error {
+	shows, err := subsplease.FetchShows()
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	result := make([]SubspleaseShow, len(shows))
+	for i, s := range shows {
+		result[i] = SubspleaseShow{Title: s.Title, Slug: s.Slug}
+	}
+
+	return h.RespondWithData(c, result)
 }
