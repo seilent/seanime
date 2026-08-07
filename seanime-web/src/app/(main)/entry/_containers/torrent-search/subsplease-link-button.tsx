@@ -15,6 +15,9 @@ export function SubspleaseLinkButton({ entry }: { entry: Anime_Entry }) {
     const enabled = !!(entry.media?.id && entry.media?.status && entry.media?.format)
     const { data: status } = useGetSubspleaseStatus(entry.media, enabled)
     const linked = !!status?.slug
+    const showUrl = status?.slug
+        ? `https://subsplease.org/shows/${status.slug}/`
+        : "https://subsplease.org/shows/"
 
     const { mutate: link, isPending } = useLinkSubsplease(entry.mediaId, () => {
         setOpen(false)
@@ -59,6 +62,14 @@ export function SubspleaseLinkButton({ entry }: { entry: Anime_Entry }) {
                     >
                         {linked ? "Update" : "Link"}
                     </Button>
+                    <a
+                        href={showUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-fit text-sm text-[--muted] hover:underline"
+                    >
+                        {status?.slug ? "Open on SubsPlease" : "Browse SubsPlease shows"}
+                    </a>
                 </div>
             </Modal>
         </>
