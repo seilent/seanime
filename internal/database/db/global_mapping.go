@@ -13,13 +13,47 @@ func (db *Database) GetCompletedEpisodeNumbers(userID uint, mediaID int) ([]int,
 	return eps, err
 }
 
-func (db *Database) GetMaxLastWatchedAt(mediaID int) (time.Time, error) {
-	var p models.UserEpisodeProgress
+func (db *Database) IsEpisodeCompletedByAllUsers(mediaID int, episode int) (bool, error) {
+	var subCount int64
+	if err := db.gormdb.Raw(`
+		SELECT COUNT(*) FROM user_anime_subscriptions WHERE anilist_id = ?
+	`, mediaID).Scan(&subCount).Error; err != nil {
+		return false, err
+	}
+	if subCount == 0 {
+		return false, nil
+	}
+
+	var completedCount int64
+	if err := db.gormdb.Raw(`
+		SELECT COUNT(DISTINCT uas.user_id) FROM user_anime_subscriptions uas
+		INNER JOIN user_episode_progresses uep
+			ON uep.user_id = uas.user_id AND uep.media_id = uas.anilist_id
+		WHERE uas.anilist_id = ? AND uep.episode_number = ? AND uep.is_completed = 1
+	`, mediaID, episode).Scan(&completedCount).Error; err != nil {
+		return false, err
+	}
+
+	return completedCount >= subCount, nil
+}
+
+func (db *Database) GetEpisodeWatchTimes(mediaID int) (map[int]time.Time, error) {
+	var rows []models.UserEpisodeProgress
 	err := db.gormdb.
 		Where("media_id = ? AND is_completed = ?", mediaID, true).
-		Order("last_watched_at DESC").
-		First(&p).Error
-	return p.LastWatchedAt, err
+		Order("last_watched_at ASC").
+		Find(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[int]time.Time)
+	for _, r := range rows {
+		if r.LastWatchedAt.After(result[r.EpisodeNumber]) {
+			result[r.EpisodeNumber] = r.LastWatchedAt
+		}
+	}
+	return result, nil
 }
 
 // Global Mapping Operations

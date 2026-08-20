@@ -57,10 +57,12 @@ func AutoCleanJob(ctx *JobCtx) {
 		return
 	}
 
-	type candidate struct {
+	type deletableItem struct {
+		filePath      string
 		aniListID     int
+		episodeNumber int
 		title         string
-		lastWatchedAt time.Time
+		watchedAt     time.Time
 	}
 
 	allMappings, err := ctx.App.Database.GetAllGlobalMappings()
@@ -68,93 +70,39 @@ func AutoCleanJob(ctx *JobCtx) {
 		return
 	}
 
-	aniListIDs := make(map[int]bool)
+	watchTimeCache := make(map[int]map[int]time.Time)
+
+	var items []deletableItem
 	for _, m := range allMappings {
-		if m.AniListID > 0 {
-			aniListIDs[m.AniListID] = true
-		}
-	}
-
-	idSlice := make([]int, 0, len(aniListIDs))
-	for id := range aniListIDs {
-		idSlice = append(idSlice, id)
-	}
-
-	cachedMedia, err := ctx.App.Database.GetCachedMediaByIDs(idSlice)
-	if err != nil {
-		return
-	}
-
-	var candidates []candidate
-
-	for _, id := range idSlice {
-		cm, exists := cachedMedia[id]
-		if exists && cm.Status == "RELEASING" {
+		if m.EpisodeNumber <= 0 || m.AniListID <= 0 {
 			continue
 		}
 
-		subs, err := ctx.App.Database.GetUsersWithAnime(id)
-		if err != nil || len(subs) == 0 {
+		completed, err := ctx.App.Database.IsEpisodeCompletedByAllUsers(m.AniListID, m.EpisodeNumber)
+		if err != nil || !completed {
 			continue
 		}
 
-		mediaMappings, err := ctx.App.Database.GetGlobalMappingsByAniListID(id)
-		if err != nil || len(mediaMappings) == 0 {
-			continue
-		}
-
-		episodes := make(map[int]bool)
-		for _, m := range mediaMappings {
-			if m.EpisodeNumber > 0 {
-				episodes[m.EpisodeNumber] = true
+		wt, exists := watchTimeCache[m.AniListID]
+		if !exists {
+			wt, _ = ctx.App.Database.GetEpisodeWatchTimes(m.AniListID)
+			if wt == nil {
+				wt = make(map[int]time.Time)
 			}
+			watchTimeCache[m.AniListID] = wt
 		}
 
-		if len(episodes) == 0 {
-			continue
-		}
-
-		allWatched := true
-		for _, sub := range subs {
-			completed, err := ctx.App.Database.GetCompletedEpisodeNumbers(sub.UserID, id)
-			if err != nil {
-				allWatched = false
-				break
-			}
-			completedSet := make(map[int]bool, len(completed))
-			for _, ep := range completed {
-				completedSet[ep] = true
-			}
-			for ep := range episodes {
-				if !completedSet[ep] {
-					allWatched = false
-					break
-				}
-			}
-			if !allWatched {
-				break
-			}
-		}
-
-		if !allWatched {
-			continue
-		}
-
-		lastWatched, _ := ctx.App.Database.GetMaxLastWatchedAt(id)
-		title := ""
-		if cm != nil {
-			title = cm.TitleRomaji
-		}
-
-		candidates = append(candidates, candidate{
-			aniListID:     id,
-			title:         title,
-			lastWatchedAt: lastWatched,
+		items = append(items, deletableItem{
+			filePath:      m.LocalFilePath,
+			aniListID:     m.AniListID,
+			episodeNumber: m.EpisodeNumber,
+			title:         m.Title,
+			watchedAt:     wt[m.EpisodeNumber],
 		})
 	}
 
-	sort.Slice(candidates, func(i, j int) bool {
-		return candidates[i].lastWatchedAt.Before(candidates[j].lastWatchedAt)
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].watchedAt.Before(items[j].watchedAt)
 	})
 
 	if !ctx.App.TorrentClientRepository.Start() {
@@ -164,68 +112,63 @@ func AutoCleanJob(ctx *JobCtx) {
 
 	allTorrents, _ := ctx.App.TorrentClientRepository.GetList()
 
-	for _, c := range candidates {
+	for _, item := range items {
 		if freeBytes >= diskTargetBytes {
 			break
 		}
 
-		mediaMappings, err := ctx.App.Database.GetGlobalMappingsByAniListID(c.aniListID)
-		if err != nil || len(mediaMappings) == 0 {
-			continue
+		var matchedTorrent *struct {
+			hash        string
+			contentPath string
 		}
+		insideMultiFile := false
 
-		filePaths := make(map[string]bool)
-		for _, m := range mediaMappings {
-			filePaths[m.LocalFilePath] = true
-		}
-
-		var hashesToRemove []string
 		for _, t := range allTorrents {
 			if t.ContentPath == "" {
 				continue
 			}
 			cp := strings.TrimSuffix(t.ContentPath, "/")
-			for fp := range filePaths {
-				if fp == cp || strings.HasPrefix(fp, cp+"/") {
-					hashesToRemove = append(hashesToRemove, t.Hash)
-					break
-				}
+			if item.filePath == cp {
+				matchedTorrent = &struct {
+					hash        string
+					contentPath string
+				}{hash: t.Hash, contentPath: cp}
+				break
+			}
+			if strings.HasPrefix(item.filePath, cp+"/") {
+				insideMultiFile = true
+				break
 			}
 		}
 
-		if len(hashesToRemove) > 0 {
-			_ = ctx.App.TorrentClientRepository.RemoveTorrents(hashesToRemove)
+		if insideMultiFile {
+			continue
 		}
 
-		for fp := range filePaths {
-			_ = os.Remove(fp)
+		if matchedTorrent != nil {
+			_ = ctx.App.TorrentClientRepository.RemoveTorrents([]string{matchedTorrent.hash})
+		} else {
+			_ = os.Remove(item.filePath)
 		}
 
-		_ = ctx.App.Database.DeleteGlobalMappingsByAniListID(c.aniListID)
+		_ = ctx.App.Database.DeleteGlobalMapping(item.filePath)
 
-		for fp := range filePaths {
-			dir := filepath.Dir(fp)
-			if dir != libraryPath && strings.HasPrefix(dir, libraryPath) {
-				entries, err := os.ReadDir(dir)
-				if err == nil && len(entries) == 0 {
-					_ = os.Remove(dir)
-				}
+		dir := filepath.Dir(item.filePath)
+		if dir != libraryPath && strings.HasPrefix(dir, libraryPath) {
+			entries, err := os.ReadDir(dir)
+			if err == nil && len(entries) == 0 {
+				_ = os.Remove(dir)
 			}
 		}
 
 		var newStat syscall.Statfs_t
 		if err := syscall.Statfs(libraryPath, &newStat); err == nil {
-			newFree := newStat.Bavail * uint64(newStat.Bsize)
-			freed := int64(0)
-			if newFree > freeBytes {
-				freed = int64(newFree - freeBytes)
-			}
-			freeBytes = newFree
+			freeBytes = newStat.Bavail * uint64(newStat.Bsize)
 			logger.Info().
-				Str("title", c.title).
-				Int64("freedBytes", freed).
+				Str("title", item.title).
+				Int("episode", item.episodeNumber).
 				Uint64("freeBytes", freeBytes).
-				Msg("cron/auto-clean: Removed anime")
+				Msg("cron/auto-clean: Removed episode")
 		}
 	}
 }

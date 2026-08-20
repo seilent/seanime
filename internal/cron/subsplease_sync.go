@@ -149,7 +149,10 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 			continue
 		}
 
-		// Check if already synced
+		if completed, _ := ctx.App.Database.IsEpisodeCompletedByAllUsers(ref.id, epNum); completed {
+			continue
+		}
+
 		localFiles, _ := db_bridge.GetLocalFilesByMediaId(ctx.App.Database, ref.id)
 		alreadySynced := false
 		for _, lf := range localFiles {
