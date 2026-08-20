@@ -60,13 +60,25 @@ func RunJobs(app *core.App) {
 	}()
 
 	go func() {
-		// Run once on startup after a short delay
 		time.Sleep(2 * time.Minute)
 		SubsPleaseSyncJob(ctx)
 		for {
 			select {
 			case <-subspleaseSyncTicker.C:
 				SubsPleaseSyncJob(ctx)
+			}
+		}
+	}()
+
+	autoCleanTicker := time.NewTicker(15 * time.Minute)
+
+	go func() {
+		time.Sleep(1 * time.Minute)
+		AutoCleanJob(ctx)
+		for {
+			select {
+			case <-autoCleanTicker.C:
+				AutoCleanJob(ctx)
 			}
 		}
 	}()

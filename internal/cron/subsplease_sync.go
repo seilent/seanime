@@ -170,9 +170,13 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 			}
 		}
 
-		// Extract magnet and add to torrent client
 		magnet := buildMagnet(item.GUID, item.Title)
 		if magnet == "" {
+			continue
+		}
+
+		hash := extractHexHash(magnet)
+		if hash != "" && ctx.App.TorrentClientRepository.TorrentExists(hash) {
 			continue
 		}
 
@@ -182,8 +186,6 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 			continue
 		}
 
-		// Record download intent
-		hash := extractHexHash(magnet)
 		if hash != "" {
 			_ = ctx.App.Database.UpsertPendingDownloadIntent(hash, ref.id, libraryPath)
 		}

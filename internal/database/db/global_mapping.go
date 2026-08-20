@@ -5,6 +5,23 @@ import (
 	"time"
 )
 
+func (db *Database) GetCompletedEpisodeNumbers(userID uint, mediaID int) ([]int, error) {
+	var eps []int
+	err := db.gormdb.Model(&models.UserEpisodeProgress{}).
+		Where("user_id = ? AND media_id = ? AND is_completed = ?", userID, mediaID, true).
+		Pluck("episode_number", &eps).Error
+	return eps, err
+}
+
+func (db *Database) GetMaxLastWatchedAt(mediaID int) (time.Time, error) {
+	var p models.UserEpisodeProgress
+	err := db.gormdb.
+		Where("media_id = ? AND is_completed = ?", mediaID, true).
+		Order("last_watched_at DESC").
+		First(&p).Error
+	return p.LastWatchedAt, err
+}
+
 // Global Mapping Operations
 
 // GetGlobalMapping retrieves a global mapping by file path
