@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"seanime/internal/database/models"
 	"seanime/internal/torrent_clients/torrent_client"
 	"sort"
 	"strings"
@@ -14,6 +15,10 @@ import (
 const (
 	diskFloorBytes  = 30 * 1024 * 1024 * 1024
 	diskTargetBytes = 80 * 1024 * 1024 * 1024
+
+	neverWatchedGraceDays  = 14
+	abandonedGraceDays     = 60
+	recentActivityGuardDays = 14
 )
 
 func AutoCleanJob(ctx *JobCtx) {
@@ -57,6 +62,153 @@ func AutoCleanJob(ctx *JobCtx) {
 		return
 	}
 
+	allMappings, err := ctx.App.Database.GetAllGlobalMappings()
+	if err != nil {
+		return
+	}
+
+	activityTimes, err := ctx.App.Database.GetMediaActivityTimes()
+	if err != nil {
+		logger.Warn().Err(err).Msg("cron/auto-clean: Failed to load activity times, skipping cleanup")
+		return
+	}
+
+	animeGroups := make(map[int][]*models.GlobalAnimeFileMapping)
+	for _, m := range allMappings {
+		if m.AniListID <= 0 {
+			continue
+		}
+		animeGroups[m.AniListID] = append(animeGroups[m.AniListID], m)
+	}
+
+	type tierACandidate struct {
+		aniListID int
+		refTime   time.Time
+		mappings  []*models.GlobalAnimeFileMapping
+	}
+
+	var tierACandidates []tierACandidate
+	now := time.Now()
+
+	for aniListID, group := range animeGroups {
+		activity, hasActivity := activityTimes[aniListID]
+
+		if hasActivity {
+			if time.Since(activity) <= time.Duration(abandonedGraceDays)*24*time.Hour {
+				continue
+			}
+			tierACandidates = append(tierACandidates, tierACandidate{
+				aniListID: aniListID,
+				refTime:   activity,
+				mappings:  group,
+			})
+		} else {
+			var newestCreated time.Time
+			for _, m := range group {
+				if m.CreatedAt.After(newestCreated) {
+					newestCreated = m.CreatedAt
+				}
+			}
+			if now.Sub(newestCreated) <= time.Duration(neverWatchedGraceDays)*24*time.Hour {
+				continue
+			}
+			tierACandidates = append(tierACandidates, tierACandidate{
+				aniListID: aniListID,
+				refTime:   newestCreated,
+				mappings:  group,
+			})
+		}
+	}
+
+	sort.Slice(tierACandidates, func(i, j int) bool {
+		return tierACandidates[i].refTime.Before(tierACandidates[j].refTime)
+	})
+
+	if !ctx.App.TorrentClientRepository.Start() {
+		logger.Warn().Msg("cron/auto-clean: Could not start torrent client")
+		return
+	}
+
+	allTorrents, _ := ctx.App.TorrentClientRepository.GetList()
+
+	deletedAnime := make(map[int]bool)
+
+	for _, candidate := range tierACandidates {
+		if freeBytes >= diskTargetBytes {
+			break
+		}
+
+		filePaths := make(map[string]bool)
+		for _, m := range candidate.mappings {
+			filePaths[m.LocalFilePath] = true
+		}
+
+		var hashesToRemove []string
+		for _, t := range allTorrents {
+			if t.ContentPath == "" {
+				continue
+			}
+			cp := strings.TrimSuffix(t.ContentPath, "/")
+
+			if filePaths[cp] {
+				hashesToRemove = append(hashesToRemove, t.Hash)
+				continue
+			}
+
+			for fp := range filePaths {
+				if strings.HasPrefix(fp, cp+"/") {
+					hashesToRemove = append(hashesToRemove, t.Hash)
+					break
+				}
+			}
+		}
+
+		if len(hashesToRemove) > 0 {
+			_ = ctx.App.TorrentClientRepository.RemoveTorrents(hashesToRemove)
+		}
+
+		for fp := range filePaths {
+			_ = os.Remove(fp)
+		}
+
+		_ = ctx.App.Database.DeleteGlobalMappingsByAniListID(candidate.aniListID)
+		deletedAnime[candidate.aniListID] = true
+
+		removedDirs := make(map[string]bool)
+		for fp := range filePaths {
+			dir := filepath.Dir(fp)
+			if removedDirs[dir] {
+				continue
+			}
+			if dir != libraryPath && strings.HasPrefix(dir, libraryPath) {
+				entries, err := os.ReadDir(dir)
+				if err == nil && len(entries) == 0 {
+					_ = os.Remove(dir)
+					removedDirs[dir] = true
+				}
+			}
+		}
+
+		var newStat syscall.Statfs_t
+		if err := syscall.Statfs(libraryPath, &newStat); err == nil {
+			freeBytes = newStat.Bavail * uint64(newStat.Bsize)
+		}
+
+		title := candidate.mappings[0].Title
+		if title == "" {
+			title = candidate.mappings[0].RomajiTitle
+		}
+
+		logger.Info().
+			Str("title", title).
+			Uint64("freeBytes", freeBytes).
+			Msg("cron/auto-clean: Removed abandoned anime")
+	}
+
+	if freeBytes >= diskTargetBytes {
+		return
+	}
+
 	type deletableItem struct {
 		filePath      string
 		aniListID     int
@@ -65,17 +217,18 @@ func AutoCleanJob(ctx *JobCtx) {
 		watchedAt     time.Time
 	}
 
-	allMappings, err := ctx.App.Database.GetAllGlobalMappings()
-	if err != nil {
-		return
-	}
-
 	watchTimeCache := make(map[int]map[int]time.Time)
 
 	var items []deletableItem
 	for _, m := range allMappings {
-		if m.EpisodeNumber <= 0 || m.AniListID <= 0 {
+		if m.EpisodeNumber <= 0 || m.AniListID <= 0 || deletedAnime[m.AniListID] {
 			continue
+		}
+
+		if activity, ok := activityTimes[m.AniListID]; ok {
+			if time.Since(activity) <= time.Duration(recentActivityGuardDays)*24*time.Hour {
+				continue
+			}
 		}
 
 		completed, err := ctx.App.Database.IsEpisodeCompletedByAllUsers(m.AniListID, m.EpisodeNumber)
@@ -109,13 +262,6 @@ func AutoCleanJob(ctx *JobCtx) {
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].watchedAt.Before(items[j].watchedAt)
 	})
-
-	if !ctx.App.TorrentClientRepository.Start() {
-		logger.Warn().Msg("cron/auto-clean: Could not start torrent client")
-		return
-	}
-
-	allTorrents, _ := ctx.App.TorrentClientRepository.GetList()
 
 	for _, item := range items {
 		if freeBytes >= diskTargetBytes {

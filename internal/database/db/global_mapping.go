@@ -56,9 +56,22 @@ func (db *Database) GetEpisodeWatchTimes(mediaID int) (map[int]time.Time, error)
 	return result, nil
 }
 
-// Global Mapping Operations
+func (db *Database) GetMediaActivityTimes() (map[int]time.Time, error) {
+	var rows []models.UserEpisodeProgress
+	err := db.gormdb.Find(&rows).Error
+	if err != nil {
+		return nil, err
+	}
 
-// GetGlobalMapping retrieves a global mapping by file path
+	result := make(map[int]time.Time)
+	for _, r := range rows {
+		if r.LastWatchedAt.After(result[r.MediaID]) {
+			result[r.MediaID] = r.LastWatchedAt
+		}
+	}
+	return result, nil
+}
+
 func (db *Database) GetGlobalMapping(filePath string) (*models.GlobalAnimeFileMapping, error) {
 	var mapping models.GlobalAnimeFileMapping
 	if err := db.gormdb.Where("local_file_path = ?", filePath).First(&mapping).Error; err != nil {
