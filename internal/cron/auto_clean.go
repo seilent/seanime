@@ -92,11 +92,16 @@ func AutoCleanJob(ctx *JobCtx) {
 			watchTimeCache[m.AniListID] = wt
 		}
 
+		title := m.Title
+		if title == "" {
+			title = m.RomajiTitle
+		}
+
 		items = append(items, deletableItem{
 			filePath:      m.LocalFilePath,
 			aniListID:     m.AniListID,
 			episodeNumber: m.EpisodeNumber,
-			title:         m.Title,
+			title:         title,
 			watchedAt:     wt[m.EpisodeNumber],
 		})
 	}
