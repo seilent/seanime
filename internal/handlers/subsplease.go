@@ -55,7 +55,10 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		}
 	}
 
-	if sid != "" && localSpCount >= cachedEpCount && cachedEpCount > 0 {
+	status := b.Media.GetStatus()
+	format := b.Media.GetFormat()
+
+	if sid != "" && localSpCount >= cachedEpCount && cachedEpCount > 0 && (status == nil || *status != anilist.MediaStatusReleasing) {
 		return h.RespondWithData(c, SubspleaseStatus{
 			Available:    true,
 			EpisodeCount: cachedEpCount,
@@ -65,8 +68,6 @@ func (h *Handler) HandleGetSubspleaseEpisodes(c echo.Context) error {
 		})
 	}
 
-	status := b.Media.GetStatus()
-	format := b.Media.GetFormat()
 	if status == nil || format == nil {
 		return h.RespondWithData(c, SubspleaseStatus{Available: true, EpisodeCount: cachedEpCount, LocalCount: localSpCount, Slug: slug})
 	}

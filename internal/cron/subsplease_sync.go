@@ -198,19 +198,6 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 	}
 
 	if totalDownloaded > 0 {
-		// Update episode counts for affected anime
-		for _, id := range releasingIDs {
-			localFiles, _ := db_bridge.GetLocalFilesByMediaId(ctx.App.Database, id)
-			spCount := 0
-			for _, lf := range localFiles {
-				if strings.Contains(lf.LocalFilePath, "[SubsPlease]") {
-					spCount++
-				}
-			}
-			if spCount > 0 {
-				_ = ctx.App.Database.SetSubspleaseEpisodeCount(id, spCount)
-			}
-		}
 		logger.Info().Int("total", totalDownloaded).Msg("cron/sp-sync: Sync complete")
 	}
 }
