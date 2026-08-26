@@ -2,6 +2,7 @@ package cron
 
 import (
 	"seanime/internal/core"
+	"seanime/internal/util"
 	"time"
 )
 
@@ -9,9 +10,13 @@ type JobCtx struct {
 	App *core.App
 }
 
+func safeRun(name string, fn func()) {
+	defer util.RecoverInModule(name)
+	fn()
+}
+
 func RunJobs(app *core.App) {
 
-	// Run the jobs only if the server is online
 	ctx := &JobCtx{
 		App: app,
 	}
@@ -26,8 +31,6 @@ func RunJobs(app *core.App) {
 		for {
 			select {
 			case <-refreshAnilistTicker.C:
-				// Disabled: Collection refresh is now user-specific in pure multiuser system
-				// Users trigger their own collection refreshes via handlers
 			}
 		}
 	}()
@@ -36,7 +39,7 @@ func RunJobs(app *core.App) {
 		for {
 			select {
 			case <-refreshLocalDataTicker.C:
-				SyncLocalDataJob(ctx)
+				safeRun("cron/sync-local-data", func() { SyncLocalDataJob(ctx) })
 			}
 		}
 	}()
@@ -45,7 +48,7 @@ func RunJobs(app *core.App) {
 		for {
 			select {
 			case <-refetchReleaseTicker.C:
-				app.Updater.ShouldRefetchReleases()
+				safeRun("cron/refetch-releases", func() { app.Updater.ShouldRefetchReleases() })
 			}
 		}
 	}()
@@ -54,18 +57,18 @@ func RunJobs(app *core.App) {
 		for {
 			select {
 			case <-refetchAnnouncementsTicker.C:
-				app.Updater.FetchAnnouncements()
+				safeRun("cron/refetch-announcements", func() { app.Updater.FetchAnnouncements() })
 			}
 		}
 	}()
 
 	go func() {
 		time.Sleep(2 * time.Minute)
-		SubsPleaseSyncJob(ctx)
+		safeRun("cron/sp-sync", func() { SubsPleaseSyncJob(ctx) })
 		for {
 			select {
 			case <-subspleaseSyncTicker.C:
-				SubsPleaseSyncJob(ctx)
+				safeRun("cron/sp-sync", func() { SubsPleaseSyncJob(ctx) })
 			}
 		}
 	}()
@@ -74,11 +77,11 @@ func RunJobs(app *core.App) {
 
 	go func() {
 		time.Sleep(1 * time.Minute)
-		AutoCleanJob(ctx)
+		safeRun("cron/auto-clean", func() { AutoCleanJob(ctx) })
 		for {
 			select {
 			case <-autoCleanTicker.C:
-				AutoCleanJob(ctx)
+				safeRun("cron/auto-clean", func() { AutoCleanJob(ctx) })
 			}
 		}
 	}()

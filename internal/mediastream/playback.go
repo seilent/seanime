@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"seanime/internal/mediastream/videofile"
 	"seanime/internal/util/result"
+	"sync"
 
 	"github.com/rs/zerolog"
 	"github.com/samber/mo"
@@ -17,10 +18,11 @@ type (
 	StreamType string
 
 	PlaybackManager struct {
-		logger                *zerolog.Logger
-		currentMediaContainers map[string]mo.Option[*MediaContainer] // Client ID -> current media being played.
-		repository            *Repository
-		mediaContainers       *result.Map[string, *MediaContainer] // Temporary cache for the media containers.
+		logger                 *zerolog.Logger
+		containersMu           sync.RWMutex
+		currentMediaContainers map[string]mo.Option[*MediaContainer]
+		repository             *Repository
+		mediaContainers        *result.Map[string, *MediaContainer]
 	}
 
 	PlaybackState struct {
@@ -49,18 +51,22 @@ func NewPlaybackManager(repository *Repository) *PlaybackManager {
 
 func (p *PlaybackManager) KillPlayback() {
 	p.logger.Debug().Msg("mediastream: Killing playback for all clients")
+	p.containersMu.Lock()
 	for clientId := range p.currentMediaContainers {
 		p.currentMediaContainers[clientId] = mo.None[*MediaContainer]()
 		p.logger.Trace().Str("clientId", clientId).Msg("mediastream: Removed current media container for client")
 	}
+	p.containersMu.Unlock()
 }
 
 func (p *PlaybackManager) KillPlaybackForClient(clientId string) {
 	p.logger.Debug().Str("clientId", clientId).Msg("mediastream: Killing playback for client")
+	p.containersMu.Lock()
 	if container, exists := p.currentMediaContainers[clientId]; exists && container.IsPresent() {
 		p.currentMediaContainers[clientId] = mo.None[*MediaContainer]()
 		p.logger.Trace().Str("clientId", clientId).Msg("mediastream: Removed current media container for client")
 	}
+	p.containersMu.Unlock()
 }
 
 // RequestPlayback is called by the frontend to stream a media file
@@ -77,7 +83,9 @@ func (p *PlaybackManager) RequestPlayback(filepath string, streamType StreamType
 	}
 
 	// Set the current media container for this client.
+	p.containersMu.Lock()
 	p.currentMediaContainers[clientId] = mo.Some(ret)
+	p.containersMu.Unlock()
 
 	p.logger.Info().Str("filepath", filepath).Str("clientId", clientId).Msg("mediastream: Ready to play media")
 
@@ -107,6 +115,31 @@ func (p *PlaybackManager) PreloadPlayback(filepath string, streamType StreamType
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (p *PlaybackManager) ActiveVideoFileHashes() map[string]struct{} {
+	hashes := make(map[string]struct{})
+	p.containersMu.RLock()
+	for _, opt := range p.currentMediaContainers {
+		if opt.IsPresent() {
+			mc := opt.MustGet()
+			if mc.Hash != "" {
+				hashes[mc.Hash] = struct{}{}
+			}
+		}
+	}
+	p.containersMu.RUnlock()
+	return hashes
+}
+
+func (p *PlaybackManager) GetCurrentMediaContainer(clientId string) (*MediaContainer, bool) {
+	p.containersMu.RLock()
+	opt, exists := p.currentMediaContainers[clientId]
+	p.containersMu.RUnlock()
+	if !exists {
+		return nil, false
+	}
+	return opt.Get()
+}
 
 func (p *PlaybackManager) newMediaContainer(filepath string, streamType StreamType) (ret *MediaContainer, err error) {
 	p.logger.Debug().Str("filepath", filepath).Any("type", streamType).Msg("mediastream: New media container requested")

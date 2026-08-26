@@ -22,7 +22,7 @@ func (r *Repository) ServeEchoExtractedSubtitles(c echo.Context, clientId string
 	subFilePath := c.Param("*")
 
 	// Get current media for this client
-	mediaContainer, found := r.playbackManager.currentMediaContainers[clientId].Get()
+	mediaContainer, found := r.playbackManager.GetCurrentMediaContainer(clientId)
 	if !found {
 		return errors.New("no file has been loaded for client")
 	}
@@ -49,7 +49,7 @@ func (r *Repository) ServeEchoExtractedAttachments(c echo.Context, clientId stri
 	subFilePath := c.Param("*")
 
 	// Get current media for this client
-	mediaContainer, found := r.playbackManager.currentMediaContainers[clientId].Get()
+	mediaContainer, found := r.playbackManager.GetCurrentMediaContainer(clientId)
 	if !found {
 		return errors.New("no file has been loaded for client")
 	}

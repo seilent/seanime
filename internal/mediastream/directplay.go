@@ -53,7 +53,7 @@ func (r *Repository) ServeEchoDirectPlay(c echo.Context, clientId string) error 
 		return errors.New("module not initialized")
 	}
 
-	mediaContainer, found := r.playbackManager.currentMediaContainers[clientId].Get()
+	mediaContainer, found := r.playbackManager.GetCurrentMediaContainer(clientId)
 	if !found {
 		r.wsEventManager.SendEvent(events.MediastreamShutdownStream, "no file has been loaded for client")
 		return errors.New("no file has been loaded for client")
@@ -130,6 +130,10 @@ func browserSupportsMKV(userAgent string) bool {
 }
 
 func (r *Repository) createRemuxedFile(inputPath, outputPath string) error {
+	hash := filepath.Base(filepath.Dir(outputPath))
+	r.inflightRemuxHashes.Store(hash, struct{}{})
+	defer r.inflightRemuxHashes.Delete(hash)
+
 	tempPath := outputPath + ".tmp"
 
 	os.Remove(tempPath)

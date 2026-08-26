@@ -40,9 +40,10 @@ type Monitor struct {
 	wsEventManager     events.WSEventManagerInterface
 	mediaInfoExtractor *videofile.MediaInfoExtractor
 	remuxer            Remuxer
+	cacheDir           string
 }
 
-func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logger, wsEventManager events.WSEventManagerInterface, fileCacher *filecache.Cacher, remuxer Remuxer) *Monitor {
+func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logger, wsEventManager events.WSEventManagerInterface, fileCacher *filecache.Cacher, remuxer Remuxer, cacheDir string) *Monitor {
 	return &Monitor{
 		db:                 db,
 		repo:               repo,
@@ -50,6 +51,7 @@ func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logge
 		wsEventManager:     wsEventManager,
 		mediaInfoExtractor: videofile.NewMediaInfoExtractor(fileCacher, logger),
 		remuxer:            remuxer,
+		cacheDir:           cacheDir,
 	}
 }
 
@@ -97,6 +99,12 @@ func (m *Monitor) run(stop chan struct{}) {
 }
 
 func (m *Monitor) emitProgress() {
+	defer func() {
+		if r := recover(); r != nil {
+			m.logger.Error().Msgf("downloadmonitor: panic in emitProgress: %v", r)
+		}
+	}()
+
 	intents, _ := m.db.GetIncompletePendingDownloadIntents()
 	if len(intents) == 0 {
 		return
@@ -197,6 +205,11 @@ func (m *Monitor) tick() {
 
 				if m.remuxer != nil {
 					go func(p string) {
+						if m.cacheDir != "" {
+							if free, err := util.GetFreeSpace(m.cacheDir); err == nil && free < util.DiskFloorBytes {
+								return
+							}
+						}
 						if err := m.remuxer.PrewarmDirectPlay(p); err != nil {
 							m.logger.Warn().Err(err).Str("path", p).Msg("downloadmonitor: direct play prewarm failed")
 						}

@@ -13,14 +13,17 @@ func (db *Database) GetCompletedEpisodeNumbers(userID uint, mediaID int) ([]int,
 	return eps, err
 }
 
-func (db *Database) IsEpisodeCompletedByAllUsers(mediaID int, episode int) (bool, error) {
-	var subCount int64
+func (db *Database) IsEpisodeCompletedByActiveWatchers(mediaID int, episode int) (bool, error) {
+	var activeWatcherCount int64
 	if err := db.gormdb.Raw(`
-		SELECT COUNT(*) FROM user_anime_subscriptions WHERE anilist_id = ?
-	`, mediaID).Scan(&subCount).Error; err != nil {
+		SELECT COUNT(DISTINCT uas.user_id) FROM user_anime_subscriptions uas
+		INNER JOIN user_episode_progresses uep
+			ON uep.user_id = uas.user_id AND uep.media_id = uas.anilist_id
+		WHERE uas.anilist_id = ?
+	`, mediaID).Scan(&activeWatcherCount).Error; err != nil {
 		return false, err
 	}
-	if subCount == 0 {
+	if activeWatcherCount == 0 {
 		return false, nil
 	}
 
@@ -34,7 +37,7 @@ func (db *Database) IsEpisodeCompletedByAllUsers(mediaID int, episode int) (bool
 		return false, err
 	}
 
-	return completedCount >= subCount, nil
+	return completedCount >= activeWatcherCount, nil
 }
 
 func (db *Database) GetEpisodeWatchTimes(mediaID int) (map[int]time.Time, error) {
@@ -54,6 +57,15 @@ func (db *Database) GetEpisodeWatchTimes(mediaID int) (map[int]time.Time, error)
 		}
 	}
 	return result, nil
+}
+
+func (db *Database) GetEpisodeLastWatched(mediaID int, episode int) (time.Time, error) {
+	var lastWatched time.Time
+	err := db.gormdb.Raw(`
+		SELECT MAX(last_watched_at) FROM user_episode_progresses
+		WHERE media_id = ? AND episode_number = ?
+	`, mediaID, episode).Scan(&lastWatched).Error
+	return lastWatched, err
 }
 
 func (db *Database) GetMediaActivityTimes() (map[int]time.Time, error) {

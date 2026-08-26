@@ -149,7 +149,7 @@ func SubsPleaseSyncJob(ctx *JobCtx) {
 			continue
 		}
 
-		if completed, _ := ctx.App.Database.IsEpisodeCompletedByAllUsers(ref.id, epNum); completed {
+		if completed, _ := ctx.App.Database.IsEpisodeCompletedByActiveWatchers(ref.id, epNum); completed {
 			continue
 		}
 

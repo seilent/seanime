@@ -5,7 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"seanime/internal/database/models"
+	"seanime/internal/mediastream/videofile"
 	"seanime/internal/torrent_clients/torrent_client"
+	"seanime/internal/util"
 	"sort"
 	"strings"
 	"syscall"
@@ -16,8 +18,8 @@ const (
 	diskFloorBytes  = 30 * 1024 * 1024 * 1024
 	diskTargetBytes = 80 * 1024 * 1024 * 1024
 
-	neverWatchedGraceDays  = 14
-	abandonedGraceDays     = 60
+	neverWatchedGraceDays   = 14
+	abandonedGraceDays      = 60
 	recentActivityGuardDays = 14
 )
 
@@ -50,6 +52,8 @@ func AutoCleanJob(ctx *JobCtx) {
 		logger.Info().Int("count", removed).Msg("cron/auto-clean: Removed stale mappings")
 	}
 
+	cleanVideofilesCache(ctx)
+
 	var stat syscall.Statfs_t
 	if err := syscall.Statfs(libraryPath, &stat); err != nil {
 		logger.Warn().Err(err).Msg("cron/auto-clean: Statfs failed")
@@ -59,6 +63,17 @@ func AutoCleanJob(ctx *JobCtx) {
 
 	if freeBytes >= diskFloorBytes {
 		resumeErroredTorrents(ctx)
+		return
+	}
+
+	evictCacheForSpace(ctx)
+
+	if err := syscall.Statfs(libraryPath, &stat); err != nil {
+		logger.Warn().Err(err).Msg("cron/auto-clean: Statfs failed after cache eviction")
+		return
+	}
+	freeBytes = stat.Bavail * uint64(stat.Bsize)
+	if freeBytes >= diskFloorBytes {
 		return
 	}
 
@@ -103,18 +118,18 @@ func AutoCleanJob(ctx *JobCtx) {
 				mappings:  group,
 			})
 		} else {
-			var newestCreated time.Time
+			var oldestCreated time.Time
 			for _, m := range group {
-				if m.CreatedAt.After(newestCreated) {
-					newestCreated = m.CreatedAt
+				if oldestCreated.IsZero() || m.CreatedAt.Before(oldestCreated) {
+					oldestCreated = m.CreatedAt
 				}
 			}
-			if now.Sub(newestCreated) <= time.Duration(neverWatchedGraceDays)*24*time.Hour {
+			if now.Sub(oldestCreated) <= time.Duration(neverWatchedGraceDays)*24*time.Hour {
 				continue
 			}
 			tierACandidates = append(tierACandidates, tierACandidate{
 				aniListID: aniListID,
-				refTime:   newestCreated,
+				refTime:   oldestCreated,
 				mappings:  group,
 			})
 		}
@@ -231,7 +246,7 @@ func AutoCleanJob(ctx *JobCtx) {
 			}
 		}
 
-		completed, err := ctx.App.Database.IsEpisodeCompletedByAllUsers(m.AniListID, m.EpisodeNumber)
+		completed, err := ctx.App.Database.IsEpisodeCompletedByActiveWatchers(m.AniListID, m.EpisodeNumber)
 		if err != nil || !completed {
 			continue
 		}
@@ -322,6 +337,197 @@ func AutoCleanJob(ctx *JobCtx) {
 				Msg("cron/auto-clean: Removed episode")
 		}
 	}
+}
+
+func cleanVideofilesCache(ctx *JobCtx) {
+	logger := ctx.App.Logger
+	cacheDir := ctx.App.Config.Cache.Dir
+	if cacheDir == "" {
+		return
+	}
+
+	videofilesDir := filepath.Join(cacheDir, "videofiles")
+	entries, err := os.ReadDir(videofilesDir)
+	if err != nil {
+		return
+	}
+	if len(entries) == 0 {
+		return
+	}
+
+	allMappings, err := ctx.App.Database.GetAllGlobalMappings()
+	if err != nil {
+		return
+	}
+
+	liveHashes := make(map[string]struct{})
+	for _, m := range allMappings {
+		hash, err := videofile.GetHashFromPath(m.LocalFilePath)
+		if err != nil {
+			continue
+		}
+		liveHashes[hash] = struct{}{}
+	}
+
+	var activeHashes map[string]struct{}
+	if ctx.App.MediastreamRepository != nil {
+		activeHashes = ctx.App.MediastreamRepository.ActiveVideoFileHashes()
+	}
+	if activeHashes == nil {
+		activeHashes = make(map[string]struct{})
+	}
+
+	var freedBytes int64
+	var freedCount int
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if _, live := liveHashes[name]; live {
+			continue
+		}
+		if _, active := activeHashes[name]; active {
+			continue
+		}
+		if info, err := entry.Info(); err == nil && time.Since(info.ModTime()) < time.Hour {
+			continue
+		}
+		dirPath := filepath.Join(videofilesDir, name)
+		size := dirSize(dirPath)
+		if err := os.RemoveAll(dirPath); err == nil {
+			freedBytes += size
+			freedCount++
+		}
+	}
+
+	if freedCount > 0 {
+		logger.Info().Int("count", freedCount).Int64("bytes", freedBytes).Msg("cron/auto-clean: Removed orphaned cache dirs")
+	}
+}
+
+func evictCacheForSpace(ctx *JobCtx) {
+	logger := ctx.App.Logger
+	cacheDir := ctx.App.Config.Cache.Dir
+	if cacheDir == "" {
+		return
+	}
+
+	videofilesDir := filepath.Join(cacheDir, "videofiles")
+	entries, err := os.ReadDir(videofilesDir)
+	if err != nil || len(entries) == 0 {
+		return
+	}
+
+	cacheFree, err := util.GetFreeSpace(videofilesDir)
+	if err != nil {
+		return
+	}
+	if cacheFree >= diskTargetBytes {
+		return
+	}
+
+	var activeHashes map[string]struct{}
+	if ctx.App.MediastreamRepository != nil {
+		activeHashes = ctx.App.MediastreamRepository.ActiveVideoFileHashes()
+	}
+	if activeHashes == nil {
+		activeHashes = make(map[string]struct{})
+	}
+
+	allMappings, _ := ctx.App.Database.GetAllGlobalMappings()
+	hashToMapping := make(map[string]*models.GlobalAnimeFileMapping)
+	for _, m := range allMappings {
+		hash, err := videofile.GetHashFromPath(m.LocalFilePath)
+		if err != nil {
+			continue
+		}
+		hashToMapping[hash] = m
+	}
+
+	type cacheEntry struct {
+		hash       string
+		dirPath    string
+		lastWatch  time.Time
+		dirModTime time.Time
+	}
+
+	var candidates []cacheEntry
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if _, active := activeHashes[name]; active {
+			continue
+		}
+
+		dirPath := filepath.Join(videofilesDir, name)
+		var lastWatch time.Time
+		var dirModTime time.Time
+
+		if info, err := entry.Info(); err == nil {
+			dirModTime = info.ModTime()
+			if time.Since(dirModTime) < time.Hour {
+				continue
+			}
+		}
+
+		if m, ok := hashToMapping[name]; ok {
+			lw, err := ctx.App.Database.GetEpisodeLastWatched(m.AniListID, m.EpisodeNumber)
+			if err == nil && !lw.IsZero() {
+				lastWatch = lw
+			}
+		}
+
+		if lastWatch.IsZero() {
+			lastWatch = dirModTime
+		}
+
+		candidates = append(candidates, cacheEntry{
+			hash:       name,
+			dirPath:    dirPath,
+			lastWatch:  lastWatch,
+			dirModTime: dirModTime,
+		})
+	}
+
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].lastWatch.Before(candidates[j].lastWatch)
+	})
+
+	freeBytes := cacheFree
+	for _, c := range candidates {
+		if freeBytes >= diskTargetBytes {
+			break
+		}
+		size := dirSize(c.dirPath)
+		if err := os.RemoveAll(c.dirPath); err != nil {
+			continue
+		}
+		freeBytes += uint64(size)
+		logger.Info().Str("hash", c.hash).Int64("bytes", size).Msg("cron/auto-clean: Evicted cache dir for space")
+
+		free, err := util.GetFreeSpace(videofilesDir)
+		if err == nil {
+			freeBytes = free
+		}
+	}
+}
+
+func dirSize(path string) int64 {
+	var size int64
+	filepath.WalkDir(path, func(_ string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return nil
+		}
+		info, err := d.Info()
+		if err == nil {
+			size += info.Size()
+		}
+		return nil
+	})
+	return size
 }
 
 func resumeErroredTorrents(ctx *JobCtx) {

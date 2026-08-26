@@ -28,6 +28,7 @@ type (
 		remuxGroup           singleflight.Group
 		cacheDir             string
 		globalMappingService *global_mapping.GlobalMappingService
+		inflightRemuxHashes  sync.Map
 	}
 
 	NewRepositoryOptions struct {
@@ -81,6 +82,21 @@ func (r *Repository) InitializeModules(settings *models.GlobalSettings, cacheDir
 
 func (r *Repository) CacheWasCleared() {
 	r.playbackManager.mediaContainers.Clear()
+}
+
+func (r *Repository) ActiveVideoFileHashes() map[string]struct{} {
+	var hashes map[string]struct{}
+	if r.playbackManager != nil {
+		hashes = r.playbackManager.ActiveVideoFileHashes()
+	}
+	if hashes == nil {
+		hashes = make(map[string]struct{})
+	}
+	r.inflightRemuxHashes.Range(func(key, _ interface{}) bool {
+		hashes[key.(string)] = struct{}{}
+		return true
+	})
+	return hashes
 }
 
 func (r *Repository) RequestDirectPlay(filepath string, clientId string) (ret *MediaContainer, err error) {
