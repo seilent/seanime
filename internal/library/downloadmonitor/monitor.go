@@ -31,6 +31,9 @@ type downloadProgressItem struct {
 
 type Remuxer interface {
 	PrewarmDirectPlay(sourcePath string) error
+	RemuxToFile(sourcePath, destPath string) error
+	ExtractToCache(sourcePath string, targetHash string) (*videofile.MediaInfo, error)
+	CacheDir() string
 }
 
 type Monitor struct {
@@ -41,17 +44,22 @@ type Monitor struct {
 	mediaInfoExtractor *videofile.MediaInfoExtractor
 	remuxer            Remuxer
 	cacheDir           string
+	inFlight           sync.Map
+	sem                chan struct{}
 }
 
 func New(db *db.Database, repo *torrent_client.Repository, logger *zerolog.Logger, wsEventManager events.WSEventManagerInterface, fileCacher *filecache.Cacher, remuxer Remuxer, cacheDir string) *Monitor {
+	mie := videofile.NewMediaInfoExtractor(fileCacher, logger)
+	mie.SetCacheDir(cacheDir)
 	return &Monitor{
 		db:                 db,
 		repo:               repo,
 		logger:             logger,
 		wsEventManager:     wsEventManager,
-		mediaInfoExtractor: videofile.NewMediaInfoExtractor(fileCacher, logger),
+		mediaInfoExtractor: mie,
 		remuxer:            remuxer,
 		cacheDir:           cacheDir,
+		sem:                make(chan struct{}, 2),
 	}
 }
 
@@ -60,8 +68,6 @@ var (
 	activeStop chan struct{}
 )
 
-// Start launches the monitor loop, stopping any previously started monitor first
-// so that module refreshes (which reconstruct the monitor) don't leak goroutines.
 func (m *Monitor) Start() {
 	monitorMu.Lock()
 	if activeStop != nil {
@@ -161,15 +167,13 @@ func (m *Monitor) tick() {
 	for _, intent := range intents {
 		t, found := byHash[intent.Hash]
 
-		// PHASE 1 — flatten + map (when files fully downloaded, once)
 		if intent.FlattenState != "linked" {
 			if !found || t.Progress < 1.0 {
-				continue // wait for full download
+				continue
 			}
 
 			contentPath := t.ContentPath
-			info, statErr := os.Stat(contentPath)
-			isFolder := statErr == nil && info.IsDir()
+			_, statErr := os.Stat(contentPath)
 			videos := collectVideos(contentPath)
 			if len(videos) == 0 {
 				if statErr != nil {
@@ -180,83 +184,29 @@ func (m *Monitor) tick() {
 				m.logger.Warn().Str("hash", intent.Hash).Str("contentPath", contentPath).Msg("downloadmonitor: torrent reports complete but no video files found, leaving intent pending for retry")
 				continue
 			}
-			destDir := intent.Destination // known anime/<Title>/ dir from download time
-			if destDir == "" {
-				destDir = filepath.Dir(contentPath)
-			}
-			storedContentPath := ""
 
-			// Build per-episode index of existing mappings for per-episode replace
-			existingMappings, _ := m.db.GetGlobalMappingsByAniListID(intent.MediaID)
-			byEp := make(map[int][]*models.GlobalAnimeFileMapping)
-			for _, em := range existingMappings {
-				byEp[em.EpisodeNumber] = append(byEp[em.EpisodeNumber], em)
+			if _, loaded := m.inFlight.LoadOrStore(intent.Hash, struct{}{}); loaded {
+				continue
 			}
 
-			for _, v := range videos {
-				target := v
-				if isFolder {
-					target = filepath.Join(destDir, filepath.Base(v))
-					if e := util.HardlinkOrCopy(v, target); e != nil {
-						m.logger.Warn().Err(e).Str("src", v).Str("dst", target).Msg("downloadmonitor: hardlink failed, mapping original")
-						target = v // fall back to mapping original path
+			intentCopy := intent
+			tCopy := t
+			go func() {
+				m.sem <- struct{}{}
+				defer func() {
+					<-m.sem
+					m.inFlight.Delete(intentCopy.Hash)
+					if r := recover(); r != nil {
+						m.logger.Error().Msgf("downloadmonitor: panic in processCompletedIntent: %v", r)
 					}
-				}
-
-				if m.remuxer != nil {
-					go func(p string) {
-						if m.cacheDir != "" {
-							if free, err := util.GetFreeSpace(m.cacheDir); err == nil && free < util.DiskFloorBytes {
-								return
-							}
-						}
-						if err := m.remuxer.PrewarmDirectPlay(p); err != nil {
-							m.logger.Warn().Err(err).Str("path", p).Msg("downloadmonitor: direct play prewarm failed")
-						}
-					}(target)
-				}
-
-				ep := parseEpisode(filepath.Base(target), len(videos))
-
-				// Per-episode replace: remove old file(s) for this (media, episode) if different path
-				cleanTarget := filepath.Clean(target)
-				for _, old := range byEp[ep] {
-					if filepath.Clean(old.LocalFilePath) != cleanTarget {
-						if err := os.Remove(old.LocalFilePath); err != nil {
-							m.logger.Debug().Err(err).Str("path", old.LocalFilePath).Msg("downloadmonitor: could not remove old episode file")
-						}
-						_ = m.db.DeleteGlobalMapping(old.LocalFilePath)
-					}
-				}
-
-				m.db.UpsertGlobalMapping(&models.GlobalAnimeFileMapping{
-					AniListID:     intent.MediaID,
-					LocalFilePath: target,
-					EpisodeNumber: ep,
-					FileType:      "main",
-					LastScanned:   time.Now(),
-				})
-
-				// Pre-extract media info so it's cached before first playback
-				if _, err := m.mediaInfoExtractor.GetInfo("ffprobe", target); err != nil {
-					m.logger.Warn().Err(err).Str("path", target).Msg("downloadmonitor: failed to extract media info")
-				}
-			}
-
-			if isFolder {
-				storedContentPath = contentPath
-			}
-			m.db.SetPendingDownloadIntentLinked(intent.Hash, storedContentPath)
-			if m.wsEventManager != nil {
-				m.wsEventManager.SendEvent(events.InvalidateQueries, []string{events.GetAnimeEntryEndpoint})
-			}
-			m.logger.Info().Str("hash", intent.Hash).Int("files", len(videos)).Msg("downloadmonitor: Linked intent")
+				}()
+				m.processCompletedIntent(intentCopy, tCopy)
+			}()
 			continue
 		}
 
-		// PHASE 2 — cleanup torrent subfolder after seeding stops (or torrent gone)
 		if found && t.Status != torrent_client.TorrentStatusStopped {
-			continue // still seeding
+			continue
 		}
 
 		if intent.ContentPath != "" && intent.Destination != "" {
@@ -280,6 +230,130 @@ func (m *Monitor) tick() {
 		m.db.MarkPendingDownloadIntentCompleted(intent.Hash)
 		m.logger.Info().Str("hash", intent.Hash).Msg("downloadmonitor: Completed intent")
 	}
+}
+
+func (m *Monitor) processCompletedIntent(intent *models.PendingDownloadIntent, t *torrent_client.Torrent) {
+	contentPath := t.ContentPath
+	videos := collectVideos(contentPath)
+
+	destDir := intent.Destination
+	if destDir == "" {
+		destDir = filepath.Dir(contentPath)
+	}
+
+	_ = m.repo.PauseTorrents([]string{intent.Hash})
+
+	existingMappings, _ := m.db.GetGlobalMappingsByAniListID(intent.MediaID)
+	byEp := make(map[int][]*models.GlobalAnimeFileMapping)
+	for _, em := range existingMappings {
+		byEp[em.EpisodeNumber] = append(byEp[em.EpisodeNumber], em)
+	}
+
+	allMaterialized := true
+	for _, v := range videos {
+		ext := strings.ToLower(filepath.Ext(v))
+		base := strings.TrimSuffix(filepath.Base(v), filepath.Ext(v))
+		var target string
+		var usedFallback bool
+
+		if ext == ".mkv" && m.remuxer != nil {
+			mp4Name := base + ".mp4"
+			mp4Path := filepath.Join(destDir, mp4Name)
+			if err := os.MkdirAll(destDir, 0755); err == nil {
+				if err := m.remuxer.RemuxToFile(v, mp4Path); err == nil {
+					mp4Hash, hashErr := videofile.GetHashFromPath(mp4Path)
+					if hashErr == nil {
+						cacheDir := m.remuxer.CacheDir()
+						if cacheDir == "" {
+							cacheDir = m.cacheDir
+						}
+						mkvInfo, extractErr := m.remuxer.ExtractToCache(v, mp4Hash)
+						if extractErr == nil && mkvInfo != nil {
+							_ = videofile.WriteSubsManifest(cacheDir, mp4Hash, mkvInfo.Subtitles, mkvInfo.Fonts)
+						} else {
+							m.logger.Warn().Err(extractErr).Str("path", v).Msg("downloadmonitor: sub extraction failed, playback may lack subs")
+						}
+					}
+					target = mp4Path
+				} else {
+					m.logger.Warn().Err(err).Str("path", v).Msg("downloadmonitor: remux failed, falling back to copy")
+					usedFallback = true
+				}
+			} else {
+				m.logger.Warn().Err(err).Str("dir", destDir).Msg("downloadmonitor: mkdir failed, falling back to copy")
+				usedFallback = true
+			}
+		} else {
+			usedFallback = true
+		}
+
+		if usedFallback {
+			target = filepath.Join(destDir, filepath.Base(v))
+			if err := os.MkdirAll(destDir, 0755); err != nil {
+				m.logger.Warn().Err(err).Str("dir", destDir).Msg("downloadmonitor: mkdir failed for fallback")
+				target = v
+			} else if target != v {
+				if e := util.HardlinkOrCopy(v, target); e != nil {
+					m.logger.Warn().Err(e).Str("src", v).Str("dst", target).Msg("downloadmonitor: hardlink failed, mapping original")
+					target = v
+				}
+			}
+
+			if m.remuxer != nil {
+				go func(p string) {
+					if m.cacheDir != "" {
+						if free, err := util.GetFreeSpace(m.cacheDir); err == nil && free < util.DiskFloorBytes {
+							return
+						}
+					}
+					if err := m.remuxer.PrewarmDirectPlay(p); err != nil {
+						m.logger.Warn().Err(err).Str("path", p).Msg("downloadmonitor: direct play prewarm failed")
+					}
+				}(target)
+			}
+		}
+
+		if filepath.Clean(target) == filepath.Clean(v) {
+			allMaterialized = false
+		}
+
+		ep := parseEpisode(filepath.Base(target), len(videos))
+
+		cleanTarget := filepath.Clean(target)
+		for _, old := range byEp[ep] {
+			if filepath.Clean(old.LocalFilePath) != cleanTarget {
+				if err := os.Remove(old.LocalFilePath); err != nil {
+					m.logger.Debug().Err(err).Str("path", old.LocalFilePath).Msg("downloadmonitor: could not remove old episode file")
+				}
+				_ = m.db.DeleteGlobalMapping(old.LocalFilePath)
+			}
+		}
+
+		m.db.UpsertGlobalMapping(&models.GlobalAnimeFileMapping{
+			AniListID:     intent.MediaID,
+			LocalFilePath: target,
+			EpisodeNumber: ep,
+			FileType:      "main",
+			LastScanned:   time.Now(),
+		})
+
+		if _, err := m.mediaInfoExtractor.GetInfo("ffprobe", target); err != nil {
+			m.logger.Warn().Err(err).Str("path", target).Msg("downloadmonitor: failed to extract media info")
+		}
+	}
+
+	if allMaterialized {
+		_ = m.repo.RemoveTorrents([]string{intent.Hash})
+		m.db.MarkPendingDownloadIntentCompleted(intent.Hash)
+	} else {
+		m.db.SetPendingDownloadIntentLinked(intent.Hash, "")
+		_ = m.repo.ResumeTorrents([]string{intent.Hash})
+	}
+
+	if m.wsEventManager != nil {
+		m.wsEventManager.SendEvent(events.InvalidateQueries, []string{events.GetAnimeEntryEndpoint})
+	}
+	m.logger.Info().Str("hash", intent.Hash).Int("files", len(videos)).Msg("downloadmonitor: Linked intent")
 }
 
 func collectVideos(contentPath string) []string {

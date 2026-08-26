@@ -75,6 +75,8 @@ func (r *Repository) InitializeModules(settings *models.GlobalSettings, cacheDir
 
 	r.cacheDir = cacheDir
 
+	r.mediaInfoExtractor.SetCacheDir(cacheDir)
+
 	r.optimizer.SetLibraryDir(settings.Library.LibraryPath)
 
 	r.logger.Info().Msg("mediastream: Module initialized")

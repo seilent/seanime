@@ -26,15 +26,22 @@ func ExtractAttachment(ffmpegPath string, path string, hash string, mediaInfo *M
 	_ = os.MkdirAll(attachmentPath, 0755)
 	_ = os.MkdirAll(subsPath, 0755)
 
+	embedded := make([]Subtitle, 0, len(mediaInfo.Subtitles))
+	for _, sub := range mediaInfo.Subtitles {
+		if !sub.IsExternal {
+			embedded = append(embedded, sub)
+		}
+	}
+
 	subsDir, err := os.ReadDir(subsPath)
 	if err == nil {
-		if len(subsDir) == len(mediaInfo.Subtitles) {
+		if len(subsDir) >= len(embedded) {
 			logger.Debug().Str("hash", hash).Msgf("videofile: Attachments already extracted")
 			return
 		}
 	}
 
-	for _, sub := range mediaInfo.Subtitles {
+	for _, sub := range embedded {
 		if sub.Extension == nil || *sub.Extension == "" {
 			logger.Error().Msgf("videofile: Subtitle format is not supported")
 			return fmt.Errorf("videofile: Unsupported subtitle format")
@@ -59,7 +66,7 @@ func ExtractAttachment(ffmpegPath string, path string, hash string, mediaInfo *M
 	// The working directory for the command is the attachment directory
 	cmd.Dir = attachmentPath
 
-	for _, sub := range mediaInfo.Subtitles {
+	for _, sub := range embedded {
 		if ext := sub.Extension; ext != nil {
 			cmd.Args = append(
 				cmd.Args,

@@ -447,7 +447,8 @@ func evictCacheForSpace(ctx *JobCtx) {
 
 	type cacheEntry struct {
 		hash       string
-		dirPath    string
+		mp4Path    string
+		mp4Size    int64
 		lastWatch  time.Time
 		dirModTime time.Time
 	}
@@ -463,9 +464,13 @@ func evictCacheForSpace(ctx *JobCtx) {
 		}
 
 		dirPath := filepath.Join(videofilesDir, name)
-		var lastWatch time.Time
-		var dirModTime time.Time
+		mp4Path := filepath.Join(dirPath, "direct.mp4")
+		mp4Info, mp4Err := os.Stat(mp4Path)
+		if mp4Err != nil {
+			continue
+		}
 
+		var dirModTime time.Time
 		if info, err := entry.Info(); err == nil {
 			dirModTime = info.ModTime()
 			if time.Since(dirModTime) < time.Hour {
@@ -473,6 +478,7 @@ func evictCacheForSpace(ctx *JobCtx) {
 			}
 		}
 
+		var lastWatch time.Time
 		if m, ok := hashToMapping[name]; ok {
 			lw, err := ctx.App.Database.GetEpisodeLastWatched(m.AniListID, m.EpisodeNumber)
 			if err == nil && !lw.IsZero() {
@@ -486,7 +492,8 @@ func evictCacheForSpace(ctx *JobCtx) {
 
 		candidates = append(candidates, cacheEntry{
 			hash:       name,
-			dirPath:    dirPath,
+			mp4Path:    mp4Path,
+			mp4Size:    mp4Info.Size(),
 			lastWatch:  lastWatch,
 			dirModTime: dirModTime,
 		})
@@ -501,12 +508,11 @@ func evictCacheForSpace(ctx *JobCtx) {
 		if freeBytes >= diskTargetBytes {
 			break
 		}
-		size := dirSize(c.dirPath)
-		if err := os.RemoveAll(c.dirPath); err != nil {
+		if err := os.Remove(c.mp4Path); err != nil {
 			continue
 		}
-		freeBytes += uint64(size)
-		logger.Info().Str("hash", c.hash).Int64("bytes", size).Msg("cron/auto-clean: Evicted cache dir for space")
+		freeBytes += uint64(c.mp4Size)
+		logger.Info().Str("hash", c.hash).Int64("bytes", c.mp4Size).Msg("cron/auto-clean: Evicted direct.mp4 for space")
 
 		free, err := util.GetFreeSpace(videofilesDir)
 		if err == nil {

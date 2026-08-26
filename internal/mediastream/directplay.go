@@ -206,3 +206,45 @@ func (r *Repository) PrewarmDirectPlay(sourcePath string) error {
 	})
 	return err
 }
+
+func (r *Repository) RemuxToFile(sourcePath, destPath string) error {
+	tempPath := destPath + ".tmp"
+	os.Remove(tempPath)
+
+	cmd := exec.Command("ffmpeg", "-i", sourcePath, "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "copy", "-sn", "-dn", "-f", "mp4", tempPath)
+	var stderr, stdout strings.Builder
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stdout
+
+	r.logger.Info().Str("source", sourcePath).Str("dest", destPath).Msg("mediastream: Remuxing MKV to MP4 (library)")
+
+	if err := cmd.Run(); err != nil {
+		r.logger.Error().Err(err).Str("stderr", stderr.String()).Msg("mediastream: ffmpeg library remux failed")
+		os.Remove(tempPath)
+		return fmt.Errorf("ffmpeg remux failed: %w", err)
+	}
+
+	if err := os.Rename(tempPath, destPath); err != nil {
+		os.Remove(tempPath)
+		return fmt.Errorf("rename failed: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Repository) ExtractToCache(sourcePath string, targetHash string) (*videofile.MediaInfo, error) {
+	info, err := r.mediaInfoExtractor.GetInfo("ffprobe", sourcePath)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := videofile.ExtractAttachment("ffmpeg", sourcePath, targetHash, info, r.cacheDir, r.logger); err != nil {
+		return nil, err
+	}
+
+	return info, nil
+}
+
+func (r *Repository) CacheDir() string {
+	return r.cacheDir
+}

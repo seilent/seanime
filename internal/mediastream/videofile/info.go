@@ -115,6 +115,7 @@ type Chapter struct {
 type MediaInfoExtractor struct {
 	fileCacher *filecache.Cacher
 	logger     *zerolog.Logger
+	cacheDir   string
 }
 
 func NewMediaInfoExtractor(fileCacher *filecache.Cacher, logger *zerolog.Logger) *MediaInfoExtractor {
@@ -124,8 +125,10 @@ func NewMediaInfoExtractor(fileCacher *filecache.Cacher, logger *zerolog.Logger)
 	}
 }
 
-// GetInfo returns the media information of a file.
-// If the information is not in the cache, it will be extracted and saved in the cache.
+func (e *MediaInfoExtractor) SetCacheDir(dir string) {
+	e.cacheDir = dir
+}
+
 func (e *MediaInfoExtractor) GetInfo(ffprobePath, path string) (mi *MediaInfo, err error) {
 	hash, err := GetHashFromPath(path)
 	if err != nil {
@@ -140,7 +143,6 @@ func (e *MediaInfoExtractor) GetInfo(ffprobePath, path string) (mi *MediaInfo, e
 
 	e.logger.Trace().Msg("mediastream: Getting media information from cache [MediaInfoExtractor]")
 
-	// Look in the cache
 	if found, _ := e.fileCacher.Get(bucket, hash, &mi); found {
 		e.logger.Debug().Str("hash", hash).Msg("mediastream: Media information cache HIT [MediaInfoExtractor]")
 		return mi, nil
@@ -148,14 +150,38 @@ func (e *MediaInfoExtractor) GetInfo(ffprobePath, path string) (mi *MediaInfo, e
 
 	e.logger.Debug().Str("hash", hash).Msg("mediastream: Extracting media information using FFprobe")
 
-	// Get the media information of the file.
 	mi, err = FfprobeGetInfo(ffprobePath, path, hash)
 	if err != nil {
 		e.logger.Error().Err(err).Str("path", path).Msg("mediastream: Failed to extract media information using FFprobe")
 		return nil, err
 	}
 
-	// Save in the cache
+	if e.cacheDir != "" {
+		if manifest, merr := ReadSubsManifest(e.cacheDir, hash); merr == nil {
+			existing := make(map[uint32]struct{}, len(mi.Subtitles))
+			for _, s := range mi.Subtitles {
+				existing[s.Index] = struct{}{}
+			}
+			for _, s := range manifest.Subtitles {
+				if _, dup := existing[s.Index]; dup {
+					continue
+				}
+				s.IsExternal = true
+				mi.Subtitles = append(mi.Subtitles, s)
+			}
+			existingFonts := make(map[string]struct{}, len(mi.Fonts))
+			for _, f := range mi.Fonts {
+				existingFonts[f] = struct{}{}
+			}
+			for _, f := range manifest.Fonts {
+				if _, dup := existingFonts[f]; dup {
+					continue
+				}
+				mi.Fonts = append(mi.Fonts, f)
+			}
+		}
+	}
+
 	_ = e.fileCacher.Set(bucket, hash, mi)
 
 	e.logger.Debug().Str("hash", hash).Msg("mediastream: Extracted media information using FFprobe")
