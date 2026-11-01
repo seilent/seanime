@@ -55,8 +55,6 @@ func (h *Handler) isPublicPath(path string) bool {
 		"/api/v1/users/login",
 		"/api/v1/users/logout",
 		"/events",
-		"/api/v1/image-proxy",
-		"/api/v1/proxy",
 		"/api/v1/manga/local-page",
 	}
 

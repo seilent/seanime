@@ -5,14 +5,20 @@ import (
 	"io"
 	"net/http"
 	"seanime/internal/util"
+	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
 
 type ImageProxy struct{}
 
+var imageProxyClient = &http.Client{
+	Transport: &http.Transport{DialContext: publicDialer.DialContext},
+	Timeout:   60 * time.Second,
+}
+
 func (ip *ImageProxy) GetImage(url string, headers map[string]string) ([]byte, error) {
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -22,7 +28,7 @@ func (ip *ImageProxy) GetImage(url string, headers map[string]string) ([]byte, e
 		req.Header.Add(key, value)
 	}
 
-	resp, err := client.Do(req)
+	resp, err := imageProxyClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -37,12 +43,8 @@ func (ip *ImageProxy) GetImage(url string, headers map[string]string) ([]byte, e
 }
 
 func (ip *ImageProxy) setHeaders(c echo.Context) {
-	c.Set("Content-Type", "image/jpeg")
-	c.Set("Cache-Control", "public, max-age=31536000")
-	c.Set("Access-Control-Allow-Origin", "*")
-	c.Set("Access-Control-Allow-Methods", "GET")
-	c.Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-	c.Set("Access-Control-Allow-Credentials", "true")
+	c.Response().Header().Set("Cache-Control", "private, max-age=31536000")
+	c.Response().Header().Set("X-Content-Type-Options", "nosniff")
 }
 
 func (ip *ImageProxy) ProxyImage(c echo.Context) (err error) {
@@ -66,5 +68,9 @@ func (ip *ImageProxy) ProxyImage(c echo.Context) (err error) {
 		return c.String(echo.ErrInternalServerError.Code, "Error fetching image")
 	}
 
-	return c.Blob(http.StatusOK, c.Response().Header().Get("Content-Type"), imageBuffer)
+	contentType := http.DetectContentType(imageBuffer)
+	if !strings.HasPrefix(contentType, "image/") {
+		return c.String(http.StatusBadGateway, "Not an image")
+	}
+	return c.Blob(http.StatusOK, contentType, imageBuffer)
 }

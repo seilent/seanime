@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"seanime/internal/events"
 	"seanime/internal/mediastream/videofile"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -35,7 +36,16 @@ func (r *Repository) ServeEchoExtractedSubtitles(c echo.Context, clientId string
 
 	r.logger.Trace().Msgf("mediastream: Serving subtitles from %s", retPath)
 
-	return c.File(filepath.Join(retPath, subFilePath))
+	return serveFileInDir(c, retPath, subFilePath)
+}
+
+func serveFileInDir(c echo.Context, dir string, name string) error {
+	p := filepath.Join(dir, name)
+	rel, err := filepath.Rel(dir, p)
+	if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return echo.ErrNotFound
+	}
+	return c.File(p)
 }
 
 func (r *Repository) ServeEchoExtractedAttachments(c echo.Context, clientId string) error {
@@ -62,5 +72,5 @@ func (r *Repository) ServeEchoExtractedAttachments(c echo.Context, clientId stri
 
 	subFilePath, _ = url.PathUnescape(subFilePath)
 
-	return c.File(filepath.Join(retPath, subFilePath))
+	return serveFileInDir(c, retPath, subFilePath)
 }
