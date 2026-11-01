@@ -62,8 +62,8 @@ func (r *Repository) ServeEchoDirectPlay(c echo.Context, clientId string) error 
 	filePath := mediaContainer.Filepath
 
 	userAgent := c.Request().UserAgent()
-	needsMP4 := !browserSupportsMKV(userAgent)
-	isMKV := filepath.Ext(filePath) == ".mkv"
+	needsMP4 := directPlayNeedsMP4(userAgent, mediaContainer.MediaInfo)
+	isMKV := strings.EqualFold(filepath.Ext(filePath), ".mkv")
 
 	if needsMP4 && isMKV {
 		mp4Path := r.directPlayMP4Path(mediaContainer.Hash)
@@ -76,8 +76,8 @@ func (r *Repository) ServeEchoDirectPlay(c echo.Context, clientId string) error 
 				if e := os.MkdirAll(filepath.Dir(mp4Path), 0755); e != nil {
 					return nil, e
 				}
-				r.logger.Info().Str("source", filePath).Str("target", mp4Path).Msg("mediastream: Remuxing MKV to MP4 (cache)")
-				return nil, r.createRemuxedFile(filePath, mp4Path)
+				r.logger.Info().Str("source", filePath).Str("target", mp4Path).Bool("aac", audioNeedsTranscode(mediaContainer.MediaInfo)).Msg("mediastream: Remuxing MKV to MP4 (cache)")
+				return nil, r.createRemuxedFile(filePath, mp4Path, mediaContainer.MediaInfo)
 			})
 
 			if err != nil {
@@ -129,7 +129,54 @@ func browserSupportsMKV(userAgent string) bool {
 	return true
 }
 
-func (r *Repository) createRemuxedFile(inputPath, outputPath string) error {
+var browserUnsupportedAudioCodecs = map[string]struct{}{
+	"ac3":    {},
+	"eac3":   {},
+	"dts":    {},
+	"truehd": {},
+	"mlp":    {},
+}
+
+func directPlayAudio(info *videofile.MediaInfo) *videofile.Audio {
+	if info == nil || len(info.Audios) == 0 {
+		return nil
+	}
+	for i := range info.Audios {
+		if info.Audios[i].IsDefault {
+			return &info.Audios[i]
+		}
+	}
+	return &info.Audios[0]
+}
+
+func audioNeedsTranscode(info *videofile.MediaInfo) bool {
+	audio := directPlayAudio(info)
+	if audio == nil {
+		return false
+	}
+	_, ok := browserUnsupportedAudioCodecs[audio.Codec]
+	return ok
+}
+
+func directPlayNeedsMP4(userAgent string, info *videofile.MediaInfo) bool {
+	return !browserSupportsMKV(userAgent) || audioNeedsTranscode(info)
+}
+
+func remuxArgs(inputPath, outputPath string, info *videofile.MediaInfo) []string {
+	args := []string{"-i", inputPath}
+	if audio := directPlayAudio(info); audio != nil {
+		args = append(args, "-map", "0:v:0?", "-map", fmt.Sprintf("0:a:%d", audio.Index))
+	}
+	args = append(args, "-c:v", "copy")
+	if audioNeedsTranscode(info) {
+		args = append(args, "-c:a", "aac", "-ac", "2", "-b:a", "192k")
+	} else {
+		args = append(args, "-c:a", "copy")
+	}
+	return append(args, "-sn", "-f", "mp4", outputPath)
+}
+
+func (r *Repository) createRemuxedFile(inputPath, outputPath string, info *videofile.MediaInfo) error {
 	hash := filepath.Base(filepath.Dir(outputPath))
 	r.inflightRemuxHashes.Store(hash, struct{}{})
 	defer r.inflightRemuxHashes.Delete(hash)
@@ -138,7 +185,7 @@ func (r *Repository) createRemuxedFile(inputPath, outputPath string) error {
 
 	os.Remove(tempPath)
 
-	cmd := exec.Command("ffmpeg", "-i", inputPath, "-c:v", "copy", "-c:a", "copy", "-sn", "-f", "mp4", tempPath)
+	cmd := exec.Command("ffmpeg", remuxArgs(inputPath, tempPath, info)...)
 
 	var stderr, stdout strings.Builder
 	cmd.Stderr = &stderr
@@ -194,6 +241,9 @@ func (r *Repository) PrewarmDirectPlay(sourcePath string) error {
 		return nil
 	}
 
+	r.prewarmMu.Lock()
+	defer r.prewarmMu.Unlock()
+
 	_, err, _ = r.remuxGroup.Do(mp4Path, func() (interface{}, error) {
 		if _, e := os.Stat(mp4Path); e == nil {
 			return nil, nil
@@ -201,22 +251,51 @@ func (r *Repository) PrewarmDirectPlay(sourcePath string) error {
 		if e := os.MkdirAll(filepath.Dir(mp4Path), 0755); e != nil {
 			return nil, e
 		}
-		r.logger.Info().Str("source", sourcePath).Str("target", mp4Path).Msg("mediastream: Remuxing MKV to MP4 (prewarm)")
-		return nil, r.createRemuxedFile(sourcePath, mp4Path)
+		r.logger.Info().Str("source", sourcePath).Str("target", mp4Path).Bool("aac", audioNeedsTranscode(info)).Msg("mediastream: Remuxing MKV to MP4 (prewarm)")
+		return nil, r.createRemuxedFile(sourcePath, mp4Path, info)
 	})
 	return err
 }
 
+func unsupportedAudioIndexes(info *videofile.MediaInfo) []uint32 {
+	if info == nil {
+		return nil
+	}
+	var ret []uint32
+	for _, audio := range info.Audios {
+		if _, ok := browserUnsupportedAudioCodecs[audio.Codec]; ok {
+			ret = append(ret, audio.Index)
+		}
+	}
+	return ret
+}
+
+func libraryRemuxArgs(sourcePath, outputPath string, info *videofile.MediaInfo) []string {
+	args := []string{"-i", sourcePath, "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "copy"}
+	for _, i := range unsupportedAudioIndexes(info) {
+		args = append(args, fmt.Sprintf("-c:a:%d", i), "aac", fmt.Sprintf("-ac:a:%d", i), "2", fmt.Sprintf("-b:a:%d", i), "192k")
+	}
+	return append(args, "-sn", "-dn", "-f", "mp4", outputPath)
+}
+
 func (r *Repository) RemuxToFile(sourcePath, destPath string) error {
+	var info *videofile.MediaInfo
+	if r.mediaInfoExtractor != nil {
+		info, _ = r.mediaInfoExtractor.GetInfo("ffprobe", sourcePath)
+	}
+	return r.remuxToLibraryFile(sourcePath, destPath, info)
+}
+
+func (r *Repository) remuxToLibraryFile(sourcePath, destPath string, info *videofile.MediaInfo) error {
 	tempPath := destPath + ".tmp"
 	os.Remove(tempPath)
 
-	cmd := exec.Command("ffmpeg", "-i", sourcePath, "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-c:a", "copy", "-sn", "-dn", "-f", "mp4", tempPath)
+	cmd := exec.Command("ffmpeg", libraryRemuxArgs(sourcePath, tempPath, info)...)
 	var stderr, stdout strings.Builder
 	cmd.Stderr = &stderr
 	cmd.Stdout = &stdout
 
-	r.logger.Info().Str("source", sourcePath).Str("dest", destPath).Msg("mediastream: Remuxing MKV to MP4 (library)")
+	r.logger.Info().Str("source", sourcePath).Str("dest", destPath).Bool("aac", len(unsupportedAudioIndexes(info)) > 0).Msg("mediastream: Remuxing MKV to MP4 (library)")
 
 	if err := cmd.Run(); err != nil {
 		r.logger.Error().Err(err).Str("stderr", stderr.String()).Msg("mediastream: ffmpeg library remux failed")

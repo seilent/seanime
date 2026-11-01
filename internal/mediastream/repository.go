@@ -29,6 +29,7 @@ type (
 		cacheDir             string
 		globalMappingService *global_mapping.GlobalMappingService
 		inflightRemuxHashes  sync.Map
+		prewarmMu            sync.Mutex
 	}
 
 	NewRepositoryOptions struct {
