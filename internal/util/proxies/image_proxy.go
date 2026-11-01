@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/json"
 	"io"
+	"mime"
 	"net/http"
 	"seanime/internal/util"
 	"strings"
@@ -19,9 +20,14 @@ var imageProxyClient = &http.Client{
 }
 
 func (ip *ImageProxy) GetImage(url string, headers map[string]string) ([]byte, error) {
+	body, _, err := fetchImage(url, headers)
+	return body, err
+}
+
+func fetchImage(url string, headers map[string]string) ([]byte, string, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	for key, value := range headers {
@@ -30,20 +36,30 @@ func (ip *ImageProxy) GetImage(url string, headers map[string]string) ([]byte, e
 
 	resp, err := imageProxyClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return body, nil
+	return body, resp.Header.Get("Content-Type"), nil
+}
+
+func imageContentType(body []byte, upstream string) (string, bool) {
+	if sniffed := http.DetectContentType(body); strings.HasPrefix(sniffed, "image/") {
+		return sniffed, true
+	}
+	mediaType, _, err := mime.ParseMediaType(upstream)
+	if err != nil || !strings.HasPrefix(mediaType, "image/") || mediaType == "image/svg+xml" {
+		return "", false
+	}
+	return mediaType, true
 }
 
 func (ip *ImageProxy) setHeaders(c echo.Context) {
-	c.Response().Header().Set("Cache-Control", "private, max-age=31536000")
 	c.Response().Header().Set("X-Content-Type-Options", "nosniff")
 }
 
@@ -63,14 +79,15 @@ func (ip *ImageProxy) ProxyImage(c echo.Context) (err error) {
 	}
 
 	ip.setHeaders(c)
-	imageBuffer, err := ip.GetImage(url, headers)
+	imageBuffer, upstreamType, err := fetchImage(url, headers)
 	if err != nil {
 		return c.String(echo.ErrInternalServerError.Code, "Error fetching image")
 	}
 
-	contentType := http.DetectContentType(imageBuffer)
-	if !strings.HasPrefix(contentType, "image/") {
+	contentType, ok := imageContentType(imageBuffer, upstreamType)
+	if !ok {
 		return c.String(http.StatusBadGateway, "Not an image")
 	}
+	c.Response().Header().Set("Cache-Control", "private, max-age=31536000")
 	return c.Blob(http.StatusOK, contentType, imageBuffer)
 }
