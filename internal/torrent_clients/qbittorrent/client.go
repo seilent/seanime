@@ -57,7 +57,8 @@ func NewClient(opts *NewClientOptions) *Client {
 		baseURL = fmt.Sprintf("https://%s:%d/api/v2", opts.Host, opts.Port)
 	}
 
-	client := &http.Client{}
+	jar, _ := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	client := &http.Client{Jar: jar}
 	return &Client{
 		baseURL:          baseURL,
 		logger:           opts.Logger,
@@ -132,16 +133,6 @@ func (c *Client) Login() error {
 	if len(resp.Cookies()) < 1 {
 		return fmt.Errorf("no cookies in login response")
 	}
-	apiURL, err := url.Parse(c.baseURL)
-	if err != nil {
-		return err
-	}
-	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
-	if err != nil {
-		return err
-	}
-	jar.SetCookies(apiURL, []*http.Cookie{resp.Cookies()[0]})
-	c.client.Jar = jar
 	return nil
 }
 
