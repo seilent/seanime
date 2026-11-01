@@ -26,12 +26,10 @@ func ExtractAttachment(ffmpegPath string, path string, hash string, mediaInfo *M
 	_ = os.MkdirAll(attachmentPath, 0755)
 	_ = os.MkdirAll(subsPath, 0755)
 
-	subsDir, err := os.ReadDir(subsPath)
-	if err == nil {
-		if len(subsDir) == len(mediaInfo.Subtitles) {
-			logger.Debug().Str("hash", hash).Msgf("videofile: Attachments already extracted")
-			return
-		}
+	if subtitlesExtracted(subsPath, mediaInfo) {
+		logger.Debug().Str("hash", hash).Msgf("videofile: Attachments already extracted")
+		finishSubrip(subsPath, attachmentPath, mediaInfo, logger)
+		return nil
 	}
 
 	for _, sub := range mediaInfo.Subtitles {
@@ -64,7 +62,7 @@ func ExtractAttachment(ffmpegPath string, path string, hash string, mediaInfo *M
 			cmd.Args = append(
 				cmd.Args,
 				"-map", fmt.Sprintf("0:s:%d", sub.Index),
-				"-c:s", "copy",
+				"-c:s", subtitleCodecArg(sub),
 				fmt.Sprintf("%s/%d.%s", subsPath, sub.Index, *ext),
 			)
 		}
@@ -76,7 +74,21 @@ func ExtractAttachment(ffmpegPath string, path string, hash string, mediaInfo *M
 	if err != nil {
 		logger.Error().Err(err).Msgf("videofile: Error starting FFmpeg")
 		crashlog.GlobalCrashLogger.WriteAreaLogToFile(crashLogger)
+		return err
 	}
 
-	return err
+	finishSubrip(subsPath, attachmentPath, mediaInfo, logger)
+	return nil
+}
+
+func subtitlesExtracted(subsPath string, mediaInfo *MediaInfo) bool {
+	for _, sub := range mediaInfo.Subtitles {
+		if sub.Extension == nil {
+			return false
+		}
+		if _, err := os.Stat(fmt.Sprintf("%s/%d.%s", subsPath, sub.Index, *sub.Extension)); err != nil {
+			return false
+		}
+	}
+	return true
 }

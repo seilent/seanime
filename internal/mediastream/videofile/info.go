@@ -143,6 +143,7 @@ func (e *MediaInfoExtractor) GetInfo(ffprobePath, path string) (mi *MediaInfo, e
 	// Look in the cache
 	if found, _ := e.fileCacher.Get(bucket, hash, &mi); found {
 		e.logger.Debug().Str("hash", hash).Msg("mediastream: Media information cache HIT [MediaInfoExtractor]")
+		serveSubripAsASS(mi)
 		return mi, nil
 	}
 
@@ -155,7 +156,7 @@ func (e *MediaInfoExtractor) GetInfo(ffprobePath, path string) (mi *MediaInfo, e
 		return nil, err
 	}
 
-	// Save in the cache
+	serveSubripAsASS(mi)
 	_ = e.fileCacher.Set(bucket, hash, mi)
 
 	e.logger.Debug().Str("hash", hash).Msg("mediastream: Extracted media information using FFprobe")
