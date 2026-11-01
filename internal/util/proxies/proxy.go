@@ -20,6 +20,7 @@ var proxyUA = util.GetRandomUserAgent()
 
 var videoProxyClient = &http.Client{
 	Transport: &http.Transport{
+		DialContext:         publicDialer.DialContext,
 		MaxIdleConns:        100,
 		MaxIdleConnsPerHost: 10,
 		IdleConnTimeout:     90 * time.Second,
@@ -74,8 +75,10 @@ func VideoProxy(c echo.Context) (err error) {
 			}
 		}
 	}
+	c.Response().Header().Del("Set-Cookie")
+	c.Response().Header().Set("X-Content-Type-Options", "nosniff")
+	c.Response().Header().Set("Content-Security-Policy", "sandbox")
 
-	// Set CORS headers
 	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
 	c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	c.Response().Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
