@@ -18,6 +18,8 @@ import (
 
 var proxyUA = util.GetRandomUserAgent()
 
+var proxiedResponseHeaders = []string{"Content-Type", "Content-Range", "Accept-Ranges", "Cache-Control", "ETag", "Last-Modified"}
+
 var videoProxyClient = &http.Client{
 	Transport: &http.Transport{
 		DialContext:         publicDialer.DialContext,
@@ -67,15 +69,11 @@ func VideoProxy(c echo.Context) (err error) {
 	}
 	defer resp.Body.Close()
 
-	// Copy response headers
-	for k, vs := range resp.Header {
-		for _, v := range vs {
-			if !strings.EqualFold(k, "Content-Length") { // Skip Content-Length header, fixes net::ERR_CONTENT_LENGTH_MISMATCH
-				c.Response().Header().Set(k, v)
-			}
+	for _, k := range proxiedResponseHeaders {
+		if v := resp.Header.Get(k); v != "" {
+			c.Response().Header().Set(k, v)
 		}
 	}
-	c.Response().Header().Del("Set-Cookie")
 	c.Response().Header().Set("X-Content-Type-Options", "nosniff")
 	c.Response().Header().Set("Content-Security-Policy", "sandbox")
 

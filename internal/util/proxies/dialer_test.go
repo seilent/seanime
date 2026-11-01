@@ -55,11 +55,18 @@ func TestProxiesRefuseLoopback(t *testing.T) {
 func TestImageProxyServesOnlyImages(t *testing.T) {
 	png := []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR")
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/page.png" {
+		switch r.URL.Path {
+		case "/page.png":
 			_, _ = w.Write(png)
-			return
+		case "/page.avif":
+			w.Header().Set("Content-Type", "image/avif")
+			_, _ = w.Write(append([]byte{0, 0, 0, 0x1c}, []byte("ftypavif\x00\x00\x00\x00avifmif1miaf")...))
+		case "/page.svg":
+			w.Header().Set("Content-Type", "image/svg+xml")
+			_, _ = w.Write([]byte(`<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>`))
+		default:
+			_, _ = w.Write([]byte("<html><script>alert(1)</script></html>"))
 		}
-		_, _ = w.Write([]byte("<html><script>alert(1)</script></html>"))
 	}))
 	defer srv.Close()
 
@@ -79,8 +86,42 @@ func TestImageProxyServesOnlyImages(t *testing.T) {
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, "image/png", rec.Header().Get("Content-Type"))
 	require.Equal(t, "nosniff", rec.Header().Get("X-Content-Type-Options"))
+	require.NotEmpty(t, rec.Header().Get("Cache-Control"))
 
-	rec = get(srv.URL + "/page.html")
-	require.Equal(t, http.StatusBadGateway, rec.Code)
-	require.NotContains(t, rec.Body.String(), "script")
+	rec = get(srv.URL + "/page.avif")
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.Equal(t, "image/avif", rec.Header().Get("Content-Type"))
+
+	for _, page := range []string{"/page.html", "/page.svg"} {
+		rec = get(srv.URL + page)
+		require.Equal(t, http.StatusBadGateway, rec.Code, page)
+		require.NotContains(t, rec.Body.String(), "script", page)
+		require.Empty(t, rec.Header().Get("Cache-Control"), page)
+	}
+}
+
+func TestVideoProxyHeaderAllowlist(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Set-Cookie", "seanime-session=evil")
+		w.Header().Set("Clear-Site-Data", `"*"`)
+		w.Header().Set("Refresh", "0; url=https://example.com")
+		_, _ = w.Write([]byte("<html></html>"))
+	}))
+	defer srv.Close()
+
+	saved := videoProxyClient
+	videoProxyClient = srv.Client()
+	defer func() { videoProxyClient = saved }()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/proxy?url="+url.QueryEscape(srv.URL+"/page"), nil)
+	rec := httptest.NewRecorder()
+	require.NoError(t, VideoProxy(e.NewContext(req, rec)))
+	require.Equal(t, "text/html", rec.Header().Get("Content-Type"))
+	require.Equal(t, "sandbox", rec.Header().Get("Content-Security-Policy"))
+	require.Equal(t, "nosniff", rec.Header().Get("X-Content-Type-Options"))
+	for _, h := range []string{"Set-Cookie", "Clear-Site-Data", "Refresh"} {
+		require.Empty(t, rec.Header().Get(h), h)
+	}
 }
